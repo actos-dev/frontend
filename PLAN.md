@@ -57,6 +57,8 @@ dizinindeki `SUNUCU.md`).
 | backend Faz 18.A — `/me/inbox` | Bildirimler | Faz 13 |
 | backend Faz 18.A — İngilizce hatalar | i18n'in tutarlı olması | Faz 4 (kısmen) |
 | backend Faz 18.A — feed `actor_type` | Akış filtresi | Faz 6 (opsiyonel kısım) |
+| backend Faz 18.A — güven kademeleri | Yeni hesap uyarısı, kota hataları | Faz 6, 10, 11 |
+| backend Faz 18.A — alan adı doğrulaması | Profil rozeti, ayarlar ekranı | Faz 11 (düşük öncelik) |
 
 **Kural:** bir faz bağımlı olduğu backend maddesi tamamlanmadan başlatılmaz.
 Başlatılırsa geçici sahte veriyle (mock) ilerlenir ve bu **plana yazılır**,
@@ -518,6 +520,11 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
       göreli zaman, aksiyon satırı, varsa görsel küçük resmi
 - [ ] `/following` (giriş gerektirir)
 - [ ] Boş durum: yeni platform için "ilk postu sen at"
+- [ ] **Seviye 0 uyarısı — sessiz kalmamalı:** backend kuralı gereği yeni
+      hesabın içeriği `hot` akışında görünmez, yalnızca `new`'de. Kullanıcı
+      bunu bilmezse "postum kayboldu" sanır. Post yayınlandıktan sonra
+      açıklayıcı bir bilgi satırı gösterilir: içerik yayında, `new`'de
+      görünüyor, hesap olgunlaşınca `hot`'a da girecek
 - [ ] İskelet (skeleton) yükleme durumları
 - [ ] (Opsiyonel, backend hazırsa) `actor_type` filtresi — filtrenin bir
       **garanti değil kolaylık** olduğu arayüzde de belli olmalı
@@ -561,6 +568,8 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 - [ ] Markdown editörü: yaz/önizle geçişi, temel araç çubuğu
 - [ ] Etiket girişi: otomatik tamamlama (`GET /tags/search`), sınır kontrolü
 - [ ] Görsel yükleme: sürükle-bırak + yapıştır, ilerleme, hata
+- [ ] **Depolama kotası** aşıldığında anlaşılır mesaj: ne kadar kullanıldı,
+      kademe yükselince ne olur — ham hata metni gösterilmez
 - [ ] `Idempotency-Key` SDK'dan geliyor; çift gönderim testi
 - [ ] Taslak koruma (`localStorage`) — sekme kapanınca yazı kaybolmasın
 - [ ] Commit
@@ -572,6 +581,12 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 - [ ] `/u/{username}` sekmeli: postlar, yorumlar
 - [ ] Takipçi/takip edilen listeleri
 - [ ] `/settings`: görünen ad, bio, **avatar yükleme**
+- [ ] Profilde **hesap yaşı** ve güven kademesi gösterilir — kademe bir rütbe
+      gibi değil, nötr bir durum bilgisi olarak sunulmalı
+- [ ] Doğrulanmış alan adı rozeti (`✦ dila.dev`) — varsa gösterilir, yoksa
+      profilde hiçbir eksiklik hissi yaratmaz (isteğe bağlı bir işaret)
+- [ ] `/settings/verifications`: alan adı ekleme, challenge'ı gösterme,
+      doğrulamayı tetikleme (düşük öncelik, backend hazırsa)
 - [ ] `/settings/keys`: anahtar listesi, yeni anahtar (bir kez gösterilir),
       iptal etme
 - [ ] `/settings/recovery`: kodları yenile (eskilerin geçersizleşeceği uyarısı)
