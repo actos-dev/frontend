@@ -49,16 +49,24 @@ dizinindeki `SUNUCU.md`).
 
 ### 0.2. Bağımlılıklar — bu plan tek başına başlayamaz
 
-| Bağımlılık | Ne için | Engellediği fazlar |
-|---|---|---|
-| `actos-dev/node` SDK | Tüm veri erişimi | Faz 4'ten sonrası |
-| backend Faz 18.A — `body_html` | Post gövdesini güvenle basmak | Faz 7 |
-| backend Faz 18.A — avatar | Profil ve feed avatarları | Faz 6, 11 |
-| backend Faz 18.A — `/me/inbox` | Bildirimler | Faz 13 |
-| backend Faz 18.A — İngilizce hatalar | i18n'in tutarlı olması | Faz 4 (kısmen) |
-| backend Faz 18.A — feed `actor_type` | Akış filtresi | Faz 6 (opsiyonel kısım) |
-| backend Faz 18.A — güven kademeleri | Yeni hesap uyarısı, kota hataları | Faz 6, 10, 11 |
-| backend Faz 18.A — alan adı doğrulaması | Profil rozeti, ayarlar ekranı | Faz 11 (düşük öncelik) |
+| Bağımlılık | Ne için | Engellediği fazlar | Durum (2026-09-03) |
+|---|---|---|---|
+| `actos-dev/node` SDK | Tüm veri erişimi | Faz 4'ten sonrası | ⏳ kodlandı, inbox parçası eksik |
+| backend Faz 18.A — `body_html` | Post gövdesini güvenle basmak | Faz 7 | ✅ hazır |
+| backend Faz 18.A — avatar | Profil ve feed avatarları | Faz 6, 11 | ✅ hazır |
+| backend Faz 18.A — `/me/inbox` | Bildirimler | Faz 13 | ✅ hazır |
+| backend Faz 18.A — İngilizce hatalar | i18n'in tutarlı olması | Faz 4 (kısmen) | ✅ hazır |
+| backend Faz 18.A — feed `actor_type` | Akış filtresi | Faz 6 (opsiyonel kısım) | ✅ hazır |
+| backend Faz 18.A — güven kademeleri | Yeni hesap uyarısı, kota hataları | Faz 6, 10, 11 | ✅ hazır |
+| ~~alan adı doğrulaması~~ | ~~Profil rozeti, ayarlar ekranı~~ | — | ❌ **İPTAL** |
+
+
+**Backend Faz 18.A 2026-09-03'te tamamlandı** — yukarıdaki bağımlılıkların
+tamamı karşılandı. Tek istisna **alan adı doğrulaması: iptal edildi**, ertelenmedi.
+Backend'de SSRF yüzeyi ve DNS rebinding TOCTOU gerekçesiyle süresiz ertelendi
+(bkz. `actos-backend/NOTES.md` §9.2); `/me/verifications*` uçları hiç var
+olmadı ve v1'de olmayacak. **Profil doğrulama rozeti ve ayarlar ekranındaki
+doğrulama bölümü bu planda YAPILMAYACAK** — var olmayan bir uca arayüz çizilmez.
 
 **Kural:** bir faz bağımlı olduğu backend maddesi tamamlanmadan başlatılmaz.
 Başlatılırsa geçici sahte veriyle (mock) ilerlenir ve bu **plana yazılır**,
@@ -583,10 +591,10 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 - [ ] `/settings`: görünen ad, bio, **avatar yükleme**
 - [ ] Profilde **hesap yaşı** ve güven kademesi gösterilir — kademe bir rütbe
       gibi değil, nötr bir durum bilgisi olarak sunulmalı
-- [ ] Doğrulanmış alan adı rozeti (`✦ dila.dev`) — varsa gösterilir, yoksa
-      profilde hiçbir eksiklik hissi yaratmaz (isteğe bağlı bir işaret)
-- [ ] `/settings/verifications`: alan adı ekleme, challenge'ı gösterme,
-      doğrulamayı tetikleme (düşük öncelik, backend hazırsa)
+- ~~Doğrulanmış alan adı rozeti (`✦ dila.dev`)~~ — **İPTAL** (2026-09-03).
+      Backend'de alan adı doğrulaması süresiz ertelendi (`actos-backend/NOTES.md`
+      §9.2); `/me/verifications*` uçları yok. Var olmayan uca arayüz çizilmez
+- ~~`/settings/verifications`~~ — **İPTAL**, aynı gerekçe
 - [ ] `/settings/keys`: anahtar listesi, yeni anahtar (bir kez gösterilir),
       iptal etme
 - [ ] `/settings/recovery`: kodları yenile (eskilerin geçersizleşeceği uyarısı)
