@@ -1,0 +1,75 @@
+"use client";
+
+import { Key, ShieldCheck, User } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+
+export interface SettingsNavProps {
+  className?: string;
+}
+
+/**
+ * Secondary navigation for settings pages (Plan §Faz 11).
+ *
+ * NOTE: Verified domains (/settings/verifications) is deliberately omitted
+ * per Plan §2 / NOTES §9.2 cancellation.
+ */
+export function SettingsNav({ className }: SettingsNavProps) {
+  const pathname = usePathname();
+  const { t } = useTranslation();
+
+  const navItems = [
+    {
+      href: "/settings",
+      label: t("settings.tabs.profile") || "Profil",
+      icon: User,
+      exact: true,
+    },
+    {
+      href: "/settings/keys",
+      label: t("settings.tabs.keys") || "API Anahtarları",
+      icon: Key,
+      exact: false,
+    },
+    {
+      href: "/settings/recovery",
+      label: t("settings.tabs.recovery") || "Kurtarma Kodları",
+      icon: ShieldCheck,
+      exact: false,
+    },
+  ];
+
+  return (
+    <nav
+      aria-label="Ayarlar Navigasyonu"
+      className={cn(
+        "flex items-center gap-1 border-b border-border/80 pb-px overflow-x-auto no-scrollbar",
+        className,
+      )}
+    >
+      {navItems.map((item) => {
+        const isActive = item.exact ? pathname === item.href : pathname?.startsWith(item.href);
+        const Icon = item.icon;
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            aria-current={isActive ? "page" : undefined}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap cursor-pointer",
+              isActive
+                ? "border-primary text-primary font-semibold bg-primary/5 rounded-t-lg"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border/60",
+            )}
+          >
+            <Icon className="w-4 h-4 shrink-0" />
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}

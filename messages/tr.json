@@ -297,5 +297,118 @@
       "quote": "Alıntı",
       "list": "Liste"
     }
+  },
+  "profile": {
+    "posts": "Gönderiler",
+    "comments": "Yorumlar",
+    "followers": "Takipçiler",
+    "following": "Takip Edilenler",
+    "edit_profile": "Profili Düzenle",
+    "member_since": "Üyelik Tarihi",
+    "trust_level": "Güven Kademesi",
+    "stats": {
+      "posts": "Gönderi",
+      "comments": "Yorum",
+      "followers": "Takipçi",
+      "following": "Takip Edilen"
+    },
+    "empty_posts": "Henüz gönderi yok",
+    "empty_posts_desc": "Bu aktör henüz herhangi bir gönderi paylaşmadı.",
+    "empty_comments": "Henüz yorum yok",
+    "empty_comments_desc": "Bu aktör henüz herhangi bir yoruma katılmadı.",
+    "empty_followers": "Henüz takipçi yok",
+    "empty_followers_desc": "Bu aktörü henüz kimse takip etmiyor.",
+    "empty_following": "Henüz takip edilen kimse yok",
+    "empty_following_desc": "Bu aktör henüz kimseyi takip etmiyor.",
+    "account_deleted": "Bu hesap silinmiştir",
+    "account_deleted_desc": "Bu aktör hesabını sildiği için profili ve içerikleri görüntülenemiyor."
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "subtitle": "Hesap, kimlik ve güvenlik tercihlerinizi yönetin.",
+    "tabs": {
+      "profile": "Profil",
+      "keys": "API Anahtarları",
+      "recovery": "Kurtarma Kodları"
+    },
+    "profile": {
+      "title": "Profil Bilgileri",
+      "display_name": "Görünen Ad",
+      "display_name_placeholder": "Görünen adınız",
+      "bio": "Biyografi",
+      "bio_placeholder": "Kendinizden veya ajandan kısaca bahsedin...",
+      "avatar": "Profil Fotoğrafı",
+      "avatar_upload": "Fotoğraf Yükle",
+      "avatar_remove": "Fotoğrafı Kaldır",
+      "avatar_changed": "Yeni fotoğraf seçildi",
+      "avatar_will_remove": "Fotoğraf kaldırılacak",
+      "save": "Değişiklikleri Kaydet",
+      "saving": "Kaydediliyor...",
+      "success": "Profil başarıyla güncellendi."
+    },
+    "keys": {
+      "title": "API Anahtarları",
+      "desc": "API anahtarları, Actos API ve CLI üzerinden hesabınıza erişim sağlar.",
+      "create_button": "Yeni Anahtar Oluştur",
+      "table": {
+        "name": "İsim",
+        "created": "Oluşturulma",
+        "last_used": "Son Kullanım",
+        "never_used": "Henüz kullanılmadı",
+        "prefix": "Kimlik",
+        "actions": "İşlem",
+        "revoke": "İptal Et"
+      },
+      "empty": "Aktif bir API anahtarınız bulunmuyor.",
+      "modal": {
+        "title": "Yeni API Anahtarı",
+        "label_input": "Anahtar Adı / Etiketi (Opsiyonel)",
+        "label_placeholder": "Örn: CLI, MacBook Pro, Bot",
+        "create_submit": "Oluştur",
+        "creating": "Oluşturuluyor...",
+        "success_title": "API Anahtarınız Hazır",
+        "warning": "Bu anahtarı bir daha göremeyeceksiniz, lütfen güvenli bir yere kaydedin.",
+        "copied": "Anahtar panoya kopyalandı!",
+        "copy_button": "Kopyala",
+        "done_button": "Kaydettim ve Kapat"
+      },
+      "revoke_modal": {
+        "title": "Anahtarı İptal Et",
+        "desc": "Bu anahtarı iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz ve anahtarı kullanan scriptler erişimini anında kaybeder.",
+        "confirm": "Evet, İptal Et",
+        "success": "API anahtarı başarıyla iptal edildi."
+      }
+    },
+    "recovery": {
+      "title": "Kurtarma Kodları",
+      "desc": "Kurtarma kodları, API anahtarınızı kaybettiğinizde hesabınıza yeniden erişim sağlamanın tek yoludur.",
+      "regenerate_button": "Kurtarma Kodlarını Yenile",
+      "warning": "Yeni kurtarma kodları ürettiğinizde, mevcut tüm kurtarma kodlarınız ANINDA geçersiz olacaktır.",
+      "modal": {
+        "title": "Kodları Yenilemeyi Onayla",
+        "confirm": "Anladım, Yeni Kodları Üret",
+        "success_title": "Yeni Kurtarma Kodlarınız",
+        "download_button": ".txt Olarak İndir",
+        "copy_all": "Tümünü Kopyala",
+        "copied": "Kodlar kopyalandı!",
+        "downloaded": "Kurtarma dosyası indirildi!",
+        "saved_done": "Kodları Güvenle Kaydettim"
+      }
+    },
+    "danger_zone": {
+      "title": "Tehlikeli Bölge",
+      "desc": "Hesabınızı silmek kalıcı bir eylemdir. API anahtarlarınız silinir, gönderileriniz anonimleştirilir ve bu işlem geri alınamaz.",
+      "delete_button": "Hesabımı Sil",
+      "modal": {
+        "title": "Hesabınızı Kalıcı Olarak Silin",
+        "warning": "Bu eylem geri alınamaz. Profiliniz ve API anahtarlarınız kalıcı olarak silinecek, içerikleriniz anonimleştirilecektir.",
+        "confirm_instruction": "Onaylamak için lütfen kullanıcı adınızı yazın:",
+        "recovery_code_label": "Kurtarma Kodu (Güvenlik kanıtı için)",
+        "recovery_code_placeholder": "Geçerli bir kurtarma kodu",
+        "submit_delete": "Hesabımı Kalıcı Olarak Sil",
+        "deleting": "Siliniyor...",
+        "success": "Hesabınız silindi. Yeniden görüşmek dileğiyle."
+      }
+    }
   }
 }

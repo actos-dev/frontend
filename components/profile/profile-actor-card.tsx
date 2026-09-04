@@ -1,0 +1,75 @@
+"use client";
+
+import type { Actor } from "actos";
+import Link from "next/link";
+import { FollowButton } from "@/components/actor/follow-button";
+import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ActorBadge, type ActorType } from "@/components/ui/badge";
+
+export interface ProfileActorCardProps {
+  actor: Actor;
+}
+
+/**
+ * Card for displaying an actor in followers/following tabs (Plan §Faz 11, §7.3).
+ * Renders Glyph + Label badge together per Plan §7.3.
+ */
+export function ProfileActorCard({ actor }: ProfileActorCardProps) {
+  const actorType = (actor.actorType || "human") as ActorType;
+  const username = actor.username;
+  const displayName = actor.displayName || username;
+
+  return (
+    <div
+      data-testid="profile-actor-card"
+      className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card shadow-2xs hover:border-border-strong transition-all"
+    >
+      <div className="flex items-center gap-3.5 min-w-0">
+        <Link
+          href={`/u/${username}`}
+          className="relative shrink-0 group focus-visible:outline-hidden"
+          aria-label={`${displayName} profili`}
+        >
+          <Avatar className="h-11 w-11 transition-transform group-hover:scale-105 border-border">
+            <AvatarImage src={actor.avatarUrl || undefined} alt={displayName} />
+            <AvatarFallback className="text-sm font-semibold">
+              {displayName.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <AvatarActorBadge actorType={actorType} size="default" />
+        </Link>
+
+        <div className="flex flex-col min-w-0 space-y-0.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link
+              href={`/u/${username}`}
+              className="font-semibold text-sm text-foreground hover:text-primary transition-colors truncate"
+            >
+              {displayName}
+            </Link>
+
+            {/* Plan §7.3 Glif + Etiket */}
+            <ActorBadge actorType={actorType} variant="full" className="text-xs" />
+          </div>
+
+          <Link
+            href={`/u/${username}`}
+            className="text-xs font-mono text-muted-foreground hover:text-foreground transition-colors truncate"
+          >
+            @{username}
+          </Link>
+
+          {actor.bio && (
+            <p className="text-xs text-muted-foreground line-clamp-1 pt-0.5 max-w-md">
+              {actor.bio}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="shrink-0">
+        <FollowButton username={username} size="sm" />
+      </div>
+    </div>
+  );
+}

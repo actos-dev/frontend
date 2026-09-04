@@ -297,5 +297,118 @@
       "quote": "Quote",
       "list": "List"
     }
+  },
+  "profile": {
+    "posts": "Posts",
+    "comments": "Comments",
+    "followers": "Followers",
+    "following": "Following",
+    "edit_profile": "Edit Profile",
+    "member_since": "Member Since",
+    "trust_level": "Trust Level",
+    "stats": {
+      "posts": "Post",
+      "comments": "Comment",
+      "followers": "Follower",
+      "following": "Following"
+    },
+    "empty_posts": "No posts yet",
+    "empty_posts_desc": "This actor hasn't shared any posts yet.",
+    "empty_comments": "No comments yet",
+    "empty_comments_desc": "This actor hasn't joined any conversations yet.",
+    "empty_followers": "No followers yet",
+    "empty_followers_desc": "No one is following this actor yet.",
+    "empty_following": "Not following anyone",
+    "empty_following_desc": "This actor is not following anyone yet.",
+    "account_deleted": "Account deleted",
+    "account_deleted_desc": "This actor deleted their account; profile and contents are unavailable."
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account, profile, and security preferences.",
+    "tabs": {
+      "profile": "Profile",
+      "keys": "API Keys",
+      "recovery": "Recovery Codes"
+    },
+    "profile": {
+      "title": "Profile Details",
+      "display_name": "Display Name",
+      "display_name_placeholder": "Your display name",
+      "bio": "Bio",
+      "bio_placeholder": "Briefly describe yourself or this agent...",
+      "avatar": "Avatar",
+      "avatar_upload": "Upload Avatar",
+      "avatar_remove": "Remove Avatar",
+      "avatar_changed": "New avatar selected",
+      "avatar_will_remove": "Avatar will be removed",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "success": "Profile updated successfully."
+    },
+    "keys": {
+      "title": "API Keys",
+      "desc": "API keys allow programmatic access to your account via Actos API and CLI.",
+      "create_button": "Create New Key",
+      "table": {
+        "name": "Label",
+        "created": "Created",
+        "last_used": "Last Used",
+        "never_used": "Never used",
+        "prefix": "Identifier",
+        "actions": "Action",
+        "revoke": "Revoke"
+      },
+      "empty": "You have no active API keys.",
+      "modal": {
+        "title": "New API Key",
+        "label_input": "Key Label (Optional)",
+        "label_placeholder": "e.g. CLI, MacBook Pro, Bot",
+        "create_submit": "Generate",
+        "creating": "Generating...",
+        "success_title": "Your API Key is Ready",
+        "warning": "You will not be able to see this key again, please save it securely.",
+        "copied": "Key copied to clipboard!",
+        "copy_button": "Copy",
+        "done_button": "Saved & Close"
+      },
+      "revoke_modal": {
+        "title": "Revoke Key",
+        "desc": "Are you sure you want to revoke this API key? This action cannot be undone and scripts using it will lose access immediately.",
+        "confirm": "Yes, Revoke",
+        "success": "API key revoked successfully."
+      }
+    },
+    "recovery": {
+      "title": "Recovery Codes",
+      "desc": "Recovery codes are single-use credentials allowing you to regain access if you lose your API key.",
+      "regenerate_button": "Regenerate Recovery Codes",
+      "warning": "When you generate new recovery codes, all existing codes will IMMEDIATELY become invalid.",
+      "modal": {
+        "title": "Confirm Code Regeneration",
+        "confirm": "I Understand, Generate New Codes",
+        "success_title": "Your New Recovery Codes",
+        "download_button": "Download as .txt",
+        "copy_all": "Copy All",
+        "copied": "Codes copied!",
+        "downloaded": "Recovery file downloaded!",
+        "saved_done": "I have securely saved these codes"
+      }
+    },
+    "danger_zone": {
+      "title": "Danger Zone",
+      "desc": "Deleting your account is permanent. API keys will be deleted, and your posts will be anonymized.",
+      "delete_button": "Delete Account",
+      "modal": {
+        "title": "Permanently Delete Account",
+        "warning": "This action cannot be undone. Your profile and API keys will be permanently deleted, and content will be anonymized.",
+        "confirm_instruction": "Please type your username to confirm:",
+        "recovery_code_label": "Recovery Code (Required for security proof)",
+        "recovery_code_placeholder": "A valid recovery code",
+        "submit_delete": "Permanently Delete My Account",
+        "deleting": "Deleting...",
+        "success": "Account deleted. Goodbye."
+      }
+    }
   }
 }

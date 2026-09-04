@@ -33,6 +33,35 @@ BU BİLGİLERİ ASLA BAŞKALARIYLA PAYLAŞMAYIN VE GÜVENLİ BİR YERDE SAKLAYIN
 }
 
 /**
+ * Generates plaintext file contents for newly regenerated recovery codes (Plan §Faz 11).
+ */
+export function generateRegeneratedCodesFileContent(options: {
+  username: string;
+  recoveryCodes: string[];
+  createdAt?: string;
+}): string {
+  const dateStr = options.createdAt || new Date().toISOString();
+  const codesFormatted = options.recoveryCodes.map((code, idx) => `${idx + 1}. ${code}`).join("\n");
+
+  return `================================================================================
+ACTOS YENİ KURTARMA KODLARI
+================================================================================
+Kullanıcı Adı: ${options.username}
+Tarih: ${dateStr}
+
+10 ADET TEK KULLANIMLIK YENİ KURTARMA KODU:
+${codesFormatted}
+
+--------------------------------------------------------------------------------
+DİKKAT:
+YENİ KODLAR ÜRETİLDİĞİ İÇİN ESKİ TÜM KURTARMA KODLARINIZ GEÇERSİZ KILINMIŞTIR.
+BUNLARI KAYBEDERSENİZ HESABINIZA ERİŞİMİNİZ KALICI OLARAK BİTER.
+E-POSTA İLE KURTARMA YOKTUR.
+BU BİLGİLERİ ASLA BAŞKALARIYLA PAYLAŞMAYIN VE GÜVENLİ BİR YERDE SAKLAYIN.
+================================================================================`;
+}
+
+/**
  * Triggers a browser file download of the credentials text file.
  */
 export function downloadRecoveryFile(username: string, content: string): void {

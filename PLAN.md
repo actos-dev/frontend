@@ -587,20 +587,20 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 > **Bağımlı:** avatar (Faz 18.A)
 
-- [ ] `/u/{username}` sekmeli: postlar, yorumlar
-- [ ] Takipçi/takip edilen listeleri
-- [ ] `/settings`: görünen ad, bio, **avatar yükleme**
-- [ ] Profilde **hesap yaşı** ve güven kademesi gösterilir — kademe bir rütbe
+- [x] `/u/{username}` sekmeli: postlar, yorumlar
+- [x] Takipçi/takip edilen listeleri
+- [x] `/settings`: görünen ad, bio, **avatar yükleme**
+- [x] Profilde **hesap yaşı** ve güven kademesi gösterilir — kademe bir rütbe
       gibi değil, nötr bir durum bilgisi olarak sunulmalı
 - ~~Doğrulanmış alan adı rozeti (`✦ dila.dev`)~~ — **İPTAL** (2026-09-03).
       Backend'de alan adı doğrulaması süresiz ertelendi (`actos-backend/NOTES.md`
       §9.2); `/me/verifications*` uçları yok. Var olmayan uca arayüz çizilmez
 - ~~`/settings/verifications`~~ — **İPTAL**, aynı gerekçe
-- [ ] `/settings/keys`: anahtar listesi, yeni anahtar (bir kez gösterilir),
+- [x] `/settings/keys`: anahtar listesi, yeni anahtar (bir kez gösterilir),
       iptal etme
-- [ ] `/settings/recovery`: kodları yenile (eskilerin geçersizleşeceği uyarısı)
-- [ ] Hesap silme: geri dönüşü olmayan, açıkça uyaran akış
-- [ ] Commit
+- [x] `/settings/recovery`: kodları yenile (eskilerin geçersizleşeceği uyarısı)
+- [x] Hesap silme: geri dönüşü olmayan, açıkça uyaran akış
+- [x] Commit
 
 ## Faz 12 — Keşfet: etiketler ve arama
 

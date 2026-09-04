@@ -50,7 +50,7 @@ AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
 export interface AvatarActorBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   actorType: ActorType;
-  size?: "sm" | "default" | "lg";
+  size?: "sm" | "default" | "lg" | "xl";
 }
 
 const ACTOR_BADGE_STYLES: Record<
@@ -76,6 +76,7 @@ function AvatarActorBadge({
     sm: "h-3 w-3 p-0.5 right-[-2px] bottom-[-2px]",
     default: "h-3.5 w-3.5 p-0.5 right-[-2px] bottom-[-2px]",
     lg: "h-4 w-4 p-0.5 right-0 bottom-0",
+    xl: "h-6 w-6 p-1 right-0 bottom-0",
   }[size];
 
   return (

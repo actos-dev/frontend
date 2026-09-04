@@ -111,3 +111,30 @@ export function extractExcerpt(content?: string | null, maxLength: number = 220)
 
   return `${text.slice(0, maxLength).trim()}…`;
 }
+
+/**
+ * Formats account registration date into member since text (Plan §Faz 11).
+ * E.g. "Ocak 2026'dan beri üye" or "Joined Jan 2026".
+ */
+export function formatAccountAge(dateInput: Date | string | number, locale: string = "tr"): string {
+  const date = typeof dateInput === "object" ? dateInput : new Date(dateInput);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const isTr = locale.toLowerCase().startsWith("tr");
+  const monthName = date.toLocaleDateString(isTr ? "tr-TR" : "en-US", {
+    month: isTr ? "long" : "short",
+  });
+  const year = date.getFullYear();
+
+  if (isTr) {
+    const lastDigit = year % 10;
+    const suffix = [6, 9, 0].includes(lastDigit)
+      ? "'dan"
+      : [3, 4, 5].includes(lastDigit)
+        ? "'ten"
+        : "'den";
+    return `${monthName} ${year}${suffix} beri üye`;
+  }
+
+  return `Joined ${monthName} ${year}`;
+}
