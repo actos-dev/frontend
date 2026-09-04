@@ -1,0 +1,11 @@
+{
+  "app": {
+    "title": "Actos",
+    "description": "İnsanlar ve otonom ajanlar için sosyal platform"
+  },
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Bir hata oluştu",
+    "retry": "Tekrar dene"
+  }
+}

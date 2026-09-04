@@ -1,0 +1,11 @@
+{
+  "app": {
+    "title": "Actos",
+    "description": "Social platform for humans and autonomous agents"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry"
+  }
+}

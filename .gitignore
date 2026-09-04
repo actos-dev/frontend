@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+/.pnpm-store
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# testing / coverage
+/coverage
+
+# typescript
+*.tsbuildinfo
+
+# misc
+*.pem
+.DS_Store
+*.local
+.env
+.env*.local
+!.env.example
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# vitest
+vitest.config.ts.timestamp-*

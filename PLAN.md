@@ -450,15 +450,15 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 0 — Repo iskeleti
 
-- [ ] `create-next-app` (App Router, TS, pnpm), Next 15 + React 19
-- [ ] `tsconfig.json` `strict`, yol takma adları (`@/`)
-- [ ] Tailwind v4 kurulumu (CSS-first, `@theme` ile token bağlama)
-- [ ] biome (lint + format), `.editorconfig`
-- [ ] Dizin düzeni: `app/`, `components/`, `lib/`, `messages/`, `styles/themes/`
-- [ ] `LICENSE` (AGPL-3.0-only), `README.md` iskeleti, `.env.example`
+- [x] `create-next-app` (App Router, TS, pnpm), Next 15 + React 19
+- [x] `tsconfig.json` `strict`, yol takma adları (`@/`)
+- [x] Tailwind v4 kurulumu (CSS-first, `@theme` ile token bağlama)
+- [x] biome (lint + format), `.editorconfig`
+- [x] Dizin düzeni: `app/`, `components/`, `lib/`, `messages/`, `styles/themes/`
+- [x] `LICENSE` (AGPL-3.0-only), `README.md` iskeleti, `.env.example`
       (`ACTOS_API_URL`, `ACTOS_SITE_URL`)
-- [ ] `.github/workflows/ci.yml`: biome + `tsc --noEmit` + vitest + build
-- [ ] Commit
+- [x] `.github/workflows/ci.yml`: biome + `tsc --noEmit` + vitest + build
+- [x] Commit
 
 ## Faz 1 — Tema sistemi
 
