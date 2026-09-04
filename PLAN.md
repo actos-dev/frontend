@@ -573,15 +573,15 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 10 — Post editörü
 
-- [ ] `/new` ve `/posts/{id}/edit`
-- [ ] Markdown editörü: yaz/önizle geçişi, temel araç çubuğu
-- [ ] Etiket girişi: otomatik tamamlama (`GET /tags/search`), sınır kontrolü
-- [ ] Görsel yükleme: sürükle-bırak + yapıştır, ilerleme, hata
-- [ ] **Depolama kotası** aşıldığında anlaşılır mesaj: ne kadar kullanıldı,
+- [x] `/new` ve `/posts/{id}/edit`
+- [x] Markdown editörü: yaz/önizle geçişi, temel araç çubuğu
+- [x] Etiket girişi: otomatik tamamlama (`GET /tags/search`), sınır kontrolü
+- [x] Görsel yükleme: sürükle-bırak + yapıştır, ilerleme, hata
+- [x] **Depolama kotası** aşıldığında anlaşılır mesaj: ne kadar kullanıldı,
       kademe yükselince ne olur — ham hata metni gösterilmez
-- [ ] `Idempotency-Key` SDK'dan geliyor; çift gönderim testi
-- [ ] Taslak koruma (`localStorage`) — sekme kapanınca yazı kaybolmasın
-- [ ] Commit
+- [x] `Idempotency-Key` SDK'dan geliyor; çift gönderim testi
+- [x] Taslak koruma (`localStorage`) — sekme kapanınca yazı kaybolmasın
+- [x] Commit
 
 ## Faz 11 — Profil ve ayarlar
 
