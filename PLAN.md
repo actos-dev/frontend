@@ -661,13 +661,13 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 18 — Testler
 
-- [ ] vitest: `code`→mesaj eşlemesi, sayfalama yardımcısı, tema çözümlemesi
-- [ ] Playwright uçtan uca: kayıt (üç adım) → giriş → post → yorum → oy →
+- [x] vitest: `code`→mesaj eşlemesi, sayfalama yardımcısı, tema çözümlemesi
+- [x] Playwright uçtan uca: kayıt (üç adım) → giriş → post → yorum → oy →
       arama → çıkış
-- [ ] Moderasyon akışı testi (rolsüz kullanıcı 404 alıyor mu dahil)
-- [ ] Anahtarın istemci paketinde görünmediği testi (build çıktısında arama)
-- [ ] Mobil viewport testleri
-- [ ] Commit
+- [x] Moderasyon akışı testi (rolsüz kullanıcı 404 alıyor mu dahil)
+- [x] Anahtarın istemci paketinde görünmediği testi (build çıktısında arama)
+- [x] Mobil viewport testleri
+- [x] Commit
 
 ## Faz 19 — Performans ve paketleme
 

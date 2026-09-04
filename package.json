@@ -12,6 +12,9 @@
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:all": "pnpm test && pnpm audit:bundle",
+    "audit:bundle": "npx tsx scripts/verify-client-bundle.ts",
     "check:contrast": "npx tsx scripts/check-theme-contrast.ts"
   },
   "dependencies": {
@@ -35,6 +38,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
