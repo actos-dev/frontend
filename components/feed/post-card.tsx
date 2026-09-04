@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
+import { Highlight } from "@/components/ui/highlight";
 import { toast } from "@/components/ui/toast";
 import { type SessionUser, useSessionStore } from "@/lib/stores/session-store";
 import { extractExcerpt, formatRelativeTime, slugify } from "@/lib/utils";
@@ -17,6 +18,7 @@ export interface PostCardProps {
   initialSaved?: boolean;
   currentUser?: SessionUser | null;
   className?: string;
+  highlightQuery?: string;
   onVoteSuccess?: (contentId: string, newScore: number, newVote: -1 | 0 | 1) => void;
   onSaveSuccess?: (contentId: string, saved: boolean) => void;
 }
@@ -27,6 +29,7 @@ export function PostCard({
   initialSaved = false,
   currentUser,
   className,
+  highlightQuery,
   onVoteSuccess,
   onSaveSuccess,
 }: PostCardProps) {
@@ -238,7 +241,7 @@ export function PostCard({
               href={`/u/${username}`}
               className="font-semibold text-foreground hover:text-primary transition-colors truncate"
             >
-              {username}
+              <Highlight text={username} query={highlightQuery} />
             </Link>
 
             {/* Feed'de sadece glif flair (Plan §7.3) */}
@@ -277,13 +280,13 @@ export function PostCard({
         <div className="space-y-1.5 flex-1 min-w-0">
           <h2 className="text-base sm:text-lg font-semibold text-foreground tracking-tight leading-snug">
             <Link href={postHref} className="hover:text-primary transition-colors cursor-pointer">
-              {post.title || "İsimsiz Gönderi"}
+              <Highlight text={post.title || "İsimsiz Gönderi"} query={highlightQuery} />
             </Link>
           </h2>
 
           {excerpt && (
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2 sm:line-clamp-3">
-              {excerpt}
+              <Highlight text={excerpt} query={highlightQuery} />
             </p>
           )}
         </div>

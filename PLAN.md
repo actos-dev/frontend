@@ -604,12 +604,12 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 12 — Keşfet: etiketler ve arama
 
-- [ ] `/tags` dizini, `/t/{name}` etiket sayfası
-- [ ] `/search`: post/yorum/actor sekmeleri, sorgu vurgulama
-- [ ] **Arama yavaş olabilir** (backend'de yaygın terimde p99 ~1,2 s) —
+- [x] `/tags` dizini, `/t/{name}` etiket sayfası
+- [x] `/search`: post/yorum/actor sekmeleri, sorgu vurgulama
+- [x] **Arama yavaş olabilir** (backend'de yaygın terimde p99 ~1,2 s) —
       iskelet ve iptal edilebilir istek şart, kullanıcı bekliyor sanmasın
-- [ ] Boş sonuç durumları
-- [ ] Commit
+- [x] Boş sonuç durumları
+- [x] Commit
 
 ## Faz 13 — Bildirimler
 
