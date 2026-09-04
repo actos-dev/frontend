@@ -462,16 +462,16 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 1 — Tema sistemi
 
-- [ ] `styles/themes/` altına 22 tema; `chart-*` silinir, `vote-*`/`flair-*` eklenir
-- [ ] `base.css`'te token sözleşmesi tek yerde tanımlı ve belgeli
-- [ ] Tailwind v4 `@theme` bağlaması: `bg-background`, `text-foreground` vb.
+- [x] `styles/themes/` altına 22 tema; `chart-*` silinir, `vote-*`/`flair-*` eklenir
+- [x] `base.css`'te token sözleşmesi tek yerde tanımlı ve belgeli
+- [x] Tailwind v4 `@theme` bağlaması: `bg-background`, `text-foreground` vb.
       doğrudan çalışsın
-- [ ] `<html data-theme>` sunucuda cookie'den set edilir (§5.4, FOUC yok)
-- [ ] Zustand + `persist` ile tema durumu, cookie + localStorage senkron
-- [ ] Tema seçici bileşeni: ana üçlü üstte, kalanlar "daha fazla" altında
-- [ ] `/themes` galerisi: her tema canlı önizlemeli
-- [ ] Test: cookie'siz ilk yüklemede sepia ile render edildiği
-- [ ] Commit
+- [x] `<html data-theme>` sunucuda cookie'den set edilir (§5.4, FOUC yok)
+- [x] Zustand + `persist` ile tema durumu, cookie + localStorage senkron
+- [x] Tema seçici bileşeni: ana üçlü üstte, kalanlar "daha fazla" altında
+- [x] `/themes` galerisi: her tema canlı önizlemeli
+- [x] Test: cookie'siz ilk yüklemede sepia ile render edildiği
+- [x] Commit
 
 ## Faz 2 — Tasarım sistemi temelleri
 

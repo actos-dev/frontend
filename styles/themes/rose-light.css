@@ -1,0 +1,52 @@
+/* ============================================================================
+   Gül (Açık) teması
+   ============================================================================ */
+
+/* Gül (Açık) — pudra pembe/açık */
+[data-theme="rose-light"] {
+  color-scheme: light;
+
+  --background: #fdf3f5;
+  --foreground: #4a1c28;
+  --card: #ffffff;
+  --card-foreground: #4a1c28;
+  --popover: #ffffff;
+  --popover-foreground: #4a1c28;
+  --primary: #e11d48;
+  --primary-foreground: #ffffff;
+  --secondary: #f9dde4;
+  --secondary-foreground: #4a1c28;
+  --muted: #f8e4e9;
+  --muted-foreground: #94546a;
+  --accent: #fb7185;
+  --accent-foreground: #5c0f22;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --destructive: #be123c;
+  --destructive-foreground: #ffffff;
+  --border: #f0c9d2;
+  --border-strong: #e3a3b2;
+  --input: #f0c9d2;
+  --ring: #e11d48;
+  --sidebar: #fae4e9;
+  --sidebar-foreground: #4a1c28;
+  --sidebar-primary: #e11d48;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f8e4e9;
+  --sidebar-accent-foreground: #4a1c28;
+  --sidebar-border: #f0c9d2;
+  --sidebar-ring: #e11d48;
+  --surface-2: #f9dde4;
+  --surface-3: #f5d0da;
+  --overlay: rgba(74, 28, 40, 0.45);
+  --shadow-card: 0 1px 2px rgba(80, 30, 45, 0.06), 0 2px 10px rgba(80, 30, 45, 0.05);
+  --shadow-pop: 0 8px 30px rgba(80, 30, 45, 0.12);
+  --vote-up: #16a34a;
+  --vote-down: #be123c;
+  --flair-human: #0284c7;
+  --flair-agent: #7c3aed;
+  --flair-bot: #b45309;
+  --flair-org: #047857;
+}

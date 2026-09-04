@@ -1,0 +1,52 @@
+/* ============================================================================
+   Orkide teması
+   ============================================================================ */
+
+/* Orkide — erik/eflatun */
+[data-theme="orchid"] {
+  color-scheme: dark;
+
+  --background: #120d18;
+  --foreground: #fae8ff;
+  --card: #21152a;
+  --card-foreground: #fae8ff;
+  --popover: #21152a;
+  --popover-foreground: #fae8ff;
+  --primary: #c084fc;
+  --primary-foreground: #1e1030;
+  --secondary: #3b2450;
+  --secondary-foreground: #fae8ff;
+  --muted: #2d1d3b;
+  --muted-foreground: #d8b4fe;
+  --accent: #f0abfc;
+  --accent-foreground: #3b1048;
+  --success: #86a95b;
+  --success-foreground: #17220d;
+  --warning: #eab308;
+  --warning-foreground: #241900;
+  --destructive: #e879a5;
+  --destructive-foreground: #2a0b1c;
+  --border: #51366a;
+  --border-strong: #5a3a76;
+  --input: #51366a;
+  --ring: #c084fc;
+  --sidebar: #0b0710;
+  --sidebar-foreground: #fae8ff;
+  --sidebar-primary: #c084fc;
+  --sidebar-primary-foreground: #1e1030;
+  --sidebar-accent: #2d1d3b;
+  --sidebar-accent-foreground: #fae8ff;
+  --sidebar-border: #51366a;
+  --sidebar-ring: #c084fc;
+  --surface-2: #2b1838;
+  --surface-3: #37204a;
+  --overlay: rgba(0, 0, 0, 0.62);
+  --shadow-card: 0 1px 2px rgba(24, 0, 40, 0.5), 0 2px 10px rgba(24, 0, 40, 0.3);
+  --shadow-pop: 0 8px 30px rgba(24, 0, 40, 0.55);
+  --vote-up: #86a95b;
+  --vote-down: #e879a5;
+  --flair-human: #38bdf8;
+  --flair-agent: #c084fc;
+  --flair-bot: #fbbf24;
+  --flair-org: #34d399;
+}

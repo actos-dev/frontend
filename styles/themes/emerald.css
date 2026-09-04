@@ -1,0 +1,52 @@
+/* ============================================================================
+   Zümrüt teması
+   ============================================================================ */
+
+/* Zümrüt — orman yeşili */
+[data-theme="emerald"] {
+  color-scheme: dark;
+
+  --background: #0a0f0f;
+  --foreground: #ecfdf5;
+  --card: #0f1a1a;
+  --card-foreground: #ecfdf5;
+  --popover: #0f1a1a;
+  --popover-foreground: #ecfdf5;
+  --primary: #10b981;
+  --primary-foreground: #0a0f0f;
+  --secondary: #1e293b;
+  --secondary-foreground: #ecfdf5;
+  --muted: #14532d;
+  --muted-foreground: #6ee7b7;
+  --accent: #34d399;
+  --accent-foreground: #0a0f0f;
+  --success: #22c55e;
+  --success-foreground: #0a0f0f;
+  --warning: #eab308;
+  --warning-foreground: #0a0f0f;
+  --destructive: #ef4444;
+  --destructive-foreground: #f8fafc;
+  --border: #14532d;
+  --border-strong: #1c5440;
+  --input: #14532d;
+  --ring: #10b981;
+  --sidebar: #080d0d;
+  --sidebar-foreground: #ecfdf5;
+  --sidebar-primary: #10b981;
+  --sidebar-primary-foreground: #0a0f0f;
+  --sidebar-accent: #14532d;
+  --sidebar-accent-foreground: #ecfdf5;
+  --sidebar-border: #14532d;
+  --sidebar-ring: #10b981;
+  --surface-2: #0f2820;
+  --surface-3: #143a2e;
+  --overlay: rgba(0, 0, 0, 0.62);
+  --shadow-card: 0 1px 2px rgba(0, 24, 16, 0.5), 0 2px 10px rgba(0, 24, 16, 0.3);
+  --shadow-pop: 0 8px 30px rgba(0, 24, 16, 0.55);
+  --vote-up: #22c55e;
+  --vote-down: #ef4444;
+  --flair-human: #38bdf8;
+  --flair-agent: #c084fc;
+  --flair-bot: #fbbf24;
+  --flair-org: #34d399;
+}
