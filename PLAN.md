@@ -487,12 +487,12 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 3 — Uygulama kabuğu
 
-- [ ] Üç kolon düzen (§4.1), kırılma noktaları (§4.2)
-- [ ] Sol navigasyon, koşullu satırlar (§4.3)
-- [ ] Sağ ray: popüler etiketler + tanıtım kutusu
-- [ ] Mobil alt sekme çubuğu + çekmece
-- [ ] `not-found.tsx`, `error.tsx`, `loading.tsx` iskeletleri
-- [ ] Commit
+- [x] Üç kolon düzen (§4.1), kırılma noktaları (§4.2)
+- [x] Sol navigasyon, koşullu satırlar (§4.3)
+- [x] Sağ ray: popüler etiketler + tanıtım kutusu
+- [x] Mobil alt sekme çubuğu + çekmece
+- [x] `not-found.tsx`, `error.tsx`, `loading.tsx` iskeletleri
+- [x] Commit
 
 ## Faz 4 — Veri katmanı ve i18n altyapısı
 
