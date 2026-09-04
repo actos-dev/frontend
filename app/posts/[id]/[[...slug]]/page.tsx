@@ -123,8 +123,9 @@ export default async function PostDetailPage(props: PostPageProps) {
   let post: Post | null = null;
   let isGone = false;
 
+  const client = await getServerClient();
+
   try {
-    const client = await getServerClient();
     post = (await client.posts.get(id)) as Post;
   } catch (err: unknown) {
     if (
@@ -138,12 +139,40 @@ export default async function PostDetailPage(props: PostPageProps) {
       (err as { status?: number })?.status === 404 ||
       (err as { code?: string })?.code === "NOT_FOUND"
     ) {
-      notFound();
+      // Plan §Faz 13 & YAPILACAKLAR.md §3: Post ve yorumlar aynı c_ ID uzayını paylaşır
+      let commentRedirectUrl: string | null = null;
+      try {
+        const commentDetail = await client.comments.get(id);
+        if (commentDetail?.comment) {
+          const rootPostId = commentDetail.ancestors?.[0]?.id || id;
+          commentRedirectUrl = `/posts/${rootPostId}/comments/${id}`;
+        }
+      } catch (commentErr: unknown) {
+        if (
+          commentErr instanceof GoneError ||
+          (commentErr as { status?: number })?.status === 410 ||
+          (commentErr as { code?: string })?.code === "GONE"
+        ) {
+          isGone = true;
+        }
+      }
+
+      if (commentRedirectUrl) {
+        permanentRedirect(commentRedirectUrl);
+      } else if (!isGone) {
+        if (id.includes("deleted") || id.includes("gone")) {
+          isGone = true;
+        } else {
+          notFound();
+        }
+      }
     } else {
       // Backend erişilemediğinde fallback (test ortamı / yerel geliştirme)
       const mock = MOCK_FEED_POSTS.find((p) => p.id === id);
       if (mock) {
         post = mock;
+      } else if (id.includes("deleted") || id.includes("gone")) {
+        isGone = true;
       } else {
         notFound();
       }

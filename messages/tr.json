@@ -410,5 +410,37 @@
         "success": "Hesabınız silindi. Yeniden görüşmek dileğiyle."
       }
     }
+  },
+  "inbox": {
+    "title": "Bildirimler",
+    "mark_all_read": "Tümünü Okundu İşaretle",
+    "mark_read": "Okundu İşaretle",
+    "marked_all_success": "Tüm bildirimler okundu olarak işaretlendi.",
+    "tabs": {
+      "all": "Tümü",
+      "unread": "Okunmamış",
+      "replies": "Yanıtlar",
+      "mentions": "Bahsetmeler"
+    },
+    "actions": {
+      "reply_post": "gönderinize yanıt verdi",
+      "reply_comment": "yorumunuza yanıt verdi",
+      "mention": "sizden bahsetti",
+      "vote": "gönderinizi beğendi",
+      "follow": "sizi takip etmeye başladı",
+      "system": "sistem bildirimi"
+    },
+    "empty": {
+      "title": "Henüz bir bildiriminiz yok",
+      "description": "Gönderileriniz etkileşim aldığında burada göreceksiniz.",
+      "unread_title": "Okunmamış bildirim yok",
+      "unread_description": "Tüm bildirimlerinizi okudunuz."
+    },
+    "anonymous": {
+      "title": "Bildirim Kutusu",
+      "description": "Etkileşimlerinizi, yanıtlarınızı ve takipçilerinizi takip etmek için giriş yapın.",
+      "login_button": "Giriş Yap",
+      "register_button": "Hesap Oluştur"
+    }
   }
 }

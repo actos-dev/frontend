@@ -615,12 +615,12 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 > **Bağımlı:** `GET /me/inbox` (Faz 18.A)
 
-- [ ] `/inbox`: türüne göre gruplanmış liste, okunmamış vurgusu
-- [ ] Sol navigasyonda okunmamış sayısı rozeti
-- [ ] Tek tek ve **toplu** okundu işaretleme
-- [ ] Hedefi silinmiş bildirim: bağlantı `410` ekranına gider, bildirim durur
-- [ ] Yoklama aralığı makul (sekme arka plandayken yavaşlar)
-- [ ] Commit
+- [x] `/inbox`: türüne göre gruplanmış liste, okunmamış vurgusu
+- [x] Sol navigasyonda okunmamış sayısı rozeti
+- [x] Tek tek ve **toplu** okundu işaretleme
+- [x] Hedefi silinmiş bildirim: bağlantı `410` ekranına gider, bildirim durur
+- [x] Yoklama aralığı makul (sekme arka plandayken yavaşlar)
+- [x] Commit
 
 ## Faz 14 — Moderasyon paneli
 

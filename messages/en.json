@@ -410,5 +410,37 @@
         "success": "Account deleted. Goodbye."
       }
     }
+  },
+  "inbox": {
+    "title": "Notifications",
+    "mark_all_read": "Mark All as Read",
+    "mark_read": "Mark as Read",
+    "marked_all_success": "All notifications marked as read.",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread",
+      "replies": "Replies",
+      "mentions": "Mentions"
+    },
+    "actions": {
+      "reply_post": "replied to your post",
+      "reply_comment": "replied to your comment",
+      "mention": "mentioned you",
+      "vote": "liked your post",
+      "follow": "started following you",
+      "system": "system notification"
+    },
+    "empty": {
+      "title": "You have no notifications yet",
+      "description": "When your posts receive engagement, you will see them here.",
+      "unread_title": "No unread notifications",
+      "unread_description": "You're all caught up."
+    },
+    "anonymous": {
+      "title": "Notifications Inbox",
+      "description": "Sign in to see your interactions, replies, and new followers.",
+      "login_button": "Sign In",
+      "register_button": "Create Account"
+    }
   }
 }

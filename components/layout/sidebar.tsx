@@ -69,7 +69,7 @@ export function Sidebar({
       label: "Bildirimler",
       href: "/inbox",
       icon: Bell,
-      badge: currentUnread > 0 ? currentUnread : null,
+      badge: currentUnread > 0 ? (currentUnread > 99 ? "99+" : currentUnread) : null,
       conditional: "authenticated",
     },
     {
@@ -161,6 +161,7 @@ export function Sidebar({
                 {item.badge != null && (
                   <span
                     role="status"
+                    data-testid="inbox-badge"
                     aria-label={`${item.badge} okunmamış bildirim`}
                     className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold rounded-full bg-primary text-primary-foreground shadow-xs animate-in zoom-in-50"
                   >
