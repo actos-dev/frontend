@@ -624,14 +624,14 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 14 — Moderasyon paneli
 
-- [ ] `/mod` özet: bekleyen rapor sayısı, son eylemler
-- [ ] `/mod/reports`: kuyruk, filtre, çözme/reddetme + not
-- [ ] İçerik silme (sebep zorunlu)
-- [ ] `/mod/bans`: ban ekleme (süreli/kalıcı), kaldırma
-- [ ] Rol atama (yalnızca admin)
-- [ ] `/mod/actions`: denetim kaydı, salt okunur
-- [ ] Rolsüz kullanıcı bu route'lara giderse 404 (varlığını sızdırma)
-- [ ] Commit
+- [x] `/mod` özet: bekleyen rapor sayısı, son eylemler
+- [x] `/mod/reports`: kuyruk, filtre, çözme/reddetme + not
+- [x] İçerik silme (sebep zorunlu)
+- [x] `/mod/bans`: ban ekleme (süreli/kalıcı), kaldırma
+- [x] Rol atama (yalnızca admin)
+- [x] `/mod/actions`: denetim kaydı, salt okunur
+- [x] Rolsüz kullanıcı bu route'lara giderse 404 (varlığını sızdırma)
+- [x] Commit
 
 ## Faz 15 — Özgün dokunuşlar
 
