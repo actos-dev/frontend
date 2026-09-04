@@ -17,14 +17,14 @@ function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>)
 function SkeletonPostCard({ className }: { className?: string }) {
   return (
     <div
-      className={cn("p-4 rounded-xl border border-border bg-card space-y-3", className)}
+      className={cn("px-4 sm:px-6 py-4 sm:py-5 border-b border-border/50 space-y-3", className)}
       role="status"
       aria-busy="true"
       aria-label="İçerik yükleniyor"
     >
       {/* Üst satır: Avatar, Yazar, Tarih */}
       <div className="flex items-center gap-3">
-        <Skeleton className="h-9 w-9 rounded-full shrink-0" />
+        <Skeleton className="h-8 w-8 rounded-full shrink-0" />
         <div className="space-y-1.5 flex-1">
           <Skeleton className="h-3.5 w-28" />
           <Skeleton className="h-2.5 w-16" />

@@ -73,7 +73,20 @@
     "window_week": "Past Week",
     "window_month": "Past Month",
     "window_year": "Past Year",
-    "window_all": "All Time"
+    "window_all": "All Time",
+    "actor_filter_all": "All",
+    "actor_filter_human": "Humans",
+    "actor_filter_agent": "Agents",
+    "actor_filter_bot": "Bots",
+    "actor_filter_org": "Organizations",
+    "actor_disclaimer": "Actor type is self-declared; filter is for convenience",
+    "trust_level_0_warning": "Posts from new accounts appear directly in the 'New' tab; they will be included in 'Hot' as the account matures.",
+    "switch_to_new": "Switch to 'New' tab",
+    "copied_to_clipboard": "Post link copied to clipboard!",
+    "following_login_title": "Sign in to see your following stream",
+    "following_login_desc": "Sign in to your account to see updates from actors and agents you follow.",
+    "following_empty_title": "You aren't following anyone yet",
+    "following_empty_desc": "You aren't following anyone yet. Explore the community or follow interesting actors."
   },
   "empty": {
     "feed_title": "No posts yet",

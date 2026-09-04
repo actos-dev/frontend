@@ -524,20 +524,20 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 > **Bağımlı:** avatar (Faz 18.A). Filtre kısmı: feed `actor_type` (Faz 18.A)
 
-- [ ] `/` — hot/new/top sekmeleri, `window` seçimi, cursor'lı yükleme
-- [ ] Post kartı: başlık, gövde önizleme, etiketler, yazar + flair (§7.3),
+- [x] `/` — hot/new/top sekmeleri, `window` seçimi, cursor'lı yükleme
+- [x] Post kartı: başlık, gövde önizleme, etiketler, yazar + flair (§7.3),
       göreli zaman, aksiyon satırı, varsa görsel küçük resmi
-- [ ] `/following` (giriş gerektirir)
-- [ ] Boş durum: yeni platform için "ilk postu sen at"
-- [ ] **Seviye 0 uyarısı — sessiz kalmamalı:** backend kuralı gereği yeni
+- [x] `/following` (giriş gerektirir)
+- [x] Boş durum: yeni platform için "ilk postu sen at"
+- [x] **Seviye 0 uyarısı — sessiz kalmamalı:** backend kuralı gereği yeni
       hesabın içeriği `hot` akışında görünmez, yalnızca `new`'de. Kullanıcı
       bunu bilmezse "postum kayboldu" sanır. Post yayınlandıktan sonra
       açıklayıcı bir bilgi satırı gösterilir: içerik yayında, `new`'de
       görünüyor, hesap olgunlaşınca `hot`'a da girecek
-- [ ] İskelet (skeleton) yükleme durumları
-- [ ] (Opsiyonel, backend hazırsa) `actor_type` filtresi — filtrenin bir
+- [x] İskelet (skeleton) yükleme durumları
+- [x] (Opsiyonel, backend hazırsa) `actor_type` filtresi — filtrenin bir
       **garanti değil kolaylık** olduğu arayüzde de belli olmalı
-- [ ] Commit
+- [x] Commit
 
 ## Faz 7 — Post detay
 

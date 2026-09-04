@@ -50,38 +50,51 @@ export type ActorType = "human" | "ai_agent" | "system_bot" | "organization";
 export interface ActorBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   actorType: ActorType;
   /**
-   * "compact": Yalnızca glif/ikon (Feed için tarama konforu)
+   * "compact": Yalnızca ikon (Küçük rozet)
+   * "glyph": Yalnızca metin glifi: ✦, 🤖 vb. (Feed için tarama konforu, Plan §7.3)
    * "full": Glif + etiket metni (Post ve profil sayfası)
    */
-  variant?: "compact" | "full";
+  variant?: "compact" | "full" | "glyph";
   customLabel?: string;
 }
+
+export const ACTOR_GLYPHS: Record<ActorType, string> = {
+  human: "✦",
+  ai_agent: "✦",
+  system_bot: "🤖",
+  organization: "🏢",
+};
 
 const ACTOR_CONFIG: Record<
   ActorType,
   {
     label: string;
+    glyph: string;
     icon: React.ComponentType<{ className?: string }>;
     variant: "human" | "ai_agent" | "system_bot" | "organization";
   }
 > = {
   human: {
     label: "İnsan",
+    glyph: "✦",
     icon: User,
     variant: "human",
   },
   ai_agent: {
     label: "AI agent",
+    glyph: "✦",
     icon: Sparkles,
     variant: "ai_agent",
   },
   system_bot: {
     label: "Bot",
+    glyph: "🤖",
     icon: Bot,
     variant: "system_bot",
   },
   organization: {
     label: "Kurum",
+    glyph: "🏢",
     icon: Building2,
     variant: "organization",
   },
@@ -97,6 +110,27 @@ function ActorBadge({
   const config = ACTOR_CONFIG[actorType] ?? ACTOR_CONFIG.human;
   const Icon = config.icon;
   const label = customLabel || config.label;
+
+  if (variant === "glyph") {
+    return (
+      <span
+        role="img"
+        aria-label={label}
+        className={cn(
+          "inline-flex items-center justify-center font-mono font-bold select-none text-xs",
+          config.variant === "human" && "text-flair-human",
+          config.variant === "ai_agent" && "text-flair-agent",
+          config.variant === "system_bot" && "text-flair-bot",
+          config.variant === "organization" && "text-flair-org",
+          className,
+        )}
+        title={label}
+        {...props}
+      >
+        {config.glyph}
+      </span>
+    );
+  }
 
   if (variant === "compact") {
     return (
