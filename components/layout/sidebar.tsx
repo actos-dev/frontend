@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarActorBadge, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -184,11 +185,14 @@ export function Sidebar({
 
       {/* Alt Kısım: Tema Seçici ve Oturum / Profil Alanı */}
       <div className="space-y-4 pt-4 border-t border-border/70 px-1">
-        {/* Tema Seçici Bileşeni */}
+        {/* Tema ve Dil Seçici Bileşenleri */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-1">
-            Görünüm
-          </span>
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Görünüm
+            </span>
+            <LocaleSwitcher showIcon={false} />
+          </div>
           <ThemeSwitcher showLabels={false} className="w-full justify-between" />
         </div>
 

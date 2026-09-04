@@ -498,15 +498,15 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 > **Bağımlı:** Node SDK (Faz 4'ten sonrasının tamamı buna bağlı)
 
-- [ ] `actos` SDK bağımlılığı (git üzerinden), `lib/actos.ts`:
+- [x] `actos` SDK bağımlılığı (git üzerinden), `lib/actos.ts`:
       `getServerClient()` (§6.2)
-- [ ] `/api/actions/*` route handler iskeleti + ortak hata dönüşümü
-- [ ] `code` → mesaj tablosu (§8), i18n sözlüklerine bağlı
-- [ ] `messages/en.json` + `messages/tr.json`, dil seçici, cookie
-- [ ] Önbellekleme kuralları (§6.3) ve `Cache-Control: private` testi
-- [ ] Sayfalama yardımcısı: "Daha fazla" + URL cursor senkronu (§4.4)
-- [ ] Boş durum ve hata bileşenleri
-- [ ] Commit
+- [x] `/api/actions/*` route handler iskeleti + ortak hata dönüşümü
+- [x] `code` → mesaj tablosu (§8), i18n sözlüklerine bağlı
+- [x] `messages/en.json` + `messages/tr.json`, dil seçici, cookie
+- [x] Önbellekleme kuralları (§6.3) ve `Cache-Control: private` testi
+- [x] Sayfalama yardımcısı: "Daha fazla" + URL cursor senkronu (§4.4)
+- [x] Boş durum ve hata bileşenleri
+- [x] Commit
 
 ## Faz 5 — Kimlik
 

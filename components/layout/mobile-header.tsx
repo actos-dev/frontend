@@ -2,6 +2,7 @@
 
 import { Menu } from "lucide-react";
 import Link from "next/link";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { cn } from "@/lib/utils";
 
@@ -39,8 +40,9 @@ export function MobileHeader({ className, onOpenMenu }: MobileHeaderProps) {
         <span className="text-lg font-bold tracking-tight text-foreground font-serif">Actos</span>
       </Link>
 
-      {/* Sağ: Tema Seçici (Kompakt) */}
-      <div className="flex items-center -mr-1">
+      {/* Sağ: Dil ve Tema Seçici (Kompakt) */}
+      <div className="flex items-center gap-1.5 -mr-1">
+        <LocaleSwitcher showIcon={false} className="scale-90 origin-right" />
         <ThemeSwitcher showLabels={false} className="scale-90 origin-right" />
       </div>
     </header>
