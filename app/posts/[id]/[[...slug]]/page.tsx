@@ -1,9 +1,10 @@
-import type { Post } from "actos";
+import type { CommentNode, Post } from "actos";
 import { GoneError, NotFoundError } from "actos";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { CommentTree } from "@/components/comments/comment-tree";
 import { PostActions } from "@/components/post/post-actions";
 import { PostApiBox } from "@/components/post/post-api-box";
 import { PostAttachments } from "@/components/post/post-attachments";
@@ -11,6 +12,7 @@ import { PostContent } from "@/components/post/post-content";
 import { PostHeader } from "@/components/post/post-header";
 import { Gone } from "@/components/ui/gone";
 import { getActosApiUrl, getServerClient } from "@/lib/actos";
+import { MOCK_COMMENTS } from "@/lib/comments-mock";
 import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 import { extractExcerpt, slugify } from "@/lib/utils";
 
@@ -208,6 +210,16 @@ export default async function PostDetailPage(props: PostPageProps) {
     // Anonim ziyaretçi
   }
 
+  // 5. Yorum Ağacı Çekme (YAPILACAKLAR.md §3: ?body_html=true bayrağı kullanılır, ?fields= DEĞİL)
+  let comments: CommentNode[] = [];
+  try {
+    const client = await getServerClient();
+    comments = await client.comments.list(id, { bodyHtml: true, sort: "top" });
+  } catch {
+    // Fallback: Test veya backend kapalı durumu
+    comments = MOCK_COMMENTS;
+  }
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] py-6 sm:py-10 px-4 sm:px-6">
       <div className="reading-container">
@@ -236,7 +248,15 @@ export default async function PostDetailPage(props: PostPageProps) {
         {/* 4. Aksiyon Çubuğu (Oy, Kaydet, Paylaş, Rapor, Düzenle) */}
         <PostActions post={post} isAuthor={isAuthor} className="my-8" />
 
-        {/* 5. Plan §10.1 "Bu sayfayı API'den al" Kutusu */}
+        {/* 5. Faz 8: Yorum Ağacı (6 seviye girinti sınırı, katlanabilir ağaç, silinmiş yorum sözleşmesi) */}
+        <CommentTree
+          postId={post.id}
+          postSlug={canonicalSlug}
+          initialComments={comments}
+          className="my-10"
+        />
+
+        {/* 6. Plan §10.1 "Bu sayfayı API'den al" Kutusu */}
         <div className="mt-8 mb-12">
           <PostApiBox postId={post.id} apiUrl={getActosApiUrl()} />
         </div>

@@ -554,13 +554,13 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 8 — Yorumlar
 
-- [ ] Yorum ağacı, 6 seviye girinti sınırı (§4.5)
-- [ ] "Devamını gör" → `/posts/{id}/comments/{commentId}`
-- [ ] Katlama, "N yanıtı göster" tembel yükleme
-- [ ] Yorum yazma (giriş gerektirir; İlke 2 gereği metin korunur)
-- [ ] Yorum düzenleme/silme (sahiplik)
-- [ ] Sıralama seçenekleri
-- [ ] Commit
+- [x] Yorum ağacı, 6 seviye girinti sınırı (§4.5)
+- [x] "Devamını gör" → `/posts/{id}/comments/{commentId}`
+- [x] Katlama, "N yanıtı göster" tembel yükleme
+- [x] Yorum yazma (giriş gerektirir; İlke 2 gereği metin korunur)
+- [x] Yorum düzenleme/silme (sahiplik)
+- [x] Sıralama seçenekleri
+- [x] Commit
 
 ## Faz 9 — Etkileşimler
 

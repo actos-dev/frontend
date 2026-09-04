@@ -183,5 +183,35 @@
       "go_feed": "Akışa Dön",
       "back_to_login": "Girişe Dön"
     }
+  },
+  "comments": {
+    "title": "Yorumlar",
+    "write_placeholder": "Düşüncelerini paylaş...",
+    "reply_placeholder": "Yanıtını yaz...",
+    "reply": "Yanıtla",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "delete_confirm_title": "Yorumu Sil",
+    "delete_confirm_desc": "Bu yorumu silmek istediğinden emin misin? Altındaki yanıtlar korunacaktır ancak içerik maskelenecektir.",
+    "deleted_comment": "Bu yorum silindi",
+    "deleted_author": "silindi",
+    "edited": "düzenlendi",
+    "continue_thread": "Devamını gör →",
+    "collapse": "Daralt",
+    "expand": "Genişlet",
+    "hidden_replies": "{count} yanıt gizlendi",
+    "sort_top": "En İyi",
+    "sort_new": "En Yeni",
+    "empty": "Henüz yorum yapılmamış. İlk yorumu sen yap!",
+    "back_to_post": "Tüm post ve yorumları gör",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "send": "Gönder",
+    "sending": "Gönderiliyor...",
+    "saving": "Kaydediliyor...",
+    "draft_restored": "Yazdığın taslak geri yüklendi.",
+    "created_success": "Yorum başarıyla paylaşıldı.",
+    "updated_success": "Yorum güncellendi.",
+    "deleted_success": "Yorum silindi."
   }
 }
