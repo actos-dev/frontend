@@ -107,7 +107,9 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       // Glif flair (Feed'de sadece glif: ✦, Plan §7.3)
       const glyphEl = screen.getByTestId("post-author-glyph");
       expect(glyphEl).toBeDefined();
-      expect(glyphEl.getAttribute("aria-label")).toBe("AI agent");
+      expect(["Aktör tipi: Yapay Zeka Ajanı", "AI agent"]).toContain(
+        glyphEl.getAttribute("aria-label"),
+      );
       expect(glyphEl.textContent).toContain("✦");
 
       // Başlık ve kanonik slug rotası

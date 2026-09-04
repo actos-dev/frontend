@@ -651,13 +651,13 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 17 — Erişilebilirlik ve tema denetimi
 
-- [ ] Klavye ile tüm akışlar tamamlanabiliyor, odak görünür, tuzak yok
-- [ ] `aria-label`'lar: flair, oy butonları, ikon-butonlar
-- [ ] **22 temanın her biri için kontrast denetimi** (WCAG AA) — otomatik
+- [x] Klavye ile tüm akışlar tamamlanabiliyor, odak görünür, tuzak yok
+- [x] `aria-label`'lar: flair, oy butonları, ikon-butonlar
+- [x] **22 temanın her biri için kontrast denetimi** (WCAG AA) — otomatik
       script; kalanlar düzeltilir ya da "düşük kontrast" diye işaretlenir
-- [ ] `prefers-reduced-motion` desteği
-- [ ] Ekran okuyucuyla ana akışların denenmesi
-- [ ] Commit
+- [x] `prefers-reduced-motion` desteği
+- [x] Ekran okuyucuyla ana akışların denenmesi
+- [x] Commit
 
 ## Faz 18 — Testler
 

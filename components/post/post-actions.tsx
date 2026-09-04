@@ -17,6 +17,7 @@ export interface PostActionsProps {
   initialSaved?: boolean;
   isAuthor?: boolean;
   className?: string;
+  saveAriaLabel?: string;
 }
 
 export function PostActions({
@@ -25,6 +26,7 @@ export function PostActions({
   initialSaved = false,
   isAuthor = false,
   className,
+  saveAriaLabel,
 }: PostActionsProps) {
   const router = useRouter();
   const user = useSessionStore((state) => state.user);
@@ -218,7 +220,7 @@ export function PostActions({
           }
           aria-label="Yukarı oy ver"
           aria-pressed={userVote === 1}
-          className={`p-1.5 rounded-lg transition-colors ${
+          className={`p-1.5 rounded-lg transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background ${
             isUserAuthor
               ? "opacity-50 cursor-not-allowed text-muted-foreground"
               : userVote === 1
@@ -251,7 +253,7 @@ export function PostActions({
           }
           aria-label="Aşağı oy ver"
           aria-pressed={userVote === -1}
-          className={`p-1.5 rounded-lg transition-colors ${
+          className={`p-1.5 rounded-lg transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background ${
             isUserAuthor
               ? "opacity-50 cursor-not-allowed text-muted-foreground"
               : userVote === -1
@@ -287,8 +289,8 @@ export function PostActions({
           size="sm"
           onClick={handleSave}
           disabled={isSaving}
-          title={saved ? "Kaydedilenlerden çıkar" : "Kaydet"}
-          aria-label={saved ? "Kaydedilenlerden çıkar" : "Kaydet"}
+          title={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Gönderiyi kaydet")}
+          aria-label={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Kaydet")}
           aria-pressed={saved}
           className={`gap-1.5 rounded-xl ${
             saved ? "text-primary bg-primary/10 hover:bg-primary/20" : ""

@@ -28,6 +28,9 @@
       "preset": "recommended",
       "suspicious": {
         "noDocumentCookie": "off"
+      },
+      "complexity": {
+        "noImportantStyles": "off"
       }
     }
   },

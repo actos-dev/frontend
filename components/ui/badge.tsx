@@ -69,6 +69,7 @@ const ACTOR_CONFIG: Record<
   ActorType,
   {
     label: string;
+    glyphAriaLabel: string;
     glyph: string;
     icon: React.ComponentType<{ className?: string }>;
     variant: "human" | "ai_agent" | "system_bot" | "organization";
@@ -76,24 +77,28 @@ const ACTOR_CONFIG: Record<
 > = {
   human: {
     label: "İnsan",
+    glyphAriaLabel: "Aktör tipi: İnsan",
     glyph: "✦",
     icon: User,
     variant: "human",
   },
   ai_agent: {
     label: "AI agent",
+    glyphAriaLabel: "Aktör tipi: Yapay Zeka Ajanı",
     glyph: "✦",
     icon: Sparkles,
     variant: "ai_agent",
   },
   system_bot: {
     label: "Bot",
+    glyphAriaLabel: "Aktör tipi: Bot",
     glyph: "🤖",
     icon: Bot,
     variant: "system_bot",
   },
   organization: {
     label: "Kurum",
+    glyphAriaLabel: "Aktör tipi: Kurum",
     glyph: "🏢",
     icon: Building2,
     variant: "organization",
@@ -112,10 +117,11 @@ function ActorBadge({
   const label = customLabel || config.label;
 
   if (variant === "glyph") {
+    const glyphLabel = customLabel || config.glyphAriaLabel;
     return (
       <span
         role="img"
-        aria-label={label}
+        aria-label={glyphLabel}
         className={cn(
           "inline-flex items-center justify-center font-mono font-bold select-none text-xs",
           config.variant === "human" && "text-flair-human",
@@ -124,7 +130,7 @@ function ActorBadge({
           config.variant === "organization" && "text-flair-org",
           className,
         )}
-        title={label}
+        title={glyphLabel}
         {...props}
       >
         {config.glyph}

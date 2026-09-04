@@ -427,6 +427,7 @@ export function CommentNodeComponent({
                         : "Yukarı oy ver"
                   }
                   aria-label="Yukarı oy ver"
+                  aria-pressed={userVote === 1}
                   className={`p-0.5 rounded-xs transition-colors ${
                     isAuthor
                       ? "opacity-50 cursor-not-allowed text-muted-foreground"
@@ -463,6 +464,7 @@ export function CommentNodeComponent({
                         : "Aşağı oy ver"
                   }
                   aria-label="Aşağı oy ver"
+                  aria-pressed={userVote === -1}
                   className={`p-0.5 rounded-xs transition-colors ${
                     isAuthor
                       ? "opacity-50 cursor-not-allowed text-muted-foreground"

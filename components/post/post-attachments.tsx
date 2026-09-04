@@ -4,7 +4,13 @@ import type { Attachment } from "actos";
 import { Download, ExternalLink, ImageIcon, Maximize2, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export interface PostAttachmentsProps {
   attachments?: Attachment[] | null;
@@ -150,6 +156,7 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
         <DialogContent className="max-w-4xl p-2 border-border/80 bg-background/95 backdrop-blur-md overflow-hidden rounded-2xl">
           <div className="sr-only">
             <DialogTitle>Görsel Önizleme</DialogTitle>
+            <DialogDescription>Büyütülmüş içerik görseli önizlemesi</DialogDescription>
           </div>
           <div className="relative flex flex-col items-center justify-center min-h-[300px]">
             {selectedImage && (

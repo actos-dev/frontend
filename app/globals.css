@@ -147,3 +147,19 @@
     line-height: 1rem;
   }
 }
+
+/* ============================================================================
+   Erişilebilirlik: prefers-reduced-motion Desteği (Plan §Faz 17)
+   Hareket hassasiyeti / vestibüler bozukluğu olan kullanıcılar için
+   animasyon, geçiş ve kaydırma sürelerini sıfırlar.
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

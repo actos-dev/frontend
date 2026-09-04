@@ -20,6 +20,7 @@ export interface PostCardProps {
   currentUser?: SessionUser | null;
   className?: string;
   highlightQuery?: string;
+  saveAriaLabel?: string;
   onVoteSuccess?: (contentId: string, newScore: number, newVote: -1 | 0 | 1) => void;
   onSaveSuccess?: (contentId: string, saved: boolean) => void;
 }
@@ -31,6 +32,7 @@ export function PostCard({
   currentUser,
   className,
   highlightQuery,
+  saveAriaLabel,
   onVoteSuccess,
   onSaveSuccess,
 }: PostCardProps) {
@@ -336,7 +338,7 @@ export function PostCard({
               }
               aria-label="Yukarı oy ver"
               aria-pressed={userVote === 1}
-              className={`p-1 rounded-md transition-colors ${
+              className={`p-1 rounded-md transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background ${
                 isAuthor
                   ? "opacity-50 cursor-not-allowed text-muted-foreground"
                   : userVote === 1
@@ -372,7 +374,7 @@ export function PostCard({
               }
               aria-label="Aşağı oy ver"
               aria-pressed={userVote === -1}
-              className={`p-1 rounded-md transition-colors ${
+              className={`p-1 rounded-md transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background ${
                 isAuthor
                   ? "opacity-50 cursor-not-allowed text-muted-foreground"
                   : userVote === -1
@@ -388,7 +390,7 @@ export function PostCard({
           <Link
             href={`${postHref}#comments`}
             aria-label={`${post.commentCount ?? 0} yorum`}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-muted-foreground hover:bg-surface-2 hover:text-foreground transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-muted-foreground hover:bg-surface-2 hover:text-foreground transition-colors cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
           >
             <MessageSquare className="w-3.5 h-3.5" />
             <span className="text-[11px] sm:text-xs font-mono font-medium">
@@ -404,9 +406,10 @@ export function PostCard({
             data-testid="post-save-btn"
             onClick={handleSave}
             disabled={isSaving}
-            aria-label={saved ? "Kaydedilenlerden çıkar" : "Kaydet"}
+            title={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Gönderiyi kaydet")}
+            aria-label={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Kaydet")}
             aria-pressed={saved}
-            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background ${
               saved
                 ? "text-primary bg-primary/10"
                 : "text-muted-foreground hover:bg-surface-2 hover:text-foreground"
@@ -419,7 +422,7 @@ export function PostCard({
             type="button"
             onClick={handleShare}
             aria-label="Paylaş"
-            className="p-1.5 rounded-lg text-muted-foreground hover:bg-surface-2 hover:text-foreground transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-muted-foreground hover:bg-surface-2 hover:text-foreground transition-colors cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
           >
             <Share2 className="w-3.5 h-3.5" />
           </button>

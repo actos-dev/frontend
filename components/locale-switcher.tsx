@@ -53,7 +53,7 @@ export function LocaleSwitcher({ className, showIcon = true }: LocaleSwitcherPro
           onClick={() => handleSelectLocale("en")}
           aria-pressed={activeLocale === "en"}
           className={cn(
-            "px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+            "px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
             activeLocale === "en"
               ? "bg-card text-foreground shadow-xs ring-1 ring-border-strong"
               : "text-muted-foreground hover:text-foreground hover:bg-card/50",
@@ -68,7 +68,7 @@ export function LocaleSwitcher({ className, showIcon = true }: LocaleSwitcherPro
           onClick={() => handleSelectLocale("tr")}
           aria-pressed={activeLocale === "tr"}
           className={cn(
-            "px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+            "px-2 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
             activeLocale === "tr"
               ? "bg-card text-foreground shadow-xs ring-1 ring-border-strong"
               : "text-muted-foreground hover:text-foreground hover:bg-card/50",

@@ -11,7 +11,8 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:contrast": "npx tsx scripts/check-theme-contrast.ts"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.2.6",
@@ -44,6 +45,7 @@
     "happy-dom": "^20.14.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.13",
     "typescript": "^5.8.3",
     "vitest": "^4.1.11"
   }

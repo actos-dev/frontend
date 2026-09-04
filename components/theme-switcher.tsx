@@ -63,7 +63,8 @@ export function ThemeSwitcher({ className = "", showLabels = true }: ThemeSwitch
               key={t.id}
               type="button"
               onClick={() => setTheme(t.id)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              aria-label={t.name}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
                 isActive
                   ? "bg-card text-foreground shadow-xs ring-1 ring-border-strong"
                   : "text-muted-foreground hover:text-foreground hover:bg-card/50"
