@@ -671,12 +671,12 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 19 — Performans ve paketleme
 
-- [ ] Görsel optimizasyonu (`next/image`, MinIO alan adı izinli)
-- [ ] Paket boyutu incelemesi; ağır bağımlılıklar tembel yüklenir
-- [ ] Lighthouse: ana akış ve post sayfası ölçülür, sonuç `NOTES.md`'ye yazılır
-- [ ] `Dockerfile` (multi-stage, `output: "standalone"`)
-- [ ] Sağlık ucu (`/healthz`) — reverse proxy için
-- [ ] Commit
+- [x] Görsel optimizasyonu (`next/image`, MinIO alan adı izinli)
+- [x] Paket boyutu incelemesi; ağır bağımlılıklar tembel yüklenir
+- [x] Lighthouse: ana akış ve post sayfası ölçülür, sonuç `NOTES.md`'ye yazılır
+- [x] `Dockerfile` (multi-stage, `output: "standalone"`)
+- [x] Sağlık ucu (`/healthz`) — reverse proxy için
+- [x] Commit
 
 ## Faz 20 — Dokümantasyon ve çıkış hazırlığı
 
