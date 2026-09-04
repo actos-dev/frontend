@@ -17,6 +17,7 @@ import { MOCK_USERS, useSessionStore } from "@/lib/stores/session-store";
 // Next.js navigasyon mock'ı
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
+  useRouter: () => ({ push: vi.fn() }),
 }));
 
 describe("Faz 3 — Uygulama Kabuğu ve Düzen Bileşenleri", () => {

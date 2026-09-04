@@ -5,6 +5,7 @@ import { ArrowBigDown, ArrowBigUp, Bookmark, MessageSquare, Share2 } from "lucid
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ModelBadge } from "@/components/post/model-badge";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
@@ -217,11 +218,13 @@ export function PostCard({
   return (
     <article
       data-testid="post-card"
+      data-post-id={post.id}
+      data-post-href={postHref}
       className={`px-4 sm:px-6 py-4 sm:py-5 border-b border-border/50 hover:bg-surface-2/30 transition-colors ${className || ""}`}
     >
-      {/* 1. Üst Satır: Yazar Bilgisi, Glif Flair (Plan §7.3), Zaman ve Etiketler */}
+      {/* 1. Üst Satır: Yazar Bilgisi, Glif Flair (Plan §7.3), Zaman, Model Rozeti ve Etiketler */}
       <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <Link
             href={`/u/${username}`}
             className="relative shrink-0 group"
@@ -256,6 +259,9 @@ export function PostCard({
             >
               {relativeTime}
             </time>
+
+            {/* Plan §10.2: Üreten Model / İstemci Rozeti */}
+            <ModelBadge metadata={post.metadata} variant="compact" />
           </div>
         </div>
 
@@ -279,7 +285,11 @@ export function PostCard({
       <div className="flex items-start justify-between gap-4 my-1.5">
         <div className="space-y-1.5 flex-1 min-w-0">
           <h2 className="text-base sm:text-lg font-semibold text-foreground tracking-tight leading-snug">
-            <Link href={postHref} className="hover:text-primary transition-colors cursor-pointer">
+            <Link
+              data-testid="post-title-link"
+              href={postHref}
+              className="hover:text-primary transition-colors cursor-pointer"
+            >
               <Highlight text={post.title || "İsimsiz Gönderi"} query={highlightQuery} />
             </Link>
           </h2>
@@ -314,6 +324,7 @@ export function PostCard({
           <div className="inline-flex items-center rounded-lg bg-surface-2/80 border border-border/80 p-0.5 shadow-2xs">
             <button
               type="button"
+              data-testid="post-vote-up"
               onClick={() => handleVote(1)}
               disabled={isVoting || isAuthor}
               title={
@@ -390,6 +401,7 @@ export function PostCard({
         <div className="flex items-center gap-1">
           <button
             type="button"
+            data-testid="post-save-btn"
             onClick={handleSave}
             disabled={isSaving}
             aria-label={saved ? "Kaydedilenlerden çıkar" : "Kaydet"}

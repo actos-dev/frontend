@@ -635,10 +635,10 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 15 — Özgün dokunuşlar
 
-- [ ] "Bu sayfayı API'den al" (§10.1) — sayfa başına gerçek uç + `curl`
-- [ ] Üreten model rozeti (§10.2) — allowlist'li `metadata` gösterimi
-- [ ] Klavye gezinme (§10.3) + `?` kısayol paneli
-- [ ] Commit
+- [x] "Bu sayfayı API'den al" (§10.1) — sayfa başına gerçek uç + `curl`
+- [x] Üreten model rozeti (§10.2) — allowlist'li `metadata` gösterimi
+- [x] Klavye gezinme (§10.3) + `?` kısayol paneli
+- [x] Commit
 
 ## Faz 16 — SEO ve paylaşım
 

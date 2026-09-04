@@ -1,5 +1,6 @@
 import type { ActorProfile, Comment, Page, Post } from "actos";
 import { notFound } from "next/navigation";
+import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { PostCard } from "@/components/feed/post-card";
 import { ProfileActorCard } from "@/components/profile/profile-actor-card";
 import { ProfileCommentCard } from "@/components/profile/profile-comment-card";
@@ -175,6 +176,11 @@ export default async function ProfilePage(props: ProfilePageProps) {
           </section>
         )}
       </main>
+
+      {/* Plan §10.1: "Bu Sayfayı API'den Al" Kutusu */}
+      <div className="pt-4 pb-8">
+        <ApiCornerBox endpoint={`/actors/${username}`} variant="inline" />
+      </div>
     </div>
   );
 }

@@ -2,11 +2,13 @@
 
 import { usePathname } from "next/navigation";
 import * as React from "react";
+import { ShortcutsDialog } from "@/components/keyboard/shortcuts-dialog";
 import { MobileDrawer } from "@/components/layout/mobile-drawer";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { RightRail } from "@/components/layout/right-rail";
 import { Sidebar } from "@/components/layout/sidebar";
+import { useKeyboardShortcuts } from "@/lib/hooks/use-keyboard-shortcuts";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -24,6 +26,7 @@ export function AppShell({
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const pathname = usePathname();
+  const { shortcutsDialogOpen, setShortcutsDialogOpen } = useKeyboardShortcuts();
 
   // /themes veya /design gibi katalog sayfalarında sağ ray otomatik gizlenip geniş görünüm verilebilir
   const isCatalogRoute = pathname?.startsWith("/themes") || pathname?.startsWith("/design");
@@ -32,6 +35,8 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-start w-full">
+      {/* 0. Klavye Kısayolları Diyaloğu (Plan §10.3) */}
+      <ShortcutsDialog open={shortcutsDialogOpen} onOpenChange={setShortcutsDialogOpen} />
       {/* 1. Mobil Üst Başlık (≤ 768px) */}
       <MobileHeader onOpenMenu={() => setDrawerOpen(true)} />
 

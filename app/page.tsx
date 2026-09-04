@@ -1,4 +1,5 @@
 import type { ActorType, Post } from "actos";
+import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { FeedNav, type FeedSortOption, type FeedWindowOption } from "@/components/feed/feed-nav";
 import { FeedStream } from "@/components/feed/feed-stream";
 import { TrustLevelBanner } from "@/components/feed/trust-level-banner";
@@ -75,6 +76,14 @@ export default async function HomePage(props: HomePageProps) {
     nextCursor = null;
   }
 
+  let feedEndpoint = `/feed?sort=${sort}&limit=25`;
+  if (sort === "top" && window) {
+    feedEndpoint += `&window=${window}`;
+  }
+  if (actorType) {
+    feedEndpoint += `&actor_type=${actorType}`;
+  }
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] divide-y divide-border/60">
       {/* 1. Akış Sekmeleri ve actor_type Filtresi (Plan §4.1, §6.1) */}
@@ -95,6 +104,11 @@ export default async function HomePage(props: HomePageProps) {
         emptyActionLabel="Yeni Post Oluştur"
         emptyActionHref="/new"
       />
+
+      {/* 4. Plan §10.1: "Bu Sayfayı API'den Al" Kutusu */}
+      <div className="p-4 sm:p-6">
+        <ApiCornerBox endpoint={feedEndpoint} variant="inline" />
+      </div>
     </div>
   );
 }

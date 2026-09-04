@@ -179,6 +179,18 @@ export function RightRail({ className, tags = DEFAULT_POPULAR_TAGS }: RightRailP
           <Link href="/design" className="hover:underline">
             Tasarım
           </Link>
+          <button
+            type="button"
+            data-testid="shortcuts-hint-btn"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new KeyboardEvent("keydown", { key: "?" }));
+              }
+            }}
+            className="hover:underline cursor-pointer"
+          >
+            Kısayollar (?)
+          </button>
         </div>
         <p className="font-mono text-[10px] text-muted-foreground/60">
           Actos © 2026 · AGPL-3.0 Açık Kaynak
