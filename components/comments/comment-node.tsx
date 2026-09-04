@@ -10,6 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CommentForm } from "@/components/comments/comment-form";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -61,6 +62,7 @@ export function CommentNodeComponent({
   onCommentDeleted,
   onReplyAdded,
 }: CommentNodeProps) {
+  const router = useRouter();
   const { t } = useTranslation();
   const { user } = useSessionStore();
 
@@ -90,17 +92,21 @@ export function CommentNodeComponent({
   const isAuthor =
     !isDeleted && !!user && (user.id === author?.id || user.username === author?.username);
 
-  // Handle Voting
+  // Handle Voting (Plan §Faz 9)
   const handleVote = async (targetVote: 1 | -1) => {
     if (isVoting || isDeleted) return;
 
     if (!user) {
-      toast.info("Oy vermek için lütfen giriş yapın.");
+      const currentPath =
+        typeof window !== "undefined"
+          ? window.location.pathname + window.location.search
+          : `/posts/${postId}`;
+      router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
       return;
     }
 
     if (isAuthor) {
-      toast.error("Kendi yorumunuza oy veremezsiniz.");
+      toast.error(t("interactions.vote_own_forbidden") || "Kendi içeriğinize oy veremezsiniz.");
       return;
     }
 
@@ -123,6 +129,20 @@ export function CommentNodeComponent({
       if (!res.ok || !data.ok) {
         setUserVote(previousVote);
         setScore(previousScore);
+
+        if (
+          res.status === 401 ||
+          data.code === "MISSING_CREDENTIALS" ||
+          data.code === "INVALID_KEY"
+        ) {
+          const currentPath =
+            typeof window !== "undefined"
+              ? window.location.pathname + window.location.search
+              : `/posts/${postId}`;
+          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+          return;
+        }
+
         toast.error(data.detail || data.title || "Oy kaydedilemedi.");
         return;
       }
@@ -399,11 +419,20 @@ export function CommentNodeComponent({
                   type="button"
                   onClick={() => handleVote(1)}
                   disabled={isVoting || isAuthor}
+                  title={
+                    isAuthor
+                      ? "Kendi içeriğinize oy veremezsiniz"
+                      : userVote === 1
+                        ? "Oyu geri çek"
+                        : "Yukarı oy ver"
+                  }
                   aria-label="Yukarı oy ver"
                   className={`p-0.5 rounded-xs transition-colors ${
-                    userVote === 1
-                      ? "text-orange-500 font-bold"
-                      : "text-muted-foreground hover:text-foreground disabled:opacity-50"
+                    isAuthor
+                      ? "opacity-50 cursor-not-allowed text-muted-foreground"
+                      : userVote === 1
+                        ? "text-orange-500 font-bold"
+                        : "text-muted-foreground hover:text-foreground disabled:opacity-50"
                   }`}
                 >
                   <ArrowBigUp
@@ -426,11 +455,20 @@ export function CommentNodeComponent({
                   type="button"
                   onClick={() => handleVote(-1)}
                   disabled={isVoting || isAuthor}
+                  title={
+                    isAuthor
+                      ? "Kendi içeriğinize oy veremezsiniz"
+                      : userVote === -1
+                        ? "Oyu geri çek"
+                        : "Aşağı oy ver"
+                  }
                   aria-label="Aşağı oy ver"
                   className={`p-0.5 rounded-xs transition-colors ${
-                    userVote === -1
-                      ? "text-blue-500 font-bold"
-                      : "text-muted-foreground hover:text-foreground disabled:opacity-50"
+                    isAuthor
+                      ? "opacity-50 cursor-not-allowed text-muted-foreground"
+                      : userVote === -1
+                        ? "text-blue-500 font-bold"
+                        : "text-muted-foreground hover:text-foreground disabled:opacity-50"
                   }`}
                 >
                   <ArrowBigDown

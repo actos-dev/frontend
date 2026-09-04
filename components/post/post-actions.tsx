@@ -3,10 +3,12 @@
 import type { Post } from "actos";
 import { ArrowBigDown, ArrowBigUp, Bookmark, Flag, Pencil, Share2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ReportDialog } from "@/components/post/report-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
+import { useSessionStore } from "@/lib/stores/session-store";
 import { slugify } from "@/lib/utils";
 
 export interface PostActionsProps {
@@ -24,6 +26,10 @@ export function PostActions({
   isAuthor = false,
   className,
 }: PostActionsProps) {
+  const router = useRouter();
+  const user = useSessionStore((state) => state.user);
+  const status = useSessionStore((state) => state.status);
+
   const [userVote, setUserVote] = useState<-1 | 0 | 1>(initialUserVote);
   const [score, setScore] = useState<number>(post.score ?? 0);
   const [isVoting, setIsVoting] = useState(false);
@@ -33,12 +39,30 @@ export function PostActions({
 
   const [reportOpen, setReportOpen] = useState(false);
 
+  const isUserAuthor =
+    isAuthor ||
+    Boolean(user && (user.id === post.author?.id || user.username === post.author?.username));
+
   const slug = slugify(post.title || "post");
   const postHref = `/posts/${post.id}/${slug}`;
 
-  // Optimistic Vote Handler (Plan §2.8)
+  // Optimistic Vote Handler (Plan §2.8 & §Faz 9)
   const handleVote = async (targetVote: 1 | -1) => {
     if (isVoting) return;
+
+    if (!user && status === "unauthenticated") {
+      const currentPath =
+        typeof window !== "undefined"
+          ? window.location.pathname + window.location.search
+          : postHref;
+      router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+
+    if (isUserAuthor) {
+      toast.error("Kendi içeriğinize oy veremezsiniz.");
+      return;
+    }
 
     const previousVote = userVote;
     const previousScore = score;
@@ -62,6 +86,20 @@ export function PostActions({
       if (!res.ok || !data.ok) {
         setUserVote(previousVote);
         setScore(previousScore);
+
+        if (
+          res.status === 401 ||
+          data.code === "MISSING_CREDENTIALS" ||
+          data.code === "INVALID_KEY"
+        ) {
+          const currentPath =
+            typeof window !== "undefined"
+              ? window.location.pathname + window.location.search
+              : postHref;
+          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+          return;
+        }
+
         toast.error(data.detail || data.title || "Oy kaydedilemedi.");
         return;
       }
@@ -78,9 +116,18 @@ export function PostActions({
     }
   };
 
-  // Optimistic Save Handler (Plan §2.8)
+  // Optimistic Save Handler (Plan §2.8 & §Faz 9)
   const handleSave = async () => {
     if (isSaving) return;
+
+    if (!user && status === "unauthenticated") {
+      const currentPath =
+        typeof window !== "undefined"
+          ? window.location.pathname + window.location.search
+          : postHref;
+      router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      return;
+    }
 
     const previousSaved = saved;
     const nextSaved = !previousSaved;
@@ -101,6 +148,20 @@ export function PostActions({
       const data = await res.json();
       if (!res.ok || !data.ok) {
         setSaved(previousSaved);
+
+        if (
+          res.status === 401 ||
+          data.code === "MISSING_CREDENTIALS" ||
+          data.code === "INVALID_KEY"
+        ) {
+          const currentPath =
+            typeof window !== "undefined"
+              ? window.location.pathname + window.location.search
+              : postHref;
+          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+          return;
+        }
+
         toast.error(data.detail || data.title || "Kayıt işlemi gerçekleştirilemedi.");
         return;
       }
@@ -147,13 +208,22 @@ export function PostActions({
         <button
           type="button"
           onClick={() => handleVote(1)}
-          disabled={isVoting}
+          disabled={isVoting || isUserAuthor}
+          title={
+            isUserAuthor
+              ? "Kendi içeriğinize oy veremezsiniz"
+              : userVote === 1
+                ? "Oyu geri çek"
+                : "Yukarı oy ver"
+          }
           aria-label="Yukarı oy ver"
           aria-pressed={userVote === 1}
-          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-            userVote === 1
-              ? "text-vote-up bg-vote-up/10 font-bold"
-              : "text-muted-foreground hover:text-foreground hover:bg-card"
+          className={`p-1.5 rounded-lg transition-colors ${
+            isUserAuthor
+              ? "opacity-50 cursor-not-allowed text-muted-foreground"
+              : userVote === 1
+                ? "text-vote-up bg-vote-up/10 font-bold cursor-pointer"
+                : "text-muted-foreground hover:text-foreground hover:bg-card cursor-pointer"
           }`}
         >
           <ArrowBigUp className="w-5 h-5" />
@@ -171,13 +241,22 @@ export function PostActions({
         <button
           type="button"
           onClick={() => handleVote(-1)}
-          disabled={isVoting}
+          disabled={isVoting || isUserAuthor}
+          title={
+            isUserAuthor
+              ? "Kendi içeriğinize oy veremezsiniz"
+              : userVote === -1
+                ? "Oyu geri çek"
+                : "Aşağı oy ver"
+          }
           aria-label="Aşağı oy ver"
           aria-pressed={userVote === -1}
-          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-            userVote === -1
-              ? "text-vote-down bg-vote-down/10 font-bold"
-              : "text-muted-foreground hover:text-foreground hover:bg-card"
+          className={`p-1.5 rounded-lg transition-colors ${
+            isUserAuthor
+              ? "opacity-50 cursor-not-allowed text-muted-foreground"
+              : userVote === -1
+                ? "text-vote-down bg-vote-down/10 font-bold cursor-pointer"
+                : "text-muted-foreground hover:text-foreground hover:bg-card cursor-pointer"
           }`}
         >
           <ArrowBigDown className="w-5 h-5" />
@@ -187,7 +266,7 @@ export function PostActions({
       {/* Sağ Grup: Kaydet, Paylaş, Rapor Et ve Düzenle */}
       <div className="flex items-center gap-1.5">
         {/* Yazar Düzenle Butonu */}
-        {isAuthor && (
+        {isUserAuthor && (
           <Button
             asChild
             variant="outline"
@@ -208,6 +287,7 @@ export function PostActions({
           size="sm"
           onClick={handleSave}
           disabled={isSaving}
+          title={saved ? "Kaydedilenlerden çıkar" : "Kaydet"}
           aria-label={saved ? "Kaydedilenlerden çıkar" : "Kaydet"}
           aria-pressed={saved}
           className={`gap-1.5 rounded-xl ${
@@ -238,6 +318,7 @@ export function PostActions({
           size="sm"
           onClick={() => setReportOpen(true)}
           aria-label="Şikayet et"
+          data-testid="post-report-button"
           className="rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10"
         >
           <Flag className="w-4 h-4" />

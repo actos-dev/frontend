@@ -213,5 +213,44 @@
     "created_success": "Yorum başarıyla paylaşıldı.",
     "updated_success": "Yorum güncellendi.",
     "deleted_success": "Yorum silindi."
+  },
+  "saved": {
+    "title": "Kaydedilen Gönderiler",
+    "description": "Daha sonra okumak için kaydettiğin tüm gönderiler.",
+    "empty_title": "Henüz kaydedilmiş bir gönderi yok",
+    "empty_description": "İlginizi çeken gönderileri daha sonra okumak için kaydedebilirsiniz.",
+    "back_to_feed": "Akışa Dön",
+    "anon_title": "Kaydedilenleri Gör",
+    "anon_desc": "Gönderileri kaydetmek ve kaydedilen içeriklerine her cihazdan erişmek için hesabına giriş yap."
+  },
+  "interactions": {
+    "vote_own_forbidden": "Kendi içeriğinize oy veremezsiniz.",
+    "vote_login_required": "Oy vermek için lütfen giriş yapın.",
+    "save_login_required": "Gönderiyi kaydetmek için lütfen giriş yapın.",
+    "follow_login_required": "Takip etmek için lütfen giriş yapın.",
+    "follow_self_forbidden": "Kendi profilinizi takip edemezsiniz.",
+    "post_saved": "Post kaydedildi!",
+    "post_unsaved": "Kayıt kaldırıldı.",
+    "followed": "@{username} takip edildi.",
+    "unfollowed": "@{username} takipten çıkarıldı."
+  },
+  "reports": {
+    "title": "İçeriği Şikayet Et",
+    "description": "Topluluk kurallarını ihlal ettiğini düşündüğünüz bu içeriği moderatörlere bildirin.",
+    "reason_label": "Şikayet Sebebi",
+    "details_label": "Ek Açıklama (Opsiyonel)",
+    "details_placeholder": "Moderatörlerin değerlendirmesine yardımcı olacak ayrıntılar...",
+    "cancel": "İptal",
+    "submit": "Şikayet Et",
+    "submitting": "İletiliyor...",
+    "success": "Şikayetiniz moderasyon ekibine iletildi. Teşekkür ederiz.",
+    "reasons": {
+      "spam": "Spam",
+      "harassment": "Taciz / Zorbalık",
+      "misinformation": "Yanıltıcı Bilgi",
+      "harmful": "Zararlı İçerik",
+      "rules": "Kurallara Aykırı",
+      "other": "Diğer"
+    }
   }
 }

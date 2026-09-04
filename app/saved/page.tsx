@@ -1,0 +1,117 @@
+import type { Post } from "actos";
+import { ArrowRight, Bookmark, Compass, KeyRound } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { SavedStream } from "@/components/saved/saved-stream";
+import { Button } from "@/components/ui/button";
+import { getServerClient } from "@/lib/actos";
+
+export const metadata: Metadata = {
+  title: "Kaydedilenler — Actos",
+  description: "Daha sonra okumak için kaydettiğiniz tüm gönderiler.",
+};
+
+export const dynamic = "force-dynamic";
+
+interface SavedPageProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function SavedPage(props: SavedPageProps) {
+  const rawParams = props.searchParams ? await props.searchParams : {};
+  const cursor = typeof rawParams.cursor === "string" ? rawParams.cursor : undefined;
+
+  const client = await getServerClient();
+
+  let isAuthenticated = false;
+  try {
+    const whoami = await client.auth.whoami();
+    isAuthenticated = Boolean(whoami?.actor?.id);
+  } catch {
+    isAuthenticated = false;
+  }
+
+  // 1. Anonim Durum: Açıkça oturum açma kartı ve /login?returnUrl=/saved bağlantısı sunar (Plan §Faz 9)
+  if (!isAuthenticated) {
+    return (
+      <div
+        data-testid="saved-anonymous-card"
+        className="py-16 px-4 sm:px-6 max-w-lg mx-auto text-center space-y-6"
+      >
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-surface-2 border border-border/80 flex items-center justify-center shadow-xs">
+          <Bookmark className="w-7 h-7 text-primary" />
+        </div>
+
+        <div className="space-y-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground font-serif tracking-tight">
+            Kaydedilen Gönderiler
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            Gönderileri kaydetmek ve kaydedilen içeriklerine her cihazdan erişmek için hesabına
+            giriş yap.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <Button asChild size="default" className="rounded-xl w-full sm:w-auto px-6">
+            <Link href="/login?returnUrl=/saved">
+              <KeyRound className="w-4 h-4 mr-2" />
+              <span>Giriş Yap</span>
+            </Link>
+          </Button>
+
+          <Button
+            asChild
+            variant="outline"
+            size="default"
+            className="rounded-xl w-full sm:w-auto px-6"
+          >
+            <Link href="/register">
+              <span>Hesap Oluştur</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Oturumlu Durum: client.saves.list(...) ile kullanıcının kaydettiği gönderileri listeler
+  let posts: Post[] = [];
+  let nextCursor: string | null = null;
+
+  try {
+    const savedPage = await client.saves.list({
+      cursor,
+      limit: 25,
+      fields: ["bodyHtml" as keyof Post],
+    });
+    posts = (savedPage.items || []) as unknown as Post[];
+    nextCursor = savedPage.nextCursor ?? null;
+  } catch (error) {
+    console.warn("Actos API /saves error:", error);
+    posts = [];
+    nextCursor = null;
+  }
+
+  return (
+    <div className="min-h-[calc(100vh-3.5rem)] divide-y divide-border/60">
+      <header className="sticky top-14 md:top-0 z-10 bg-background/90 backdrop-blur-md px-4 sm:px-6 py-3 border-b border-border/60 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Bookmark className="w-4 h-4 text-primary" />
+          <h1 className="text-sm font-semibold text-foreground">Kaydedilenler</h1>
+        </div>
+        <Link
+          href="/"
+          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 hover:underline"
+        >
+          <Compass className="w-3.5 h-3.5" />
+          <span>Akışa Dön</span>
+        </Link>
+      </header>
+
+      {/* Kaydedilenler Akışı, Boş Durum (EmptyState) ve Cursor Sayfalama */}
+      <SavedStream initialPosts={posts} initialNextCursor={nextCursor} />
+    </div>
+  );
+}

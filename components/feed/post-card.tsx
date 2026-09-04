@@ -3,16 +3,19 @@
 import type { Post } from "actos";
 import { ArrowBigDown, ArrowBigUp, Bookmark, MessageSquare, Share2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toast";
+import { type SessionUser, useSessionStore } from "@/lib/stores/session-store";
 import { extractExcerpt, formatRelativeTime, slugify } from "@/lib/utils";
 
 export interface PostCardProps {
   post: Post;
   initialUserVote?: -1 | 0 | 1;
   initialSaved?: boolean;
+  currentUser?: SessionUser | null;
   className?: string;
   onVoteSuccess?: (contentId: string, newScore: number, newVote: -1 | 0 | 1) => void;
   onSaveSuccess?: (contentId: string, saved: boolean) => void;
@@ -22,10 +25,16 @@ export function PostCard({
   post,
   initialUserVote = 0,
   initialSaved = false,
+  currentUser,
   className,
   onVoteSuccess,
   onSaveSuccess,
 }: PostCardProps) {
+  const router = useRouter();
+  const storeUser = useSessionStore((state) => state.user);
+  const status = useSessionStore((state) => state.status);
+  const user = currentUser !== undefined ? currentUser : storeUser;
+
   const [userVote, setUserVote] = useState<-1 | 0 | 1>(initialUserVote);
   const [score, setScore] = useState<number>(post.score ?? 0);
   const [isVoting, setIsVoting] = useState(false);
@@ -37,6 +46,9 @@ export function PostCard({
   const authorType = (author?.actorType || "human") as ActorType;
   const username = author?.username || "anonim";
   const displayName = author?.displayName || username;
+
+  // Kendi içeriğine oy verilemez kontrolü (Plan §Faz 9)
+  const isAuthor = Boolean(user && (user.id === author?.id || user.username === author?.username));
 
   const slug = slugify(post.title || "post");
   const postHref = `/posts/${post.id}/${slug}`;
@@ -55,9 +67,22 @@ export function PostCard({
     rawAttachments?.[0]?.url ||
     null;
 
-  // Optimistic Vote Handler (Plan §2.8)
+  // Optimistic Vote Handler (Plan §2.8 & §Faz 9)
   const handleVote = async (targetVote: 1 | -1) => {
     if (isVoting) return;
+
+    // Giriş yapmamış kullanıcı tıkladığında giriş sayfasına yönlendirilir
+    if (!user && status === "unauthenticated") {
+      const currentPath =
+        typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
+      router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+
+    if (isAuthor) {
+      toast.error("Kendi içeriğinize oy veremezsiniz.");
+      return;
+    }
 
     const previousVote = userVote;
     const previousScore = score;
@@ -83,6 +108,18 @@ export function PostCard({
         // Revert on failure
         setUserVote(previousVote);
         setScore(previousScore);
+
+        if (
+          res.status === 401 ||
+          data.code === "MISSING_CREDENTIALS" ||
+          data.code === "INVALID_KEY"
+        ) {
+          const currentPath =
+            typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
+          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+          return;
+        }
+
         toast.error(data.detail || data.title || "Oy kaydedilemedi.");
         return;
       }
@@ -101,9 +138,16 @@ export function PostCard({
     }
   };
 
-  // Optimistic Save Handler (Plan §2.8)
+  // Optimistic Save Handler (Plan §2.8 & §Faz 9)
   const handleSave = async () => {
     if (isSaving) return;
+
+    if (!user && status === "unauthenticated") {
+      const currentPath =
+        typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
+      router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      return;
+    }
 
     const previousSaved = saved;
     const nextSaved = !previousSaved;
@@ -126,6 +170,18 @@ export function PostCard({
       if (!res.ok || !data.ok) {
         // Revert on failure
         setSaved(previousSaved);
+
+        if (
+          res.status === 401 ||
+          data.code === "MISSING_CREDENTIALS" ||
+          data.code === "INVALID_KEY"
+        ) {
+          const currentPath =
+            typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
+          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+          return;
+        }
+
         toast.error(data.detail || data.title || "Kayıt işlemi gerçekleştirilemedi.");
         return;
       }
@@ -256,13 +312,22 @@ export function PostCard({
             <button
               type="button"
               onClick={() => handleVote(1)}
-              disabled={isVoting}
+              disabled={isVoting || isAuthor}
+              title={
+                isAuthor
+                  ? "Kendi içeriğinize oy veremezsiniz"
+                  : userVote === 1
+                    ? "Oyu geri çek"
+                    : "Yukarı oy ver"
+              }
               aria-label="Yukarı oy ver"
               aria-pressed={userVote === 1}
-              className={`p-1 rounded-md transition-colors cursor-pointer ${
-                userVote === 1
-                  ? "text-vote-up bg-vote-up/10 font-bold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-card"
+              className={`p-1 rounded-md transition-colors ${
+                isAuthor
+                  ? "opacity-50 cursor-not-allowed text-muted-foreground"
+                  : userVote === 1
+                    ? "text-vote-up bg-vote-up/10 font-bold cursor-pointer"
+                    : "text-muted-foreground hover:text-foreground hover:bg-card cursor-pointer"
               }`}
             >
               <ArrowBigUp className="w-4 h-4" />
@@ -283,13 +348,22 @@ export function PostCard({
             <button
               type="button"
               onClick={() => handleVote(-1)}
-              disabled={isVoting}
+              disabled={isVoting || isAuthor}
+              title={
+                isAuthor
+                  ? "Kendi içeriğinize oy veremezsiniz"
+                  : userVote === -1
+                    ? "Oyu geri çek"
+                    : "Aşağı oy ver"
+              }
               aria-label="Aşağı oy ver"
               aria-pressed={userVote === -1}
-              className={`p-1 rounded-md transition-colors cursor-pointer ${
-                userVote === -1
-                  ? "text-vote-down bg-vote-down/10 font-bold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-card"
+              className={`p-1 rounded-md transition-colors ${
+                isAuthor
+                  ? "opacity-50 cursor-not-allowed text-muted-foreground"
+                  : userVote === -1
+                    ? "text-vote-down bg-vote-down/10 font-bold cursor-pointer"
+                    : "text-muted-foreground hover:text-foreground hover:bg-card cursor-pointer"
               }`}
             >
               <ArrowBigDown className="w-4 h-4" />

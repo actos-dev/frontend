@@ -21,13 +21,14 @@ export interface ReportDialogProps {
   targetType?: "content" | "actor";
 }
 
-const REPORT_REASONS = [
-  "Spam veya yanıltıcı içerik",
-  "Nefret söylemi veya taciz",
-  "Telif hakkı veya izinsiz paylaşım",
-  "Zararlı veya tehlikeli yönlendirme",
-  "Diğer topluluk kuralı ihlali",
-];
+export const REPORT_REASONS = [
+  "Spam",
+  "Taciz / Zorbalık",
+  "Yanıltıcı Bilgi",
+  "Zararlı İçerik",
+  "Kurallara Aykırı",
+  "Diğer",
+] as const;
 
 export function ReportDialog({
   open,
@@ -63,8 +64,9 @@ export function ReportDialog({
         return;
       }
 
-      toast.success("Şikayetiniz moderasyon ekibine iletildi.");
+      toast.success("Şikayetiniz moderasyon ekibine iletildi. Teşekkür ederiz.");
       onOpenChange(false);
+      setSelectedReason(REPORT_REASONS[0]);
       setDetails("");
     } catch {
       toast.error("Bağlantı hatası: Şikayet iletilemedi.");
@@ -75,7 +77,7 @@ export function ReportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent data-testid="report-dialog" className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2 text-destructive mb-1">
             <AlertTriangle className="w-5 h-5" />
@@ -105,6 +107,7 @@ export function ReportDialog({
                     type="radio"
                     name="report-reason"
                     value={reason}
+                    data-testid={`report-reason-${reason}`}
                     checked={selectedReason === reason}
                     onChange={() => setSelectedReason(reason)}
                     className="accent-primary"
@@ -121,6 +124,7 @@ export function ReportDialog({
             </label>
             <Textarea
               id="report-details"
+              data-testid="report-details-textarea"
               placeholder="Moderatörlerin değerlendirmesine yardımcı olacak ayrıntılar..."
               rows={3}
               value={details}
@@ -134,6 +138,7 @@ export function ReportDialog({
               type="button"
               variant="outline"
               size="sm"
+              data-testid="report-cancel-button"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
@@ -143,6 +148,7 @@ export function ReportDialog({
               type="submit"
               variant="destructive"
               size="sm"
+              data-testid="report-submit-button"
               disabled={isSubmitting}
               className="gap-1.5"
             >

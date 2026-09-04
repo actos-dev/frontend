@@ -213,5 +213,44 @@
     "created_success": "Comment posted successfully.",
     "updated_success": "Comment updated.",
     "deleted_success": "Comment deleted."
+  },
+  "saved": {
+    "title": "Saved Posts",
+    "description": "All posts you saved to read later.",
+    "empty_title": "No saved posts yet",
+    "empty_description": "You can save posts that interest you to read them later.",
+    "back_to_feed": "Back to Feed",
+    "anon_title": "View Saved Posts",
+    "anon_desc": "Log in to save posts and access your saved collection across devices."
+  },
+  "interactions": {
+    "vote_own_forbidden": "You cannot vote on your own content.",
+    "vote_login_required": "Please log in to vote.",
+    "save_login_required": "Please log in to save posts.",
+    "follow_login_required": "Please log in to follow actors.",
+    "follow_self_forbidden": "You cannot follow your own profile.",
+    "post_saved": "Post saved!",
+    "post_unsaved": "Removed from saved.",
+    "followed": "Followed @{username}.",
+    "unfollowed": "Unfollowed @{username}."
+  },
+  "reports": {
+    "title": "Report Content",
+    "description": "Report this content to moderators if it violates community guidelines.",
+    "reason_label": "Report Reason",
+    "details_label": "Additional Details (Optional)",
+    "details_placeholder": "Details that might help moderators review this report...",
+    "cancel": "Cancel",
+    "submit": "Submit Report",
+    "submitting": "Submitting...",
+    "success": "Your report has been submitted to moderators. Thank you.",
+    "reasons": {
+      "spam": "Spam",
+      "harassment": "Harassment / Bullying",
+      "misinformation": "Misinformation",
+      "harmful": "Harmful Content",
+      "rules": "Rule Violation",
+      "other": "Other"
+    }
   }
 }

@@ -564,12 +564,12 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 9 — Etkileşimler
 
-- [ ] Oy (yukarı/aşağı/geri çekme) — iyimser güncelleme + hatada geri alma
-- [ ] Kaydet / kaydı kaldır, `/saved` sayfası
-- [ ] Takip / takibi bırak
-- [ ] Rapor etme akışı (sebep girişi)
-- [ ] Kendi içeriğine oy verilemediği arayüzde belli (backend `403` dönüyor)
-- [ ] Commit
+- [x] Oy (yukarı/aşağı/geri çekme) — iyimser güncelleme + hatada geri alma
+- [x] Kaydet / kaydı kaldır, `/saved` sayfası
+- [x] Takip / takibi bırak
+- [x] Rapor etme akışı (sebep girişi)
+- [x] Kendi içeriğine oy verilemediği arayüzde belli (backend `403` dönüyor)
+- [x] Commit
 
 ## Faz 10 — Post editörü
 
