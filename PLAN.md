@@ -680,11 +680,11 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 20 — Dokümantasyon ve çıkış hazırlığı
 
-- [ ] `README.md`: kurulum, ortam değişkenleri, geliştirme akışı
-- [ ] `NOTES.md`: kararlar, ölçümler, bilinen sınırlar
-- [ ] `/about` sayfası içeriği
-- [ ] Tüm metinlerin iki dilde tam olduğu kontrolü (eksik anahtar kalmasın)
-- [ ] Commit
+- [x] `README.md`: kurulum, ortam değişkenleri, geliştirme akışı
+- [x] `NOTES.md`: kararlar, ölçümler, bilinen sınırlar
+- [x] `/about` sayfası içeriği
+- [x] Tüm metinlerin iki dilde tam olduğu kontrolü (eksik anahtar kalmasın)
+- [x] Commit
 
 ---
 

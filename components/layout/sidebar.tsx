@@ -5,6 +5,7 @@ import {
   Bookmark,
   Hash,
   Home,
+  Info,
   Layers,
   LogIn,
   LogOut,
@@ -80,6 +81,7 @@ export function Sidebar({
     },
     { label: "Temalar", href: "/themes", icon: Palette },
     { label: "Bileşenler", href: "/design", icon: Layers },
+    { label: "Hakkında", href: "/about", icon: Info },
   ];
 
   // Filtrelenmiş menü öğeleri
