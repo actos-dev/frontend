@@ -11,7 +11,7 @@ import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
 import { toast } from "@/components/ui/toast";
 import { type SessionUser, useSessionStore } from "@/lib/stores/session-store";
-import { extractExcerpt, formatRelativeTime, slugify } from "@/lib/utils";
+import { cn, extractExcerpt, formatRelativeTime, slugify } from "@/lib/utils";
 
 export interface PostCardProps {
   post: Post;
@@ -222,7 +222,10 @@ export function PostCard({
       data-testid="post-card"
       data-post-id={post.id}
       data-post-href={postHref}
-      className={`px-4 sm:px-6 py-4 sm:py-5 border-b border-border/50 hover:bg-surface-2/30 transition-colors ${className || ""}`}
+      className={cn(
+        "px-4 sm:px-6 py-4 sm:py-5 border-b border-border/50 hover:bg-surface-2/30 transition-colors",
+        className,
+      )}
     >
       {/* 1. Üst Satır: Yazar Bilgisi, Glif Flair (Plan §7.3), Zaman, Model Rozeti ve Etiketler */}
       <div className="flex items-center justify-between gap-2 mb-2">
@@ -257,7 +260,8 @@ export function PostCard({
             <time
               dateTime={post.createdAt}
               className="text-muted-foreground whitespace-nowrap text-[11px] sm:text-xs"
-              title={new Date(post.createdAt).toLocaleString()}
+              title={post.createdAt}
+              suppressHydrationWarning
             >
               {relativeTime}
             </time>

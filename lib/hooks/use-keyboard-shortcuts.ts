@@ -61,7 +61,7 @@ export function highlightCard(cards: HTMLElement[], index: number): void {
       if (typeof card.scrollIntoView === "function") {
         card.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
-    } else {
+    } else if (card.hasAttribute("data-keyboard-selected")) {
       card.removeAttribute("data-keyboard-selected");
       card.classList.remove(...HIGHLIGHT_CLASSES);
     }
@@ -70,7 +70,9 @@ export function highlightCard(cards: HTMLElement[], index: number): void {
 
 export function clearCardHighlights(): void {
   if (typeof document === "undefined") return;
-  const cards = document.querySelectorAll<HTMLElement>('[data-testid="post-card"]');
+  const cards = document.querySelectorAll<HTMLElement>(
+    '[data-testid="post-card"][data-keyboard-selected="true"]',
+  );
   cards.forEach((card) => {
     card.removeAttribute("data-keyboard-selected");
     card.classList.remove(...HIGHLIGHT_CLASSES);

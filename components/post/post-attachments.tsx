@@ -11,6 +11,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 export interface PostAttachmentsProps {
   attachments?: Attachment[] | null;
@@ -49,7 +50,7 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
     <section
       data-testid="post-attachments"
       aria-label="Görsel Ekleri"
-      className={`space-y-3 pt-4 pb-2 ${className || ""}`}
+      className={cn("space-y-3 pt-4 pb-2", className)}
     >
       <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
         <ImageIcon className="w-3.5 h-3.5 text-primary" />

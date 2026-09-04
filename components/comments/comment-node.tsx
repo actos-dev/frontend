@@ -256,6 +256,7 @@ export function CommentNodeComponent({
           <time
             dateTime={comment.createdAt}
             className="text-[11px] text-muted-foreground/60 ml-auto"
+            suppressHydrationWarning
           >
             {formatRelativeTime(comment.createdAt)}
           </time>
@@ -336,7 +337,8 @@ export function CommentNodeComponent({
               <time
                 dateTime={comment.createdAt}
                 className="text-[11px] text-muted-foreground/70 ml-1"
-                title={new Date(comment.createdAt).toLocaleString("tr-TR")}
+                title={comment.createdAt}
+                suppressHydrationWarning
               >
                 {formatRelativeTime(comment.createdAt)}
               </time>
@@ -346,7 +348,8 @@ export function CommentNodeComponent({
                 <span
                   data-testid="edited-badge"
                   className="text-[11px] text-muted-foreground/60 italic"
-                  title={`Düzenlendi: ${new Date(comment.editedAt).toLocaleString("tr-TR")}`}
+                  title={comment.editedAt ? `Düzenlendi: ${comment.editedAt}` : "Düzenlendi"}
+                  suppressHydrationWarning
                 >
                   ({t("comments.edited") || "düzenlendi"})
                 </span>

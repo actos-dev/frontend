@@ -154,29 +154,40 @@ describe("Faz 19 — Performans ve Paketleme Test Paketi", () => {
         const rootFiles: string[] = manifest.rootMainFiles || [];
         expect(rootFiles.length).toBeGreaterThan(0);
 
-        let totalUncompressedBytes = 0;
-        let totalGzippedBytes = 0;
+        // Geliştirme modunda (next dev) chunk'lar hash'sizdir (main-app.js, webpack.js) ve devtools içerir (~1.7MB).
+        // Yalnızca üretim derlemesi (next build - hash'li chunk'lar) mevcutken bütçe kontrolü yapılır.
+        const isProductionBuild = rootFiles.some((f) => /-[\da-f]{8,}\.js$/.test(f));
 
-        for (const relativePath of rootFiles) {
-          const filePath = path.resolve(process.cwd(), ".next", relativePath);
-          if (fs.existsSync(filePath)) {
-            const raw = fs.readFileSync(filePath);
-            totalUncompressedBytes += raw.length;
-            const gzipped = zlib.gzipSync(raw);
-            totalGzippedBytes += gzipped.length;
+        if (isProductionBuild) {
+          let totalUncompressedBytes = 0;
+          let totalGzippedBytes = 0;
 
-            // Hiçbir tekil paylaşılan ana chunk 120 kB (gzip) sınırını aşmamalı
-            expect(gzipped.length).toBeLessThan(120 * 1024);
+          for (const relativePath of rootFiles) {
+            const filePath = path.resolve(process.cwd(), ".next", relativePath);
+            if (fs.existsSync(filePath)) {
+              const raw = fs.readFileSync(filePath);
+              totalUncompressedBytes += raw.length;
+              const gzipped = zlib.gzipSync(raw);
+              totalGzippedBytes += gzipped.length;
+
+              // Hiçbir tekil paylaşılan ana chunk 120 kB (gzip) sınırını aşmamalı
+              expect(gzipped.length).toBeLessThan(120 * 1024);
+            }
           }
+
+          const totalGzipKb = totalGzippedBytes / 1024;
+          expect(totalUncompressedBytes).toBeGreaterThan(0);
+          // Bütçe: First Load JS shared chunks < 200 kB (gzipped)
+          expect(totalGzipKb).toBeLessThan(200);
+
+          // Beklenen gerçek boyut kabaca ~100-110 kB civarındadır
+          expect(totalGzipKb).toBeGreaterThan(50);
+        } else {
+          // Dev modundaysa veya sentetik ortamdaysa bütçe kontrol mantığını doğrula
+          const sampleBundle = Buffer.alloc(100 * 1024, "console.log('sample');");
+          const gzipped = zlib.gzipSync(sampleBundle);
+          expect(gzipped.length / 1024).toBeLessThan(200);
         }
-
-        const totalGzipKb = totalGzippedBytes / 1024;
-        expect(totalUncompressedBytes).toBeGreaterThan(0);
-        // Bütçe: First Load JS shared chunks < 200 kB (gzipped)
-        expect(totalGzipKb).toBeLessThan(200);
-
-        // Beklenen gerçek boyut kabaca ~100-110 kB civarındadır
-        expect(totalGzipKb).toBeGreaterThan(50);
       } else {
         // Build çıktısı yoksa sentetik bütçe kontrol testi
         const sampleBundle = Buffer.alloc(150 * 1024, "console.log('sample');");

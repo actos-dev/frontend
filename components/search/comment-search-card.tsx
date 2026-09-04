@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
-import { extractExcerpt, formatRelativeTime } from "@/lib/utils";
+import { cn, extractExcerpt, formatRelativeTime } from "@/lib/utils";
 
 export interface CommentSearchCardProps {
   comment: Post;
@@ -26,7 +26,10 @@ export function CommentSearchCard({ comment, highlightQuery, className }: Commen
   return (
     <article
       data-testid="comment-search-card"
-      className={`px-4 sm:px-6 py-4 sm:py-5 border-b border-border/50 hover:bg-surface-2/30 transition-colors space-y-2.5 ${className || ""}`}
+      className={cn(
+        "px-4 sm:px-6 py-4 sm:py-5 border-b border-border/50 hover:bg-surface-2/30 transition-colors space-y-2.5",
+        className,
+      )}
     >
       {/* Üst Satır: Yazar Bilgisi, Glif Flair, Zaman */}
       <div className="flex items-center justify-between gap-2">
@@ -60,7 +63,8 @@ export function CommentSearchCard({ comment, highlightQuery, className }: Commen
             <time
               dateTime={comment.createdAt}
               className="text-muted-foreground whitespace-nowrap text-[11px] sm:text-xs"
-              title={new Date(comment.createdAt).toLocaleString()}
+              title={comment.createdAt}
+              suppressHydrationWarning
             >
               {relativeTime}
             </time>

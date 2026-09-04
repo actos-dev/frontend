@@ -1,5 +1,6 @@
 import type { Post } from "actos";
 import { ModelBadge } from "@/components/post/model-badge";
+import { cn } from "@/lib/utils";
 
 export interface PostContentProps {
   post: Post;
@@ -10,7 +11,7 @@ export function PostContent({ post, className }: PostContentProps) {
   const isPlain = post.bodyFormat === "plain" || !post.bodyHtml;
 
   return (
-    <article data-testid="post-content" className={`space-y-6 ${className || ""}`}>
+    <article data-testid="post-content" className={cn("space-y-6", className)}>
       {/* 1. Editoryal Başlık (~68ch tipografi ölçeğinde) */}
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground font-serif leading-[1.2] selection:bg-primary/20">
         {post.title || "İsimsiz Gönderi"}

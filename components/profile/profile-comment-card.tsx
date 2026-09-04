@@ -21,7 +21,9 @@ export function ProfileCommentCard({ comment, username }: ProfileCommentCardProp
           <MessageSquare className="w-3.5 h-3.5 text-primary" />
           <span>@{username} bir yorum yaptı</span>
         </div>
-        <time dateTime={comment.createdAt}>{relativeTime}</time>
+        <time dateTime={comment.createdAt} title={comment.createdAt} suppressHydrationWarning>
+          {relativeTime}
+        </time>
       </div>
 
       <div className="text-sm text-foreground/90 leading-relaxed line-clamp-4 whitespace-pre-line">

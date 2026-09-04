@@ -9,7 +9,7 @@ import { ReportDialog } from "@/components/post/report-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { useSessionStore } from "@/lib/stores/session-store";
-import { slugify } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 
 export interface PostActionsProps {
   post: Post;
@@ -203,7 +203,10 @@ export function PostActions({
   return (
     <div
       data-testid="post-actions-bar"
-      className={`flex items-center justify-between gap-2 py-4 border-y border-border/60 ${className || ""}`}
+      className={cn(
+        "flex items-center justify-between gap-2 py-4 border-y border-border/60",
+        className,
+      )}
     >
       {/* Sol Grup: Oy Sistemi */}
       <div className="inline-flex items-center rounded-xl bg-surface-2/90 border border-border/80 p-1 shadow-2xs">

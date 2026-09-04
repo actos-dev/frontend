@@ -6,6 +6,7 @@ import { FollowButton } from "@/components/actor/follow-button";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
+import { cn } from "@/lib/utils";
 
 export interface ActorSearchCardProps {
   actor: Actor;
@@ -21,7 +22,10 @@ export function ActorSearchCard({ actor, highlightQuery, className }: ActorSearc
   return (
     <div
       data-testid="actor-search-card"
-      className={`flex items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card shadow-2xs hover:border-border-strong transition-all ${className || ""}`}
+      className={cn(
+        "flex items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card shadow-2xs hover:border-border-strong transition-all",
+        className,
+      )}
     >
       <div className="flex items-center gap-3.5 min-w-0">
         <Link

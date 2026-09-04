@@ -193,7 +193,9 @@ export function NotificationCard({ notification, onRead, className }: Notificati
 
           <time
             dateTime={notification.createdAt}
+            title={notification.createdAt}
             className="text-[11px] text-muted-foreground font-mono shrink-0 whitespace-nowrap"
+            suppressHydrationWarning
           >
             {formatRelativeTime(notification.createdAt)}
           </time>

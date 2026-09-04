@@ -3,7 +3,7 @@ import { Clock, History } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
-import { formatRelativeTime } from "@/lib/utils";
+import { cn, formatRelativeTime } from "@/lib/utils";
 
 export interface PostHeaderProps {
   post: Post;
@@ -41,7 +41,7 @@ export function PostHeader({ post, className }: PostHeaderProps) {
   return (
     <header
       data-testid="post-header"
-      className={`border-b border-border/60 pb-5 mb-6 space-y-4 ${className || ""}`}
+      className={cn("border-b border-border/60 pb-5 mb-6 space-y-4", className)}
     >
       {/* 1. Yazar ve Tarih Satırı */}
       <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap">
@@ -92,6 +92,7 @@ export function PostHeader({ post, className }: PostHeaderProps) {
                 dateTime={post.createdAt}
                 title={fullCreatedDate}
                 className="flex items-center gap-1 hover:text-foreground transition-colors"
+                suppressHydrationWarning
               >
                 <Clock className="w-3 h-3" />
                 <span>{fullCreatedDate}</span>

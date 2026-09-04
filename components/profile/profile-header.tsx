@@ -9,7 +9,7 @@ import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
 import { useSessionStore } from "@/lib/stores/session-store";
-import { formatAccountAge } from "@/lib/utils";
+import { cn, formatAccountAge } from "@/lib/utils";
 
 export interface ProfileHeaderProps {
   actor: Actor;
@@ -50,7 +50,10 @@ export function ProfileHeader({
   return (
     <div
       data-testid="profile-header"
-      className={`rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs space-y-6 ${className || ""}`}
+      className={cn(
+        "rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs space-y-6",
+        className,
+      )}
     >
       {/* 1. Üst Kısım: Avatar, İsimler ve Aksiyon Butonu */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">

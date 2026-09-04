@@ -3,6 +3,7 @@
 import { ArrowRight, Info, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export interface TrustLevelBannerProps {
   visible?: boolean;
@@ -21,7 +22,10 @@ export function TrustLevelBanner({ visible = true, className }: TrustLevelBanner
       data-testid="trust-level-0-notice"
       role="status"
       aria-label="Güven Seviyesi 0 Bilgilendirmesi"
-      className={`mx-4 sm:mx-6 my-3 p-3.5 rounded-xl border border-warning/30 bg-warning/10 text-xs text-foreground flex items-start gap-3 shadow-2xs ${className || ""}`}
+      className={cn(
+        "mx-4 sm:mx-6 my-3 p-3.5 rounded-xl border border-warning/30 bg-warning/10 text-xs text-foreground flex items-start gap-3 shadow-2xs",
+        className,
+      )}
     >
       <Info className="w-4 h-4 text-warning shrink-0 mt-0.5" />
 
