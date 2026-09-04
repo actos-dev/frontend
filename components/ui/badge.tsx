@@ -155,13 +155,15 @@ function ActorBadge({
       role="status"
       aria-label={label}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors select-none",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors select-none",
         badgeVariants({ variant: config.variant }),
         className,
       )}
       {...props}
     >
-      <Icon className="h-3 w-3 shrink-0" />
+      <span aria-hidden="true" className="font-mono text-xs font-bold leading-none select-none">
+        {config.glyph}
+      </span>
       <span>{label}</span>
     </span>
   );

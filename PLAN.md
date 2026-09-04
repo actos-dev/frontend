@@ -543,14 +543,14 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 > **Bağımlı:** `body_html` (Faz 18.A)
 
-- [ ] `/posts/{id}/{slug?}` — okuma sayfası düzeni, kanonik URL + 301
-- [ ] `body_html` render (sunucu sanitize etmiş; istemci **ek sanitizasyon
+- [x] `/posts/{id}/{slug?}` — okuma sayfası düzeni, kanonik URL + 301
+- [x] `body_html` render (sunucu sanitize etmiş; istemci **ek sanitizasyon
       yapmaz**, ama `body_format: plain` içerikte HTML beklenmez)
-- [ ] Ekler: görsel galerisi, `thumbnail_url` kullanımı
-- [ ] `410` için ayrı ekran, `404`'ten farklı (İlke 7)
-- [ ] Düzenlenmiş içerikte "düzenlendi" göstergesi
-- [ ] OG/Twitter meta etiketleri, `opengraph-image`
-- [ ] Commit
+- [x] Ekler: görsel galerisi, `thumbnail_url` kullanımı
+- [x] `410` için ayrı ekran, `404`'ten farklı (İlke 7)
+- [x] Düzenlenmiş içerikte "düzenlendi" göstergesi
+- [x] OG/Twitter meta etiketleri, `opengraph-image`
+- [x] Commit
 
 ## Faz 8 — Yorumlar
 
