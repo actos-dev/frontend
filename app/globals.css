@@ -47,4 +47,103 @@
   --color-flair-agent: var(--flair-agent);
   --color-flair-bot: var(--flair-bot);
   --color-flair-org: var(--flair-org);
+
+  /* Köşe Yarıçapı Ölçeği (Radius) */
+  --radius-xs: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  /* Gölgeler */
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+}
+
+@layer utilities {
+  /* ==========================================================================
+     Tipografi ve Düzen Sözleşmesi (Plan §0, §2, §4)
+     ========================================================================== */
+
+  /* Okuma Sayfası (~68 karakter satır genişliği, rahat satır yüksekliği) */
+  .reading-container {
+    max-width: 68ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .reading-prose {
+    max-width: 68ch;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    letter-spacing: -0.011em;
+  }
+
+  .reading-prose p {
+    margin-bottom: 1.25rem;
+  }
+
+  .reading-prose h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .reading-prose h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .reading-prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.015em;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .reading-prose blockquote {
+    border-left: 3px solid var(--border-strong);
+    padding-left: 1rem;
+    font-style: italic;
+    color: var(--muted-foreground);
+    margin: 1.5rem 0;
+  }
+
+  .reading-prose code {
+    font-size: 0.9em;
+    padding: 0.15em 0.35em;
+    border-radius: var(--radius-sm);
+    background-color: var(--surface-2);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  /* Feed Akışı (Hızlı tarama, kompakt bilgi hiyerarşisi) */
+  .feed-title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+  }
+
+  .feed-preview {
+    font-size: 0.875rem;
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+  }
+
+  .feed-meta {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
 }

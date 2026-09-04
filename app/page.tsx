@@ -25,15 +25,25 @@ export default function HomePage() {
         <ThemeSwitcher />
       </div>
 
-      {/* Canlı Galeriye Yönlendirme */}
-      <Link
-        href="/themes"
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm shadow-xs hover:opacity-90 transition-opacity"
-      >
-        <Palette className="w-4 h-4" />
-        22 Canlı Temayı Gör
-        <ArrowRight className="w-4 h-4" />
-      </Link>
+      {/* Canlı Galeri ve Tasarım Sistemi Yönlendirmeleri */}
+      <div className="flex flex-wrap items-center justify-center gap-4">
+        <Link
+          href="/themes"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm shadow-xs hover:opacity-90 transition-opacity"
+        >
+          <Palette className="w-4 h-4" />
+          22 Canlı Temayı Gör
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+        <Link
+          href="/design"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-2 text-foreground border border-border font-medium text-sm shadow-xs hover:bg-surface-3 transition-colors"
+        >
+          <Sparkles className="w-4 h-4 text-primary" />
+          Bileşen Galerisi (Faz 2)
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
     </main>
   );
 }

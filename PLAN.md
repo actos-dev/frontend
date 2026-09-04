@@ -475,14 +475,15 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 2 — Tasarım sistemi temelleri
 
-- [ ] shadcn/ui kurulumu, token'lara bağlanması
-- [ ] Tipografi ölçeği: feed (tarama) vs okuma sayfası (~68 karakter satır) ayrı
-- [ ] Boşluk ölçeği, köşe yarıçapı, gölge kullanımı — tek yerde karar
-- [ ] Temel bileşenler: Button, Input, Textarea, Select, Dialog, Popover,
+- [x] shadcn/ui kurulumu, token'lara bağlanması
+- [x] Tipografi ölçeği: feed (tarama) vs okuma sayfası (~68 karakter satır) ayrı
+- [x] Boşluk ölçeği, köşe yarıçapı, gölge kullanımı — tek yerde karar
+- [x] Temel bileşenler: Button, Input, Textarea, Select, Dialog, Popover,
       Tooltip, Tabs, Badge, Avatar, Skeleton, Toast
-- [ ] İkon seti seçilir (tek set, karışık kullanılmaz)
-- [ ] Bileşen galerisi sayfası (yalnızca geliştirmede)
-- [ ] Commit
+- [x] İkon seti seçilir (tek set, karışık kullanılmaz)
+- [x] Bileşen galerisi sayfası (yalnızca geliştirmede)
+- [x] Commit
+
 
 ## Faz 3 — Uygulama kabuğu
 
