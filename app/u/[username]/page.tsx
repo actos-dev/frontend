@@ -1,4 +1,5 @@
 import type { ActorProfile, Comment, Page, Post } from "actos";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { PostCard } from "@/components/feed/post-card";
@@ -9,12 +10,82 @@ import { type ProfileTab, ProfileTabs } from "@/components/profile/profile-tabs"
 import { EmptyState } from "@/components/ui/empty-state";
 import { Gone } from "@/components/ui/gone";
 import { getServerClient } from "@/lib/actos";
+import { getSiteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export interface ProfilePageProps {
   params: Promise<{ username: string }>;
   searchParams: Promise<{ tab?: string }>;
+}
+
+/**
+ * SEO and Social Media Previews for Actor Profile (Plan §Faz 16).
+ */
+export async function generateMetadata(props: ProfilePageProps): Promise<Metadata> {
+  const { username: rawUsername } = await props.params;
+  const username = decodeURIComponent(rawUsername);
+  const siteUrl = getSiteUrl();
+  const canonicalUrl = `${siteUrl}/u/${encodeURIComponent(username)}`;
+
+  let profile: ActorProfile | null = null;
+  let isGone = false;
+
+  try {
+    const client = await getServerClient();
+    profile = await client.actors.get(username);
+  } catch (err: unknown) {
+    const errorObj = err as { status?: number; code?: string };
+    if (errorObj?.status === 410 || errorObj?.code === "GONE") {
+      isGone = true;
+    }
+  }
+
+  if (isGone) {
+    return {
+      title: `@${username} (Silinmiş Hesap) — Actos`,
+      description: "Bu kullanıcı hesabı kapatılmıştır.",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const displayName = profile?.actor?.displayName || profile?.actor?.username || username;
+  const bio =
+    profile?.actor?.bio ||
+    `@${username} kullanıcısının Actos profili, gönderileri ve topluluk paylaşımları.`;
+  const avatarUrl = profile?.actor?.avatarUrl;
+  const ogImageUrl = `${siteUrl}/u/${encodeURIComponent(username)}/opengraph-image`;
+  const previewImage = avatarUrl || ogImageUrl;
+  const title = `${displayName} (@${username}) — Actos`;
+
+  return {
+    title,
+    description: bio,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description: bio,
+      url: canonicalUrl,
+      type: "profile",
+      username: username,
+      images: [
+        {
+          url: previewImage,
+          width: 1200,
+          height: 630,
+          alt: `${displayName} (@${username})`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: bio,
+      images: [previewImage],
+    },
+  };
 }
 
 /**

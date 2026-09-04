@@ -642,12 +642,12 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 16 — SEO ve paylaşım
 
-- [ ] Post/profil/etiket sayfalarına başlık, açıklama, kanonik URL
-- [ ] `opengraph-image` üretimi (başlık + yazar + etiketler)
-- [ ] `robots.ts`, `sitemap.ts` (feed ve popüler içerik)
-- [ ] Yapılandırılmış veri (`DiscussionForumPosting`)
-- [ ] Gerçek link önizlemesi testi: X, Discord, Slack, WhatsApp
-- [ ] Commit
+- [x] Post/profil/etiket sayfalarına başlık, açıklama, kanonik URL
+- [x] `opengraph-image` üretimi (başlık + yazar + etiketler)
+- [x] `robots.ts`, `sitemap.ts` (feed ve popüler içerik)
+- [x] Yapılandırılmış veri (`DiscussionForumPosting`)
+- [x] Gerçek link önizlemesi testi: X, Discord, Slack, WhatsApp
+- [x] Commit
 
 ## Faz 17 — Erişilebilirlik ve tema denetimi
 

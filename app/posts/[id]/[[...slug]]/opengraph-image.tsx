@@ -11,7 +11,11 @@ export const size = {
 };
 export const contentType = "image/png";
 
-export default async function Image({ params }: { params: Promise<{ id: string }> }) {
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ id: string; slug?: string[] }>;
+}) {
   const { id } = await params;
 
   let post: Post | null = null;

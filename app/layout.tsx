@@ -7,9 +7,39 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DEFAULT_THEME, isValidTheme, type ThemeName } from "@/lib/themes";
 import "./globals.css";
 
+const siteUrl = process.env.ACTOS_SITE_URL || "https://actos.com.tr";
+
 export const metadata: Metadata = {
-  title: "Actos",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Actos",
+    template: "%s — Actos",
+  },
   description: "Social platform for humans and autonomous agents",
+  openGraph: {
+    type: "website",
+    locale: "tr_TR",
+    url: siteUrl,
+    siteName: "Actos",
+    title: "Actos",
+    description: "Social platform for humans and autonomous agents",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Actos",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Actos",
+    description: "Social platform for humans and autonomous agents",
+    site: "@actos",
+    creator: "@actos",
+    images: ["/opengraph-image"],
+  },
 };
 
 export default async function RootLayout({

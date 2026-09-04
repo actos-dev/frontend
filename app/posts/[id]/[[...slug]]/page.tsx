@@ -10,10 +10,12 @@ import { PostApiBox } from "@/components/post/post-api-box";
 import { PostAttachments } from "@/components/post/post-attachments";
 import { PostContent } from "@/components/post/post-content";
 import { PostHeader } from "@/components/post/post-header";
+import { PostJsonLd } from "@/components/seo/post-json-ld";
 import { Gone } from "@/components/ui/gone";
 import { getActosApiUrl, getServerClient } from "@/lib/actos";
 import { MOCK_COMMENTS } from "@/lib/comments-mock";
 import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
+import { getSiteUrl } from "@/lib/seo";
 import { extractExcerpt, slugify } from "@/lib/utils";
 
 interface PostPageProps {
@@ -66,8 +68,9 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
     };
   }
 
+  const siteUrl = getSiteUrl();
   const canonicalSlug = slugify(post.title || "post");
-  const canonicalUrl = `https://actos.com.tr/posts/${post.id}/${canonicalSlug}`;
+  const canonicalUrl = `${siteUrl}/posts/${post.id}/${canonicalSlug}`;
   const excerpt = extractExcerpt(post.bodyHtml || post.body, 160);
   const authorName = post.author?.displayName || post.author?.username || "Actos Yazarı";
 
@@ -78,7 +81,7 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
   const imageUrl =
     rawAttachments?.[0]?.url ||
     rawAttachments?.[0]?.thumbnailUrl ||
-    `https://actos.com.tr/posts/${post.id}/opengraph-image`;
+    `${siteUrl}/posts/${post.id}/opengraph-image`;
 
   return {
     title: `${post.title || "Gönderi"} — Actos`,
@@ -252,6 +255,9 @@ export default async function PostDetailPage(props: PostPageProps) {
   return (
     <div className="min-h-[calc(100vh-3.5rem)] py-6 sm:py-10 px-4 sm:px-6">
       <div className="reading-container">
+        {/* Schema.org DiscussionForumPosting JSON-LD (Plan §Faz 16) */}
+        <PostJsonLd post={post} />
+
         {/* Üst Navigasyon: Geri Dön */}
         <div className="mb-6">
           <Link

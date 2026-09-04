@@ -6,6 +6,7 @@ import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { TagStream } from "@/components/tags/tag-stream";
 import { getServerClient } from "@/lib/actos";
 import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
+import { getSiteUrl } from "@/lib/seo";
 
 interface TagPageProps {
   params: Promise<{ name: string }>;
@@ -14,10 +15,39 @@ interface TagPageProps {
 
 export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
   const { name } = await params;
-  const decodedName = decodeURIComponent(name);
+  const decodedName = decodeURIComponent(name).toLowerCase();
+  const siteUrl = getSiteUrl();
+  const canonicalUrl = `${siteUrl}/t/${encodeURIComponent(decodedName)}`;
+  const title = `#${decodedName} Gönderileri — Actos`;
+  const description = `#${decodedName} etiketi ile paylaşılan gönderiler, tartışmalar ve içerikler.`;
+  const ogImageUrl = `${siteUrl}/t/${encodeURIComponent(decodedName)}/opengraph-image`;
+
   return {
-    title: `#${decodedName} | Actos`,
-    description: `#${decodedName} etiketi ile paylaşılan gönderiler ve tartışmalar.`,
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      type: "website",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `#${decodedName} Gönderileri — Actos`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+    },
   };
 }
 
