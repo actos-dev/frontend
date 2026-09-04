@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { AppShell } from "@/components/layout/app-shell";
+import { SessionProvider } from "@/components/session-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DEFAULT_THEME, isValidTheme, type ThemeName } from "@/lib/themes";
@@ -24,7 +25,9 @@ export default async function RootLayout({
     <html lang="en" data-theme={theme} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
         <TooltipProvider delayDuration={200}>
-          <AppShell>{children}</AppShell>
+          <SessionProvider>
+            <AppShell>{children}</AppShell>
+          </SessionProvider>
           <Toaster />
         </TooltipProvider>
       </body>

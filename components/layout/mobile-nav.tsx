@@ -65,7 +65,7 @@ export function MobileNav({ className }: MobileNavProps) {
       {/* 3. Yeni Post (Öne çıkan buton) */}
       <div className="flex-1 flex items-center justify-center">
         <Link
-          href="/new"
+          href={user ? "/new" : "/login?returnUrl=/new"}
           aria-current={isNewActive ? "page" : undefined}
           aria-label="Yeni Post Yaz"
           className="flex items-center justify-center w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-md hover:scale-105 active:scale-95 transition-all"
@@ -76,7 +76,7 @@ export function MobileNav({ className }: MobileNavProps) {
 
       {/* 4. Bildirimler (Inbox) */}
       <Link
-        href={user ? "/inbox" : "/login?redirect=/inbox"}
+        href={user ? "/inbox" : "/login?returnUrl=/inbox"}
         aria-current={isInboxActive ? "page" : undefined}
         aria-label={unreadCount > 0 ? `Bildirimler (${unreadCount} okunmamış)` : "Bildirimler"}
         className={cn(

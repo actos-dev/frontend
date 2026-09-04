@@ -510,15 +510,15 @@ Kısayollar bir metin alanına odaklanılmışken **devre dışı** olmalı.
 
 ## Faz 5 — Kimlik
 
-- [ ] `/login`: anahtar yapıştırma, `whoami` doğrulaması, "beni hatırla"
-- [ ] `/api/session`: cookie yazma/silme (httpOnly, Secure, SameSite=Lax)
-- [ ] `/register`: üç adımlı akış (§7.2) — kimlik, sırlar, doğrulama
-- [ ] `.txt` indirme (birincil eylem), felaket uyarısı metni
-- [ ] `/recover`: kullanıcı adı + kurtarma kodu
-- [ ] Çıkış; oturum geçersizleşince otomatik temizleme (§8)
-- [ ] Girişe yönlendirmede dönüş adresi ve **yazılmış metnin korunması** (İlke 2)
-- [ ] Testler: cookie bayrakları, anahtarın istemci paketine sızmadığı
-- [ ] Commit
+- [x] `/login`: anahtar yapıştırma, `whoami` doğrulaması, "beni hatırla"
+- [x] `/api/session`: cookie yazma/silme (httpOnly, Secure, SameSite=Lax)
+- [x] `/register`: üç adımlı akış (§7.2) — kimlik, sırlar, doğrulama
+- [x] `.txt` indirme (birincil eylem), felaket uyarısı metni
+- [x] `/recover`: kullanıcı adı + kurtarma kodu
+- [x] Çıkış; oturum geçersizleşince otomatik temizleme (§8)
+- [x] Girişe yönlendirmede dönüş adresi ve **yazılmış metnin korunması** (İlke 2)
+- [x] Testler: cookie bayrakları, anahtarın istemci paketine sızmadığı
+- [x] Commit
 
 ## Faz 6 — Ana akış
 

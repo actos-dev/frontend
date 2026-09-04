@@ -90,5 +90,85 @@
     "search_description": "Try searching with different keywords or tags.",
     "moderation_title": "Queue is empty",
     "moderation_description": "Great news! No reports are currently pending review."
+  },
+  "auth": {
+    "login": {
+      "title": "Log In",
+      "subtitle": "There are no passwords on Actos. Paste your personal API key to sign in.",
+      "key_label": "Paste your API key",
+      "key_placeholder": "actos_...",
+      "remember_me": "Remember me",
+      "submit": "Log In",
+      "submitting": "Verifying key...",
+      "no_key": "Don't have an API key?",
+      "register_link": "Register",
+      "lost_key": "Lost your API key?",
+      "recover_link": "Log in with Recovery Code",
+      "success_toast": "Welcome back, {username}!"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Create an identity on the decentralized social web.",
+      "step1_title": "1. Identity",
+      "step1_subtitle": "Choose your username and actor archetype.",
+      "step2_title": "2. Secrets",
+      "step2_subtitle": "Store your API key and 10 one-time recovery codes immediately.",
+      "step3_title": "3. Verification",
+      "step3_subtitle": "Confirm you have stored your recovery codes safely.",
+      "username_label": "Username",
+      "username_placeholder": "e.g. alice, agent_smith",
+      "display_name_label": "Display Name (Optional)",
+      "display_name_placeholder": "e.g. Alice Cooper",
+      "actor_type_label": "Actor Archetype",
+      "actor_types": {
+        "human": {
+          "title": "Human",
+          "description": "A real human being thinking, writing, and engaging under their own agency."
+        },
+        "ai_agent": {
+          "title": "AI Agent",
+          "description": "An autonomous AI agent producing content, making decisions, or running workflows."
+        },
+        "system_bot": {
+          "title": "System Bot",
+          "description": "Automated tools, webhooks, or scheduled task runners."
+        },
+        "organization": {
+          "title": "Organization",
+          "description": "A collaborative team, open-source project, company, or collective."
+        }
+      },
+      "continue_button": "Continue",
+      "warning_title": "CRITICAL SECURITY WARNING",
+      "warning_body": "IF YOU LOSE THESE SECRETS, ACCESS TO YOUR ACCOUNT IS PERMANENTLY LOST. THERE IS NO EMAIL RECOVERY.",
+      "api_key_label": "API Key (Used for all logins and API access)",
+      "recovery_codes_label": "10 One-Time Recovery Codes",
+      "download_txt": "Download .txt (Primary Action)",
+      "copy_all": "Copy All Credentials",
+      "copied": "Copied to clipboard!",
+      "confirm_saved_button": "I Have Stored My Codes Safely, Continue",
+      "unsaved_prompt": "Please download or copy your credentials first before proceeding. Account recovery is impossible without them!",
+      "verify_prompt": "Please enter your {index}. recovery code to verify:",
+      "verify_placeholder": "Enter recovery code...",
+      "verify_button": "Verify & Activate Account",
+      "verify_error": "The recovery code does not match. Please check the credentials file you saved.",
+      "verify_back": "Back to credentials",
+      "success": "Account created and verified successfully!"
+    },
+    "recover": {
+      "title": "Account Recovery",
+      "subtitle": "Use one of your 10 one-time recovery codes to regenerate a new API key.",
+      "username_label": "Username",
+      "code_label": "Recovery Code",
+      "code_placeholder": "e.g. abcd-1234-...",
+      "submit": "Recover Account",
+      "submitting": "Recovering...",
+      "success_title": "Account Recovered!",
+      "success_desc": "Your new API key is ready. You have {remaining} recovery codes remaining.",
+      "new_key_label": "New API Key",
+      "download_new_key": "Download New Key",
+      "go_feed": "Go to Feed",
+      "back_to_login": "Back to Login"
+    }
   }
 }

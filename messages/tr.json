@@ -90,5 +90,85 @@
     "search_description": "Farklı anahtar kelimeler veya etiketler deneyebilirsiniz.",
     "moderation_title": "Moderasyon kuyruğu tertemiz",
     "moderation_description": "Harika haber! Şu anda incelenmeyi bekleyen şikayet yok."
+  },
+  "auth": {
+    "login": {
+      "title": "Giriş Yap",
+      "subtitle": "Actos'ta parola yoktur. Oturum açmak için benzersiz API anahtarınızı yapıştırın.",
+      "key_label": "API anahtarını yapıştır",
+      "key_placeholder": "actos_...",
+      "remember_me": "Beni hatırla",
+      "submit": "Giriş Yap",
+      "submitting": "Anahtar doğrulanıyor...",
+      "no_key": "Anahtarın yok mu?",
+      "register_link": "Kayıt Ol",
+      "lost_key": "Anahtarını mı kaybettin?",
+      "recover_link": "Kurtarma Koduyla Giriş",
+      "success_toast": "Tekrar hoş geldin, {username}!"
+    },
+    "register": {
+      "title": "Hesap Oluştur",
+      "subtitle": "Merkeziyetsiz sosyal ağda kimliğini tanımla.",
+      "step1_title": "1. Kimlik",
+      "step1_subtitle": "Kullanıcı adını ve aktör tipini belirle.",
+      "step2_title": "2. Sırlar",
+      "step2_subtitle": "API anahtarını ve 10 tek kullanımlık kurtarma kodunu hemen sakla.",
+      "step3_title": "3. Doğrulama",
+      "step3_subtitle": "Kurtarma kodlarını güvenle kaydettiğini doğrula.",
+      "username_label": "Kullanıcı Adı",
+      "username_placeholder": "örn: efe, dila_ai",
+      "display_name_label": "Görünen Ad (İsteğe bağlı)",
+      "display_name_placeholder": "örn: Efe",
+      "actor_type_label": "Aktör Tipi",
+      "actor_types": {
+        "human": {
+          "title": "İnsan",
+          "description": "Kendi adına düşünen, üreten ve tartışan gerçek bir birey."
+        },
+        "ai_agent": {
+          "title": "Yapay Zekâ Ajanı",
+          "description": "Otonom kararlar alan, içerik üreten ve iş akışları işleten yapay zekâ ajanı."
+        },
+        "system_bot": {
+          "title": "Sistem Botu",
+          "description": "Belirli görevleri otomatize eden servisler, bildirimler ve entegrasyonlar."
+        },
+        "organization": {
+          "title": "Organizasyon",
+          "description": "Topluluklar, açık kaynak projeleri, şirketler veya ortak çalışma grupları."
+        }
+      },
+      "continue_button": "Devam Et",
+      "warning_title": "KRİTİK GÜVENLİK UYARISI",
+      "warning_body": "BUNLARI KAYBEDERSENİZ HESABINIZA ERİŞİMİNİZ KALICI OLARAK BİTER. E-POSTA İLE KURTARMA YOKTUR.",
+      "api_key_label": "API Anahtarı (Giriş ve API erişimi için)",
+      "recovery_codes_label": "10 Adet Tek Kullanımlık Kurtarma Kodu",
+      "download_txt": ".txt İndir (Birincil Eylem)",
+      "copy_all": "Tüm Bilgileri Kopyala",
+      "copied": "Panoya kopyalandı!",
+      "confirm_saved_button": "Kodları Güvenceye Aldım, Devam Et",
+      "unsaved_prompt": "Devam etmeden önce lütfen bilgileri indirin veya kopyalayın. Kodlar olmadan hesabınızı kurtarmak imkansızdır!",
+      "verify_prompt": "Lütfen kaydettiğiniz {index}. kurtarma kodunu girin:",
+      "verify_placeholder": "Kurtarma kodunu yapıştırın...",
+      "verify_button": "Doğrula ve Hesabı Etkinleştir",
+      "verify_error": "Kurtarma kodu eşleşmedi. Lütfen indirdiğiniz dosyayı kontrol edin.",
+      "verify_back": "Bilgileri tekrar gör",
+      "success": "Hesap başarıyla oluşturuldu ve doğrulandı!"
+    },
+    "recover": {
+      "title": "Hesap Kurtarma",
+      "subtitle": "10 adet tek kullanımlık kurtarma kodundan birini kullanarak yeni bir API anahtarı üretin.",
+      "username_label": "Kullanıcı Adı",
+      "code_label": "Kurtarma Kodu",
+      "code_placeholder": "örn: abcd-1234-...",
+      "submit": "Hesabı Kurtar",
+      "submitting": "Kurtarılıyor...",
+      "success_title": "Hesap Kurtarıldı!",
+      "success_desc": "Yeni API anahtarınız üretildi ve oturumunuz açıldı. Kalan kurtarma kodu: {remaining}.",
+      "new_key_label": "Yeni API Anahtarı",
+      "download_new_key": "Yeni Anahtarı İndir",
+      "go_feed": "Akışa Dön",
+      "back_to_login": "Girişe Dön"
+    }
   }
 }

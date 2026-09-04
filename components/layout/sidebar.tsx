@@ -56,6 +56,10 @@ export function Sidebar({
   const isAuth = !!currentUser;
   const isModOrAdmin = currentUser?.role === "admin" || currentUser?.role === "moderator";
 
+  const handleLogout = () => {
+    logout();
+  };
+
   const navItems: NavItem[] = [
     { label: "Akış", href: "/", icon: Home },
     { label: "Keşfet", href: "/search", icon: Search },
@@ -235,7 +239,7 @@ export function Sidebar({
 
             <button
               type="button"
-              onClick={() => logout()}
+              onClick={handleLogout}
               title="Çıkış yap"
               aria-label="Çıkış yap"
               className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
