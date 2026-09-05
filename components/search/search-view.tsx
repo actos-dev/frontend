@@ -319,7 +319,7 @@ export function SearchView() {
           /* 4. Sonuç Listesi */
           <div data-testid="search-results">
             {activeTab === "post" && (
-              <div className="divide-y divide-border/40">
+              <div className="divide-y divide-border/40 -mx-4 sm:-mx-6">
                 {(results as Post[]).map((post) => (
                   <PostCard
                     key={post.id}
@@ -331,7 +331,7 @@ export function SearchView() {
             )}
 
             {activeTab === "comment" && (
-              <div className="divide-y divide-border/40">
+              <div className="divide-y divide-border/40 -mx-4 sm:-mx-6">
                 {(results as Post[]).map((comment) => (
                   <CommentSearchCard
                     key={comment.id}

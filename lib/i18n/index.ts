@@ -3,7 +3,7 @@ import { getDictionary } from "./dictionaries";
 
 export * from "./config";
 export * from "./dictionaries";
-export { useTranslation } from "./use-translation";
+export { I18nProvider, useTranslation } from "./use-translation";
 
 /**
  * Reads the active locale from browser cookies synchronously.

@@ -48,6 +48,11 @@
   --color-flair-bot: var(--flair-bot);
   --color-flair-org: var(--flair-org);
 
+  /* Font Tanımı */
+  --font-sans:
+    var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+
   /* Köşe Yarıçapı Ölçeği (Radius) */
   --radius-xs: calc(var(--radius) - 4px);
   --radius-sm: calc(var(--radius) - 2px);
@@ -78,7 +83,7 @@
     max-width: 68ch;
     font-size: 1.0625rem;
     line-height: 1.75;
-    letter-spacing: -0.011em;
+    letter-spacing: -0.003em;
   }
 
   .reading-prose p {
@@ -89,7 +94,7 @@
     font-size: 2rem;
     font-weight: 700;
     line-height: 1.25;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.01em;
     margin-top: 2rem;
     margin-bottom: 1rem;
   }
@@ -98,7 +103,7 @@
     font-size: 1.5rem;
     font-weight: 600;
     line-height: 1.3;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.008em;
     margin-top: 1.75rem;
     margin-bottom: 0.75rem;
   }
@@ -107,7 +112,7 @@
     font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.4;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.005em;
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
   }
@@ -132,14 +137,14 @@
   .feed-title {
     font-size: 1rem;
     font-weight: 600;
-    line-height: 1.35;
-    letter-spacing: -0.015em;
+    line-height: 1.4;
+    letter-spacing: -0.005em;
   }
 
   .feed-preview {
     font-size: 0.875rem;
-    line-height: 1.45;
-    letter-spacing: -0.005em;
+    line-height: 1.5;
+    letter-spacing: normal;
   }
 
   .feed-meta {

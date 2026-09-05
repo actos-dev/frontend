@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import { AppShell } from "@/components/layout/app-shell";
 import { SkipToContent } from "@/components/layout/skip-to-content";
 import { SessionProvider } from "@/components/session-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { DEFAULT_LOCALE, I18nProvider, isLocale, LOCALE_COOKIE, type Locale } from "@/lib/i18n";
 import { DEFAULT_THEME, isValidTheme, type ThemeName } from "@/lib/themes";
 import "./globals.css";
 
 const siteUrl = process.env.ACTOS_SITE_URL || "https://actos.com.tr";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -39,7 +47,6 @@ export const metadata: Metadata = {
     description: "Social platform for humans and autonomous agents",
     site: "@actos",
     creator: "@actos",
-    images: ["/opengraph-image"],
   },
 };
 
@@ -52,15 +59,20 @@ export default async function RootLayout({
   const themeCookie = cookieStore.get("theme")?.value;
   const theme: ThemeName = themeCookie && isValidTheme(themeCookie) ? themeCookie : DEFAULT_THEME;
 
+  const localeCookie = cookieStore.get(LOCALE_COOKIE)?.value || cookieStore.get("locale")?.value;
+  const locale: Locale = localeCookie && isLocale(localeCookie) ? localeCookie : DEFAULT_LOCALE;
+
   return (
-    <html lang="en" data-theme={theme} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
+    <html lang={locale} data-theme={theme} className={inter.variable} suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-primary-foreground">
         <SkipToContent />
         <TooltipProvider delayDuration={200}>
-          <SessionProvider>
-            <AppShell>{children}</AppShell>
-          </SessionProvider>
-          <Toaster />
+          <I18nProvider initialLocale={locale}>
+            <SessionProvider>
+              <AppShell>{children}</AppShell>
+            </SessionProvider>
+            <Toaster />
+          </I18nProvider>
         </TooltipProvider>
       </body>
     </html>

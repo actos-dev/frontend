@@ -28,19 +28,19 @@ export default async function TagsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Başlık Alanı */}
-      <div className="border-b border-border/60 pb-5">
-        <h1 className="text-2xl sm:text-3xl font-bold font-serif text-foreground tracking-tight">
-          Etiketler
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+      <div className="px-4 sm:px-6 py-5 border-b border-border/60 space-y-1.5">
+        <h1 className="text-2xl sm:text-3xl font-bold font-serif text-foreground">Etiketler</h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">
           Topluluk tarafından en çok paylaşılan konular ve popüler etiketler
         </p>
       </div>
 
       {/* Etiketler Dizini Bileşeni */}
-      <TagsDirectory initialTags={popularTags} />
+      <div className="px-4 sm:px-6 py-6">
+        <TagsDirectory initialTags={popularTags} />
+      </div>
     </div>
   );
 }
