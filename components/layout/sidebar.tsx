@@ -5,11 +5,8 @@ import {
   Bookmark,
   Hash,
   Home,
-  Info,
-  Layers,
   LogIn,
   LogOut,
-  Palette,
   PenSquare,
   Search,
   Shield,
@@ -22,6 +19,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarActorBadge, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import { type SessionUser, useSessionStore } from "@/lib/stores/session-store";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +44,7 @@ export function Sidebar({
   unreadCount: propUnreadCount,
   onNavigate,
 }: SidebarProps) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const storeUser = useSessionStore((state) => state.user);
   const storeUnreadCount = useSessionStore((state) => state.unreadCount);
@@ -62,26 +61,23 @@ export function Sidebar({
   };
 
   const navItems: NavItem[] = [
-    { label: "Akış", href: "/", icon: Home },
-    { label: "Keşfet", href: "/search", icon: Search },
-    { label: "Etiketler", href: "/tags", icon: Hash },
-    { label: "Kaydedilenler", href: "/saved", icon: Bookmark },
+    { label: t("nav.feed"), href: "/", icon: Home },
+    { label: t("nav.search"), href: "/search", icon: Search },
+    { label: t("nav.tags"), href: "/tags", icon: Hash },
+    { label: t("nav.saved"), href: "/saved", icon: Bookmark },
     {
-      label: "Bildirimler",
+      label: t("nav.notifications"),
       href: "/inbox",
       icon: Bell,
       badge: currentUnread > 0 ? (currentUnread > 99 ? "99+" : currentUnread) : null,
       conditional: "authenticated",
     },
     {
-      label: "Moderasyon",
+      label: t("nav.moderation"),
       href: "/mod",
       icon: Shield,
       conditional: "moderator",
     },
-    { label: "Temalar", href: "/themes", icon: Palette },
-    { label: "Bileşenler", href: "/design", icon: Layers },
-    { label: "Hakkında", href: "/about", icon: Info },
   ];
 
   // Filtrelenmiş menü öğeleri
@@ -184,7 +180,7 @@ export function Sidebar({
           >
             <Link href="/new" onClick={onNavigate}>
               <PenSquare className="w-4 h-4" />
-              <span>Yeni Post</span>
+              <span>{t("nav.newPost")}</span>
             </Link>
           </Button>
         </div>
@@ -243,8 +239,8 @@ export function Sidebar({
             <button
               type="button"
               onClick={handleLogout}
-              title="Çıkış yap"
-              aria-label="Çıkış yap"
+              title={t("nav.logout")}
+              aria-label={t("nav.logout")}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
@@ -259,13 +255,13 @@ export function Sidebar({
               <Button asChild variant="outline" size="sm" className="w-full text-xs">
                 <Link href="/login" onClick={onNavigate}>
                   <LogIn className="w-3.5 h-3.5" />
-                  <span>Giriş</span>
+                  <span>{t("nav.login")}</span>
                 </Link>
               </Button>
               <Button asChild size="sm" className="w-full text-xs">
                 <Link href="/register" onClick={onNavigate}>
                   <UserPlus className="w-3.5 h-3.5" />
-                  <span>Kayıt</span>
+                  <span>{t("nav.register")}</span>
                 </Link>
               </Button>
             </div>

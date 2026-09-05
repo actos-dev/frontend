@@ -39,28 +39,31 @@ describe("Faz 3 — Uygulama Kabuğu ve Düzen Bileşenleri", () => {
 
     it("temel halka açık menü linklerini render etmelidir", () => {
       render(<Sidebar />);
-      expect(screen.getByRole("link", { name: /Akış/i })).toBeDefined();
-      expect(screen.getByRole("link", { name: /Keşfet/i })).toBeDefined();
-      expect(screen.getByRole("link", { name: /Etiketler/i })).toBeDefined();
-      expect(screen.getByRole("link", { name: /Kaydedilenler/i })).toBeDefined();
-      expect(screen.getByRole("link", { name: /Temalar/i })).toBeDefined();
-      expect(screen.getByRole("link", { name: /Bileşenler/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Akış|Feed)/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Arama|Search)/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Etiketler|Tags)/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Kaydedilenler|Saved)/i })).toBeDefined();
+
+      // Temalar, Bileşenler ve Hakkında ana sol menüden sadeleştirildi
+      expect(screen.queryByRole("link", { name: /(Temalar|Themes)/i })).toBeNull();
+      expect(screen.queryByRole("link", { name: /(Bileşenler|Design)/i })).toBeNull();
+      expect(screen.queryByRole("link", { name: /^(Hakkında|About)$/i })).toBeNull();
     });
 
     it("belirgin 'Yeni Post' butonunu render etmelidir", () => {
       render(<Sidebar />);
-      const newPostBtn = screen.getByRole("link", { name: /Yeni Post/i });
+      const newPostBtn = screen.getByRole("link", { name: /(Yeni Post|New Post)/i });
       expect(newPostBtn).toBeDefined();
       expect(newPostBtn.getAttribute("href")).toBe("/new");
     });
 
     it("anonim kullanıcıda Bildirimler ve Moderasyon linklerini GÖSTERMEMELİ, Giriş/Kayıt butonlarını göstermelidir", () => {
       render(<Sidebar user={null} />);
-      expect(screen.queryByRole("link", { name: /Bildirimler/i })).toBeNull();
-      expect(screen.queryByRole("link", { name: /Moderasyon/i })).toBeNull();
+      expect(screen.queryByRole("link", { name: /(Bildirimler|Notifications)/i })).toBeNull();
+      expect(screen.queryByRole("link", { name: /(Moderasyon|Moderation)/i })).toBeNull();
 
-      expect(screen.getByRole("link", { name: /Giriş/i })).toBeDefined();
-      expect(screen.getByRole("link", { name: /Kayıt/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Giriş|Log In)/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Kayıt|Register)/i })).toBeDefined();
     });
 
     it("giriş yapmış standart kullanıcıda Bildirimler'i göstermeli, Moderasyon'u gizlemeli ve kullanıcı kartını basmalıdır", () => {
@@ -68,28 +71,28 @@ describe("Faz 3 — Uygulama Kabuğu ve Düzen Bileşenleri", () => {
       render(<Sidebar user={user} unreadCount={3} />);
 
       // Bildirimler ve okunmamış rozeti
-      const inboxLink = screen.getByRole("link", { name: /Bildirimler/i });
+      const inboxLink = screen.getByRole("link", { name: /(Bildirimler|Notifications)/i });
       expect(inboxLink).toBeDefined();
       expect(screen.getByText("3")).toBeDefined();
 
       // Moderasyon görünmemeli
-      expect(screen.queryByRole("link", { name: /Moderasyon/i })).toBeNull();
+      expect(screen.queryByRole("link", { name: /(Moderasyon|Moderation)/i })).toBeNull();
 
       // Kullanıcı bilgileri
       expect(screen.getByText("@efe")).toBeDefined();
       expect(screen.getByText("Efe")).toBeDefined();
-      expect(screen.getByTitle("Çıkış yap")).toBeDefined();
+      expect(screen.getByTitle(/(Çıkış yap|Log Out)/i)).toBeDefined();
     });
 
     it("moderator veya admin rolüne sahip kullanıcıda Moderasyon linkini render etmelidir", () => {
       const modUser = MOCK_USERS.moderatorUser; // role: moderator
       const { rerender } = render(<Sidebar user={modUser} />);
-      expect(screen.getByRole("link", { name: /Moderasyon/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Moderasyon|Moderation)/i })).toBeDefined();
       expect(screen.getByText("Mod")).toBeDefined();
 
       const adminUser = MOCK_USERS.adminAgent; // role: admin
       rerender(<Sidebar user={adminUser} />);
-      expect(screen.getByRole("link", { name: /Moderasyon/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Moderasyon|Moderation)/i })).toBeDefined();
       expect(screen.getByText("Admin")).toBeDefined();
     });
 
@@ -166,11 +169,11 @@ describe("Faz 3 — Uygulama Kabuğu ve Düzen Bileşenleri", () => {
       render(<MobileNav />);
       const nav = screen.getByRole("navigation", { name: "Mobil Alt Sekme Çubuğu" });
       expect(nav).toBeDefined();
-      expect(screen.getByRole("link", { name: "Akış" })).toBeDefined();
-      expect(screen.getByRole("link", { name: "Keşfet" })).toBeDefined();
-      expect(screen.getByRole("link", { name: "Yeni Post Yaz" })).toBeDefined();
-      expect(screen.getByRole("link", { name: "Bildirimler" })).toBeDefined();
-      expect(screen.getByRole("link", { name: "Giriş Yap" })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Akış|Feed)/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Arama|Search)/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Yeni Post|New Post)/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Bildirimler|Notifications)/i })).toBeDefined();
+      expect(screen.getByRole("link", { name: /(Giriş|Log In)/i })).toBeDefined();
     });
 
     it("MobileHeader başlık ve menü butonunu sunmalıdır", () => {

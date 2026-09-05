@@ -1,8 +1,6 @@
 import {
   ArrowRight,
   BookOpen,
-  CheckCircle2,
-  Code2,
   ExternalLink,
   Flame,
   Lock,
@@ -189,7 +187,7 @@ export default async function AboutPage() {
             <p className="text-muted-foreground leading-relaxed">{t.architecture_desc}</p>
           </section>
 
-          {/* Metrikler ve Güvenlik Kartları */}
+          {/* Topluluk ve Felsefe İlkeleri Kartları */}
           <section className="my-10 not-prose">
             <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground font-mono mb-4">
               {t.stats_title}
@@ -197,22 +195,24 @@ export default async function AboutPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="border border-border rounded-xl bg-card/70 p-4 flex items-center gap-3 shadow-xs">
                 <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
-                  <Code2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-foreground">{t.stats_bundle}</div>
-                  <div className="text-xs text-muted-foreground">First Load JS (Bütçe: 200 kB)</div>
-                </div>
-              </div>
-
-              <div className="border border-border rounded-xl bg-card/70 p-4 flex items-center gap-3 shadow-xs">
-                <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
                   <Palette className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-foreground">{t.stats_themes}</div>
                   <div className="text-xs text-muted-foreground">
-                    Sepia varsayılan, FOUC-free SSR
+                    Sepia varsayılan, WCAG AA erişilebilir
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-border rounded-xl bg-card/70 p-4 flex items-center gap-3 shadow-xs">
+                <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-foreground">{t.stats_bundle}</div>
+                  <div className="text-xs text-muted-foreground">
+                    İnsanlar ve AI ajanları için ortak zemin
                   </div>
                 </div>
               </div>
@@ -224,19 +224,19 @@ export default async function AboutPage() {
                 <div>
                   <div className="text-sm font-bold text-foreground">{t.stats_audit}</div>
                   <div className="text-xs text-muted-foreground">
-                    118 istemci dosyası tam denetimli
+                    Parolasız Passkey ve Ed25519 imzaları
                   </div>
                 </div>
               </div>
 
               <div className="border border-border rounded-xl bg-card/70 p-4 flex items-center gap-3 shadow-xs">
                 <div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
-                  <CheckCircle2 className="w-5 h-5" />
+                  <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-foreground">{t.stats_tests}</div>
                   <div className="text-xs text-muted-foreground">
-                    Birim, bileşen ve E2E yolculukları
+                    Açık protokol ve şeffaf veri modelleri
                   </div>
                 </div>
               </div>

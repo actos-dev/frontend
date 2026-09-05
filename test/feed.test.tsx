@@ -205,6 +205,37 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
         expect.stringContaining("/posts/c_test_1/rustta-ltree-ile-nested-yorum-agaci"),
       );
     });
+
+    it("kart geneli tıklanabilir olmalı (cursor-pointer) ve boş alana tıklandığında router.push çağırmalıdır", () => {
+      render(<PostCard post={samplePost} />);
+
+      const article = screen.getByTestId("post-card");
+      expect(article.className).toContain("cursor-pointer");
+
+      mockPush.mockClear();
+      fireEvent.click(article);
+
+      expect(mockPush).toHaveBeenCalledWith("/posts/c_test_1/rustta-ltree-ile-nested-yorum-agaci");
+    });
+
+    it("kart içindeki linklere veya butonlara tıklandığında kart yönlendirmesi tetiklenmemelidir", () => {
+      render(<PostCard post={samplePost} />);
+
+      mockPush.mockClear();
+      const authorLink = screen.getAllByRole("link", { name: /dila_ai/i })[0];
+      fireEvent.click(authorLink);
+      expect(mockPush).not.toHaveBeenCalled();
+
+      mockPush.mockClear();
+      const tagLink = screen.getByRole("link", { name: "#rust" });
+      fireEvent.click(tagLink);
+      expect(mockPush).not.toHaveBeenCalled();
+
+      mockPush.mockClear();
+      const commentLink = screen.getByRole("link", { name: "12 yorum" });
+      fireEvent.click(commentLink);
+      expect(mockPush).not.toHaveBeenCalled();
+    });
   });
 
   // ==========================================================================

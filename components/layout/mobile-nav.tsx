@@ -4,6 +4,7 @@ import { Bell, Home, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarActorBadge, AvatarFallback } from "@/components/ui/avatar";
+import { useTranslation } from "@/lib/i18n";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,7 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ className }: MobileNavProps) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const user = useSessionStore((state) => state.user);
   const unreadCount = useSessionStore((state) => state.unreadCount);
@@ -38,28 +40,28 @@ export function MobileNav({ className }: MobileNavProps) {
       <Link
         href="/"
         aria-current={isHomeActive ? "page" : undefined}
-        aria-label="Akış"
+        aria-label={t("nav.feed")}
         className={cn(
           "flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-medium transition-colors",
           isHomeActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
         )}
       >
         <Home className="w-5 h-5 mb-0.5" />
-        <span>Akış</span>
+        <span>{t("nav.feed")}</span>
       </Link>
 
-      {/* 2. Keşfet (Explore/Search) */}
+      {/* 2. Arama (Search) */}
       <Link
         href="/search"
         aria-current={isSearchActive ? "page" : undefined}
-        aria-label="Keşfet"
+        aria-label={t("nav.search")}
         className={cn(
           "flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-medium transition-colors",
           isSearchActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
         )}
       >
         <Search className="w-5 h-5 mb-0.5" />
-        <span>Keşfet</span>
+        <span>{t("nav.search")}</span>
       </Link>
 
       {/* 3. Yeni Post (Öne çıkan buton) */}
@@ -67,7 +69,7 @@ export function MobileNav({ className }: MobileNavProps) {
         <Link
           href={user ? "/new" : "/login?returnUrl=/new"}
           aria-current={isNewActive ? "page" : undefined}
-          aria-label="Yeni Post Yaz"
+          aria-label={t("nav.newPost")}
           className="flex items-center justify-center w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-md hover:scale-105 active:scale-95 transition-all"
         >
           <Plus className="w-6 h-6 stroke-[2.5]" />
@@ -78,7 +80,11 @@ export function MobileNav({ className }: MobileNavProps) {
       <Link
         href={user ? "/inbox" : "/login?returnUrl=/inbox"}
         aria-current={isInboxActive ? "page" : undefined}
-        aria-label={unreadCount > 0 ? `Bildirimler (${unreadCount} okunmamış)` : "Bildirimler"}
+        aria-label={
+          unreadCount > 0
+            ? `${t("nav.notifications")} (${unreadCount} okunmamış)`
+            : t("nav.notifications")
+        }
         className={cn(
           "relative flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-medium transition-colors",
           isInboxActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
@@ -96,14 +102,14 @@ export function MobileNav({ className }: MobileNavProps) {
             </span>
           )}
         </div>
-        <span>Bildirim</span>
+        <span>{t("nav.notifications")}</span>
       </Link>
 
       {/* 5. Profil / Giriş */}
       <Link
         href={profileHref}
         aria-current={isProfileActive ? "page" : undefined}
-        aria-label={user ? "Profilim" : "Giriş Yap"}
+        aria-label={user ? t("nav.profile") : t("nav.login")}
         className={cn(
           "flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-medium transition-colors",
           isProfileActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
@@ -121,7 +127,7 @@ export function MobileNav({ className }: MobileNavProps) {
         ) : (
           <User className="w-5 h-5 mb-0.5" />
         )}
-        <span>{user ? "Profil" : "Giriş"}</span>
+        <span>{user ? t("nav.profile") : t("nav.login")}</span>
       </Link>
     </nav>
   );

@@ -53,18 +53,18 @@ test.describe("Faz 18 — Mobil Viewport ve Deneyim Testleri (<768px)", () => {
     await expect(mobileNav).toBeVisible();
 
     // Dört ana sekmenin ve yeni post butonunun varlığını doğrula
-    const feedTab = mobileNav.getByRole("link", { name: "Akış" });
-    const exploreTab = mobileNav.getByRole("link", { name: "Keşfet" });
-    const newPostButton = mobileNav.getByRole("link", { name: /Yeni Post Yaz/i });
-    const inboxTab = mobileNav.getByRole("link", { name: /Bildirim/i });
+    const feedTab = mobileNav.getByRole("link", { name: /(Akış|Feed)/i });
+    const searchTab = mobileNav.getByRole("link", { name: /(Arama|Search|Keşfet)/i });
+    const newPostButton = mobileNav.getByRole("link", { name: /(Yeni Post|New Post)/i });
+    const inboxTab = mobileNav.getByRole("link", { name: /(Bildirim|Notification)/i });
 
     await expect(feedTab).toBeVisible();
-    await expect(exploreTab).toBeVisible();
+    await expect(searchTab).toBeVisible();
     await expect(newPostButton).toBeVisible();
     await expect(inboxTab).toBeVisible();
 
-    // Keşfet (Arama) sekmesine tıkla
-    await exploreTab.click();
+    // Arama sekmesine tıkla
+    await searchTab.click();
     await expect(page).toHaveURL(/\/search/);
 
     // Tekrar Akış sekmesine tıkla

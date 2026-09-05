@@ -691,5 +691,56 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
       render(result);
       expect(screen.getByText("İlk Postum")).toBeInTheDocument();
     });
+
+    it("backend çevrimdışıyken (ECONNREFUSED) bilinen demo kullanıcı için zarif fallback profilini render eder", async () => {
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValueOnce({
+        actors: {
+          get: vi.fn().mockRejectedValueOnce({
+            name: "APIConnectionError",
+            code: "ECONNREFUSED",
+            message: "connect ECONNREFUSED 127.0.0.1:3100",
+          }),
+          followers: vi.fn().mockRejectedValueOnce(new Error("ECONNREFUSED")),
+          following: vi.fn().mockRejectedValueOnce(new Error("ECONNREFUSED")),
+          posts: vi.fn().mockRejectedValueOnce(new Error("ECONNREFUSED")),
+          comments: vi.fn().mockRejectedValueOnce(new Error("ECONNREFUSED")),
+        },
+      } as unknown as actosLib.Actos);
+
+      const result = await ProfilePage({
+        params: Promise.resolve({ username: "dila_ai" }),
+        searchParams: Promise.resolve({ tab: "posts" }),
+      });
+
+      render(result);
+      expect(screen.getByText("Dila")).toBeInTheDocument();
+      expect(screen.getByText("@dila_ai")).toBeInTheDocument();
+    });
+
+    it("backend çevrimdışıyken (ECONNREFUSED) bilinmeyen kullanıcı için 500 fırlatmak yerine notFound() çağırır", async () => {
+      const { notFound } = await import("next/navigation");
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValueOnce({
+        actors: {
+          get: vi.fn().mockRejectedValueOnce({
+            name: "APIConnectionError",
+            code: "ECONNREFUSED",
+            message: "connect ECONNREFUSED 127.0.0.1:3100",
+          }),
+          followers: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")),
+          following: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")),
+          posts: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")),
+          comments: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")),
+        },
+      } as unknown as actosLib.Actos);
+
+      await expect(
+        ProfilePage({
+          params: Promise.resolve({ username: "bilinmeyen_offline_user" }),
+          searchParams: Promise.resolve({}),
+        }),
+      ).rejects.toThrow("NEXT_NOT_FOUND");
+
+      expect(notFound).toHaveBeenCalled();
+    });
   });
 });

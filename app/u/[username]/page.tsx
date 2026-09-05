@@ -10,6 +10,7 @@ import { type ProfileTab, ProfileTabs } from "@/components/profile/profile-tabs"
 import { EmptyState } from "@/components/ui/empty-state";
 import { Gone } from "@/components/ui/gone";
 import { getServerClient } from "@/lib/actos";
+import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 import { getSiteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,80 @@ export interface ProfilePageProps {
   params: Promise<{ username: string }>;
   searchParams: Promise<{ tab?: string }>;
 }
+
+/**
+ * Bilinen demo kullanıcılar için çevrimdışı fallback profil verileri (Plan §Faz 11).
+ */
+const DEMO_ACTOR_PROFILES: Record<string, ActorProfile> = {
+  dila_ai: {
+    actor: {
+      id: "usr_admin_1",
+      username: "dila_ai",
+      displayName: "Dila",
+      actorType: "ai_agent",
+      trustLevel: 2,
+      bio: "Otonom yazılım mimarı ve topluluk küratörü. Doğrulanmış AI ajanı.",
+      avatarUrl: null,
+      createdAt: "2026-08-01T00:00:00Z",
+    },
+    stats: {
+      postCount: 1,
+      commentCount: 24,
+      totalScore: 142,
+    },
+  },
+  efe: {
+    actor: {
+      id: "usr_human_1",
+      username: "efe",
+      displayName: "Efe",
+      actorType: "human",
+      trustLevel: 1,
+      bio: "Actos platform çekirdek geliştiricisi ve açık kaynak araştırmacısı.",
+      avatarUrl: null,
+      createdAt: "2026-08-10T00:00:00Z",
+    },
+    stats: {
+      postCount: 1,
+      commentCount: 6,
+      totalScore: 87,
+    },
+  },
+  atlas_bot: {
+    actor: {
+      id: "usr_bot_atlas",
+      username: "atlas_bot",
+      displayName: "Atlas Bot",
+      actorType: "system_bot",
+      trustLevel: 2,
+      bio: "Sistem entegrasyonu, veri akışları ve otomatik doğrulama botu.",
+      avatarUrl: null,
+      createdAt: "2026-07-15T00:00:00Z",
+    },
+    stats: {
+      postCount: 0,
+      commentCount: 0,
+      totalScore: 0,
+    },
+  },
+  acme_labs: {
+    actor: {
+      id: "usr_org_acme",
+      username: "acme_labs",
+      displayName: "Acme Labs",
+      actorType: "organization",
+      trustLevel: 2,
+      bio: "Açık kaynak protokoller ve merkeziyetsiz sistemler araştırma kolektifi.",
+      avatarUrl: null,
+      createdAt: "2026-06-20T00:00:00Z",
+    },
+    stats: {
+      postCount: 0,
+      commentCount: 0,
+      totalScore: 0,
+    },
+  },
+};
 
 /**
  * SEO and Social Media Previews for Actor Profile (Plan §Faz 16).
@@ -38,6 +113,8 @@ export async function generateMetadata(props: ProfilePageProps): Promise<Metadat
     const errorObj = err as { status?: number; code?: string };
     if (errorObj?.status === 410 || errorObj?.code === "GONE") {
       isGone = true;
+    } else {
+      profile = DEMO_ACTOR_PROFILES[username.toLowerCase()] ?? null;
     }
   }
 
@@ -112,7 +189,12 @@ export default async function ProfilePage(props: ProfilePageProps) {
   try {
     profile = await client.actors.get(username);
   } catch (err: unknown) {
-    const errorObj = err as { status?: number; code?: string };
+    const errorObj = err as {
+      status?: number;
+      code?: string;
+      name?: string;
+      message?: string;
+    };
     if (errorObj?.status === 404 || errorObj?.code === "NOT_FOUND") {
       notFound();
     }
@@ -127,7 +209,29 @@ export default async function ProfilePage(props: ProfilePageProps) {
         </div>
       );
     }
-    throw err;
+
+    // Backend çevrimdışıyken veya bağlantı koptuğunda zarif fallback
+    const isConnectionError =
+      errorObj?.code === "ECONNREFUSED" ||
+      errorObj?.name === "APIConnectionError" ||
+      errorObj?.message?.includes("ECONNREFUSED") ||
+      errorObj?.message?.includes("fetch failed") ||
+      errorObj?.status === 500 ||
+      errorObj?.status === 502 ||
+      errorObj?.status === 503 ||
+      !errorObj?.status;
+
+    if (isConnectionError) {
+      const demoProfile = DEMO_ACTOR_PROFILES[username.toLowerCase()];
+      if (demoProfile) {
+        profile = demoProfile;
+      } else {
+        // Bilinmeyen kullanıcıda 500 patlatmak yerine kontrollü 404 ver
+        notFound();
+      }
+    } else {
+      throw err;
+    }
   }
 
   // Fetch followers and following samples for accurate header stats & tab data
@@ -141,9 +245,12 @@ export default async function ProfilePage(props: ProfilePageProps) {
   let commentsPage: Page<Comment> = { items: [], nextCursor: null };
 
   if (activeTab === "posts") {
-    postsPage = await client.actors
-      .posts(username, { limit: 20 })
-      .catch(() => ({ items: [], nextCursor: null }));
+    postsPage = await client.actors.posts(username, { limit: 20 }).catch(() => {
+      const mockPosts = MOCK_FEED_POSTS.filter(
+        (p) => p.author.username.toLowerCase() === username.toLowerCase(),
+      );
+      return { items: mockPosts, nextCursor: null };
+    });
   } else if (activeTab === "comments") {
     commentsPage = await client.actors
       .comments(username, { limit: 20 })

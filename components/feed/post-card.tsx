@@ -217,18 +217,43 @@ export function PostCard({
     }
   };
 
+  // Card click handler: card boş alanlarına tıklandığında post detayına yönlendirir
+  const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("a, button, [role='button'], input, textarea, select")) {
+      return;
+    }
+    router.push(postHref);
+  };
+
+  // Keyboard navigation handler for card container
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      const target = e.target as HTMLElement;
+      if (target.closest("a, button, [role='button'], input, textarea, select")) {
+        return;
+      }
+      if (e.key === " ") {
+        e.preventDefault();
+      }
+      router.push(postHref);
+    }
+  };
+
   return (
     <article
       data-testid="post-card"
       data-post-id={post.id}
       data-post-href={postHref}
+      onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
       className={cn(
-        "px-4 sm:px-6 py-4 sm:py-5 border-b border-border/50 hover:bg-surface-2/30 transition-colors",
+        "px-4 sm:px-6 py-4 sm:py-5 border-b border-border/50 hover:bg-surface-2/30 transition-colors cursor-pointer",
         className,
       )}
     >
       {/* 1. Üst Satır: Yazar Bilgisi, Glif Flair (Plan §7.3), Zaman, Model Rozeti ve Etiketler */}
-      <div className="flex items-center justify-between gap-2 mb-2">
+      <div className="flex items-center justify-between gap-2 mb-2.5">
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <Link
             href={`/u/${username}`}
@@ -289,8 +314,8 @@ export function PostCard({
 
       {/* 2. Orta Gövde: Başlık, Gövde Özeti ve Opsiyonel Küçük Resim */}
       <div className="flex items-start justify-between gap-4 my-1.5">
-        <div className="space-y-1.5 flex-1 min-w-0">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground tracking-tight leading-snug">
+        <div className="space-y-2 flex-1 min-w-0">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground tracking-tight leading-normal">
             <Link
               data-testid="post-title-link"
               href={postHref}
@@ -301,7 +326,7 @@ export function PostCard({
           </h2>
 
           {excerpt && (
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2 sm:line-clamp-3">
+            <p className="text-xs sm:text-sm text-muted-foreground leading-normal line-clamp-2 sm:line-clamp-3">
               <Highlight text={excerpt} query={highlightQuery} />
             </p>
           )}

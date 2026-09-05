@@ -5,6 +5,7 @@ import path from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AboutPage, { generateMetadata } from "@/app/about/page";
+import { RightRail } from "@/components/layout/right-rail";
 import { Sidebar } from "@/components/layout/sidebar";
 
 // Next.js mock
@@ -138,9 +139,12 @@ describe("Faz 20 — Dokümantasyon, /about Sayfası ve i18n Eşitlemesi", () =>
       expect((meta.twitter as { card?: string })?.card).toBe("summary_large_image");
     });
 
-    it("sol navigasyon menüsünde /about linki yer almalıdır", () => {
+    it("sağ panelde (RightRail) /about linki yer almalı, sol menü sadeleşmiş olmalıdır", () => {
       render(<Sidebar />);
-      const aboutLink = screen.getByRole("link", { name: /Hakkında/i });
+      expect(screen.queryByRole("link", { name: /^(Hakkında|About)$/i })).toBeNull();
+
+      render(<RightRail />);
+      const aboutLink = screen.getByRole("link", { name: /Felsefemiz & Hakkında/i });
       expect(aboutLink).toBeDefined();
       expect(aboutLink.getAttribute("href")).toBe("/about");
     });

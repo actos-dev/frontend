@@ -13,11 +13,11 @@ export const dynamic = "force-dynamic";
 function SearchLoadingFallback() {
   return (
     <div className="space-y-6">
-      <div className="border-b border-border/60 pb-5">
+      <div className="border-b border-border/60 pb-5 mb-6 space-y-3">
         <h1 className="text-2xl sm:text-3xl font-bold font-serif text-foreground tracking-tight">
           Arama
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           Gönderiler, yorumlar ve aktörler arasında arayın
         </p>
       </div>
@@ -41,11 +41,11 @@ function SearchLoadingFallback() {
 export default function SearchPage() {
   return (
     <div className="space-y-6">
-      <div className="border-b border-border/60 pb-5">
+      <div className="border-b border-border/60 pb-5 mb-6 space-y-3">
         <h1 className="text-2xl sm:text-3xl font-bold font-serif text-foreground tracking-tight">
           Arama
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           Gönderiler, yorumlar ve aktörler arasında arayın
         </p>
       </div>
