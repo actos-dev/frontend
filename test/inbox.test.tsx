@@ -78,7 +78,6 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
           username: "taylan_mod",
           displayName: "Taylan",
           actorType: "human",
-          trustLevel: 2,
         },
         targetType: "content",
         targetId: "c_post_1",

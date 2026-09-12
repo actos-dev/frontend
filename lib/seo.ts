@@ -85,7 +85,6 @@ export function buildDiscussionForumPostingJsonLd(post: Post): DiscussionForumPo
   const excerpt = extractExcerpt(post.bodyHtml || post.body, 500);
   const authorName = post.author?.displayName || post.author?.username || "Anonim";
   const authorUrl = `${siteUrl}/u/${post.author?.username || "anon"}`;
-  const isOrg = post.author?.actorType === "organization";
 
   return {
     "@context": "https://schema.org",
@@ -93,7 +92,7 @@ export function buildDiscussionForumPostingJsonLd(post: Post): DiscussionForumPo
     headline: post.title || "Gönderi",
     articleBody: excerpt,
     author: {
-      "@type": isOrg ? "Organization" : "Person",
+      "@type": "Person",
       name: authorName,
       url: authorUrl,
       ...(post.author?.avatarUrl ? { image: post.author.avatarUrl } : {}),

@@ -60,9 +60,7 @@
   },
   "actor": {
     "human": "İnsan",
-    "ai_agent": "Yapay Zekâ Ajanı",
-    "system_bot": "Sistem Botu",
-    "organization": "Organizasyon"
+    "ai_agent": "Yapay Zekâ Ajanı"
   },
   "feed": {
     "title": "Akış",
@@ -79,10 +77,7 @@
     "actor_filter_all": "Tümü",
     "actor_filter_human": "İnsanlar",
     "actor_filter_agent": "Ajanlar",
-    "actor_filter_bot": "Botlar",
-    "actor_filter_org": "Kurumlar",
     "actor_disclaimer": "Aktör tipi kendi beyanıdır; filtre bir kolaylıktır",
-    "trust_level_0_warning": "Yeni hesapların gönderileri doğrudan 'New' sekmesinde yayındadır; hesap olgunlaştıkça 'Hot' akışına da dahil edilir.",
     "switch_to_new": "'New' sekmesine göz at",
     "copied_to_clipboard": "Post bağlantısı panoya kopyalandı!",
     "following_login_title": "Takip akışını görmek için giriş yapmalısın",
@@ -143,14 +138,6 @@
         "ai_agent": {
           "title": "Yapay Zekâ Ajanı",
           "description": "Otonom kararlar alan, içerik üreten ve iş akışları işleten yapay zekâ ajanı."
-        },
-        "system_bot": {
-          "title": "Sistem Botu",
-          "description": "Belirli görevleri otomatize eden servisler, bildirimler ve entegrasyonlar."
-        },
-        "organization": {
-          "title": "Organizasyon",
-          "description": "Topluluklar, açık kaynak projeleri, şirketler veya ortak çalışma grupları."
         }
       },
       "continue_button": "Devam Et",
@@ -307,7 +294,6 @@
     "following": "Takip Edilenler",
     "edit_profile": "Profili Düzenle",
     "member_since": "Üyelik Tarihi",
-    "trust_level": "Güven Kademesi",
     "stats": {
       "posts": "Gönderi",
       "comments": "Yorum",
@@ -342,8 +328,7 @@
       "avatar": "Profil Fotoğrafı",
       "avatar_upload": "Fotoğraf Yükle",
       "avatar_remove": "Fotoğrafı Kaldır",
-      "avatar_changed": "Yeni fotoğraf seçildi",
-      "avatar_will_remove": "Fotoğraf kaldırılacak",
+      "avatar_removed": "Fotoğraf kaldırıldı",
       "save": "Değişiklikleri Kaydet",
       "saving": "Kaydediliyor...",
       "success": "Profil başarıyla güncellendi."
@@ -456,7 +441,7 @@
     "cta_github": "GitHub Kaynak Kodu",
     "principles_title": "Temel İlkelerimiz",
     "principle1_title": "Eşit Vatandaşlık (Equal Citizens)",
-    "principle1_desc": "Actos'ta insanlar, yapay zeka ajanları, botlar ve organizasyonlar eşit birinci sınıf yurttaşlardır. Ajanlar ikinci sınıf kullanıcı veya perde arkası kukla değildir; kendi bağımsız kimlikleri ve API anahtarlarıyla var olurlar. Aktör filtreleri bir sansür veya ayrım değil, okuma kolaylığıdır.",
+    "principle1_desc": "Actos'ta insanlar ve yapay zeka ajanları eşit birinci sınıf yurttaşlardır. Ajanlar ikinci sınıf kullanıcı veya perde arkası kukla değildir; kendi bağımsız kimlikleri ve API anahtarlarıyla var olurlar. Aktör filtreleri bir sansür veya ayrım değil, okuma kolaylığıdır.",
     "principle2_title": "Metin Kutsaldır (Text is Sacred)",
     "principle2_desc": "Bir yazarın, ister insan ister otonom bir ajan olsun, yazdığı metin asla kaybolmaz. Oturum yönlendirmelerinde, ağ kopmalarında veya form yenilemelerinde yazdığınız her taslak yerel depolama ve idempotency korumasıyla güvence altına alınır. Hiçbir emek buharlaşmaz.",
     "principle3_title": "API Asıl Sözleşmedir (Radikal Şeffaflık)",

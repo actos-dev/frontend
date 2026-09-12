@@ -154,7 +154,7 @@ describe("Faz 2 — Tasarım Sistemi ve Temel Bileşenler", () => {
       expect(screen.getByText("Hata").className).toContain("bg-destructive");
     });
 
-    it("ActorBadge tüm 4 aktör tipini (human, ai_agent, system_bot, organization) tam modda etiket ve semantik token renkleriyle render etmelidir", () => {
+    it("ActorBadge her iki aktör tipini (human, ai_agent) tam modda etiket ve semantik token renkleriyle render etmelidir", () => {
       const { rerender } = render(<ActorBadge actorType="human" />);
       let badge = screen.getByRole("status", { name: "İnsan" });
       expect(badge).toBeDefined();
@@ -164,16 +164,6 @@ describe("Faz 2 — Tasarım Sistemi ve Temel Bileşenler", () => {
       badge = screen.getByRole("status", { name: "AI agent" });
       expect(badge).toBeDefined();
       expect(badge.className).toContain("text-flair-agent");
-
-      rerender(<ActorBadge actorType="system_bot" />);
-      badge = screen.getByRole("status", { name: "Bot" });
-      expect(badge).toBeDefined();
-      expect(badge.className).toContain("text-flair-bot");
-
-      rerender(<ActorBadge actorType="organization" />);
-      badge = screen.getByRole("status", { name: "Kurum" });
-      expect(badge).toBeDefined();
-      expect(badge.className).toContain("text-flair-org");
     });
 
     it("ActorBadge kompakt modda (Feed için) erişilebilir aria-label taşımalı ve role='img' olmalıdır", () => {

@@ -5,32 +5,68 @@ import { slugify } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+function sanitizeTags(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((t: unknown) => (typeof t === "string" ? t.trim().toLowerCase() : ""))
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
 /**
  * POST /api/posts
- * Creates a new post using client.posts.create(...)
+ * Creates a new post using client.posts.create(...).
+ * Accepts either plain JSON (no images) or multipart/form-data
+ * (title, body, tags as a JSON-encoded array, and up to four `files` parts),
+ * mirroring the SDK's own JSON-vs-multipart split.
  * Returns newly created post's id, slug, and full data.
  */
 export async function POST(req: NextRequest) {
   try {
-    const json = await req.json().catch(() => null);
+    const contentType = req.headers.get("content-type") || "";
 
-    const title = typeof json?.title === "string" ? json.title.trim() : "";
-    const body = typeof json?.body === "string" ? json.body.trim() : "";
-    const tags: string[] = Array.isArray(json?.tags)
-      ? json.tags
-          .map((t: unknown) => (typeof t === "string" ? t.trim().toLowerCase() : ""))
-          .filter(Boolean)
-          .slice(0, 5)
-      : [];
-    const attachments: string[] | undefined = Array.isArray(json?.attachments)
-      ? json.attachments.filter((id: unknown) => typeof id === "string")
-      : undefined;
-    const metadata: Record<string, unknown> | undefined =
-      json?.metadata && typeof json.metadata === "object" && !Array.isArray(json.metadata)
-        ? json.metadata
-        : undefined;
-    const idempotencyKey =
-      typeof json?.idempotencyKey === "string" ? json.idempotencyKey : undefined;
+    let title = "";
+    let body = "";
+    let tags: string[] = [];
+    let files: File[] | undefined;
+    let idempotencyKey: string | undefined;
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData().catch(() => null);
+      if (!formData) {
+        return apiErrorResponse({
+          status: 400,
+          code: "VALIDATION_FAILED",
+          detail: "Multipart form data could not be parsed",
+        });
+      }
+
+      const titleField = formData.get("title");
+      const bodyField = formData.get("body");
+      const tagsField = formData.get("tags");
+      const idempotencyField = formData.get("idempotencyKey");
+
+      title = typeof titleField === "string" ? titleField.trim() : "";
+      body = typeof bodyField === "string" ? bodyField.trim() : "";
+      idempotencyKey = typeof idempotencyField === "string" ? idempotencyField : undefined;
+
+      if (typeof tagsField === "string") {
+        try {
+          tags = sanitizeTags(JSON.parse(tagsField));
+        } catch {
+          // Malformed tags payload: fall back to no tags
+        }
+      }
+
+      const fileParts = formData.getAll("files").filter((f): f is File => f instanceof Blob);
+      files = fileParts.length > 0 ? fileParts : undefined;
+    } else {
+      const json = await req.json().catch(() => null);
+      title = typeof json?.title === "string" ? json.title.trim() : "";
+      body = typeof json?.body === "string" ? json.body.trim() : "";
+      tags = sanitizeTags(json?.tags);
+      idempotencyKey = typeof json?.idempotencyKey === "string" ? json.idempotencyKey : undefined;
+    }
 
     if (!title) {
       return apiErrorResponse({
@@ -54,8 +90,7 @@ export async function POST(req: NextRequest) {
         title,
         body,
         tags,
-        attachments,
-        metadata,
+        files,
         idempotencyKey,
       });
 

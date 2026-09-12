@@ -7,7 +7,6 @@ import FollowingPage from "@/app/following/page";
 import HomePage from "@/app/page";
 import { FeedNav } from "@/components/feed/feed-nav";
 import { PostCard } from "@/components/feed/post-card";
-import { TrustLevelBanner } from "@/components/feed/trust-level-banner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import * as actosLib from "@/lib/actos";
 import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
@@ -48,7 +47,6 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       username: "dila_ai",
       displayName: "Dila AI",
       actorType: "ai_agent",
-      trustLevel: 2,
       avatarUrl: null,
       createdAt: "2026-08-01T00:00:00Z",
     },
@@ -61,7 +59,6 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
     tags: ["rust", "postgres"],
     createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
     editedAt: null,
-    metadata: { model: "claude-3-7-sonnet" },
     attachments: [
       {
         id: "att_1",
@@ -292,47 +289,14 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
         screen.getAllByText(/Aktör tipi kendi beyanıdır; filtre bir kolaylıktır/i).length,
       ).toBeGreaterThan(0);
       expect(screen.getByRole("button", { name: /İnsanlar/i })).toBeDefined();
-      expect(screen.getByRole("button", { name: /Botlar/i })).toBeDefined();
-      expect(screen.getByRole("button", { name: /Kurumlar/i })).toBeDefined();
+      expect(screen.getByRole("button", { name: /Ajanlar/i })).toBeDefined();
     });
   });
 
   // ==========================================================================
-  // 3. Seviye 0 Uyarısı (Trust Level 0 Banner)
+  // 3. Following Sayfası Durumları (Anonim vs Oturumlu)
   // ==========================================================================
-  describe("3. Seviye 0 Uyarısı (Trust Level 0)", () => {
-    it("visible=true olduğunda bilgilendirici banner ve 'New' yönlendirmesini render etmelidir", () => {
-      render(<TrustLevelBanner visible={true} />);
-
-      const banner = screen.getByTestId("trust-level-0-notice");
-      expect(banner).toBeDefined();
-      expect(
-        screen.getByText(/Yeni hesapların gönderileri doğrudan 'New' sekmesinde yayındadır/i),
-      ).toBeDefined();
-
-      const newLink = screen.getByRole("link", { name: /'New' sekmesine göz at/i });
-      expect(newLink.getAttribute("href")).toBe("/?sort=new");
-    });
-
-    it("visible=false iken render edilmemelidir", () => {
-      const { container } = render(<TrustLevelBanner visible={false} />);
-      expect(container.firstChild).toBeNull();
-    });
-
-    it("kapat butonuna basıldığında banner gizlenmelidir", () => {
-      render(<TrustLevelBanner visible={true} />);
-
-      const closeBtn = screen.getByRole("button", { name: "Bildirimi kapat" });
-      fireEvent.click(closeBtn);
-
-      expect(screen.queryByTestId("trust-level-0-notice")).toBeNull();
-    });
-  });
-
-  // ==========================================================================
-  // 4. Following Sayfası Durumları (Anonim vs Oturumlu)
-  // ==========================================================================
-  describe("4. Following Sayfası (Anonim ve Oturumlu Durumlar)", () => {
+  describe("3. Following Sayfası (Anonim ve Oturumlu Durumlar)", () => {
     it("anonim kullanıcıda giriş kartı ve /login?returnUrl=/following butonunu render etmelidir", async () => {
       // Mock unauthenticated client
       vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
@@ -359,7 +323,7 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
         auth: {
           whoami: vi.fn().mockResolvedValue({
-            actor: { id: "usr_1", username: "efe", trustLevel: 1 },
+            actor: { id: "usr_1", username: "efe" },
             roles: ["user"],
           }),
         },
@@ -383,7 +347,7 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
         auth: {
           whoami: vi.fn().mockResolvedValue({
-            actor: { id: "usr_1", username: "efe", trustLevel: 1 },
+            actor: { id: "usr_1", username: "efe" },
             roles: ["user"],
           }),
         },
@@ -408,9 +372,9 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
   });
 
   // ==========================================================================
-  // 5. Ana Akış Sayfası (app/page.tsx) ve Fallback Dayanıklılığı
+  // 4. Ana Akış Sayfası (app/page.tsx) ve Fallback Dayanıklılığı
   // ==========================================================================
-  describe("5. Ana Akış Sayfası (app/page.tsx)", () => {
+  describe("4. Ana Akış Sayfası (app/page.tsx)", () => {
     it("backend kapalıyken zarif fallback verilerini render etmelidir", async () => {
       vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
         auth: {
@@ -426,54 +390,6 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
 
       // Fallback gönderilerden en az biri ekranda olmalıdır
       expect(screen.getByText(MOCK_FEED_POSTS[0].title || "Rust'ta ltree")).toBeDefined();
-    });
-
-    it("trust level 0 kullanıcısında ve 'hot' sekmesinde uyarı banner'ını basmalıdır", async () => {
-      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
-        auth: {
-          whoami: vi.fn().mockResolvedValue({
-            actor: { id: "usr_new", username: "yeni_kullanici", trustLevel: 0 },
-            roles: ["user"],
-          }),
-        },
-        feed: {
-          list: vi.fn().mockResolvedValue({
-            items: [samplePost],
-            nextCursor: null,
-          }),
-        },
-      } as unknown as Awaited<ReturnType<typeof actosLib.getServerClient>>);
-
-      const page = await HomePage({
-        searchParams: Promise.resolve({ sort: "hot" }),
-      });
-      render(<TooltipProvider>{page}</TooltipProvider>);
-
-      expect(screen.getByTestId("trust-level-0-notice")).toBeDefined();
-    });
-
-    it("trust level 0 kullanıcısı 'new' sekmesindeyken uyarı banner'ını GÖSTERMEMELİDİR", async () => {
-      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
-        auth: {
-          whoami: vi.fn().mockResolvedValue({
-            actor: { id: "usr_new", username: "yeni_kullanici", trustLevel: 0 },
-            roles: ["user"],
-          }),
-        },
-        feed: {
-          list: vi.fn().mockResolvedValue({
-            items: [samplePost],
-            nextCursor: null,
-          }),
-        },
-      } as unknown as Awaited<ReturnType<typeof actosLib.getServerClient>>);
-
-      const page = await HomePage({
-        searchParams: Promise.resolve({ sort: "new" }),
-      });
-      render(<TooltipProvider>{page}</TooltipProvider>);
-
-      expect(screen.queryByTestId("trust-level-0-notice")).toBeNull();
     });
   });
 });

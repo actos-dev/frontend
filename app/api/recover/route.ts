@@ -81,7 +81,6 @@ export async function POST(req: NextRequest) {
         role,
         roles: whoami.roles,
         avatarUrl: whoami.actor.avatarUrl ?? null,
-        trustLevel: whoami.actor.trustLevel,
       };
     } catch {
       // ignore whoami retrieval failure on recover

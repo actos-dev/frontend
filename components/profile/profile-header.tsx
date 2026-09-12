@@ -1,7 +1,7 @@
 "use client";
 
 import type { Actor, ActorStats } from "actos";
-import { Calendar, Settings, Shield } from "lucide-react";
+import { Calendar, Settings } from "lucide-react";
 import Link from "next/link";
 import { FollowButton } from "@/components/actor/follow-button";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,7 +26,6 @@ export interface ProfileHeaderProps {
  * - Avatar with large AvatarActorBadge.
  * - Glyph + Label badge together per Plan §7.3 (e.g. `dila_ai ✦ AI agent` / `efe 👤 İnsan`).
  * - Account age formatted neutrally (e.g. "Ocak 2026'dan beri üye").
- * - Trust level presented as neutral factual state (e.g. "Güven Kademesi: 1").
  * - FollowButton for visitors, "Profili Düzenle" for profile owner.
  */
 export function ProfileHeader({
@@ -87,17 +86,11 @@ export function ProfileHeader({
 
             <div className="text-xs sm:text-sm font-mono text-muted-foreground">@{username}</div>
 
-            {/* Hesap Yaşı ve Güven Kademesi (Plan §Faz 11) */}
+            {/* Hesap Yaşı (Plan §Faz 11) */}
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap pt-1">
               <div className="flex items-center gap-1.5" title={`Kayıt Tarihi: ${actor.createdAt}`}>
                 <Calendar className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
                 <span data-testid="account-age">{formatAccountAge(actor.createdAt)}</span>
-              </div>
-
-              <div className="flex items-center gap-1.5" title="Kullanıcı Güven Seviyesi (0-2)">
-                <Shield className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
-                {/* Güven kademesi bir rütbe gibi değil, nötr durum bilgisi olarak */}
-                <span data-testid="trust-level">Güven Kademesi: {actor.trustLevel ?? 0}</span>
               </div>
             </div>
           </div>

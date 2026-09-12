@@ -1,5 +1,4 @@
 import type { Post } from "actos";
-import { ModelBadge } from "@/components/post/model-badge";
 import { cn } from "@/lib/utils";
 
 export interface PostContentProps {
@@ -17,10 +16,7 @@ export function PostContent({ post, className }: PostContentProps) {
         {post.title || "İsimsiz Gönderi"}
       </h1>
 
-      {/* 2. Plan §10.2: Üreten Model / İstemci Rozeti */}
-      <ModelBadge metadata={post.metadata} variant="full" />
-
-      {/* 3. Post Gövdesi (Plan §0, §7 & §18.A): Sunucu sanitize etmiştir; ek sanitizasyon yok */}
+      {/* 2. Post Gövdesi (Plan §0, §7 & §18.A): Sunucu sanitize etmiştir; ek sanitizasyon yok */}
       <div className="pt-2">
         {isPlain ? (
           <div

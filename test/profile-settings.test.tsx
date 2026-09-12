@@ -50,7 +50,6 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
     bio: "Actos platform kurucusu ve yazılım mühendisi.",
     avatarUrl: "https://example.com/avatars/efe.png",
     createdAt: "2026-01-15T12:00:00Z",
-    trustLevel: 1,
   };
 
   const sampleAgentActor: Actor = {
@@ -61,7 +60,6 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
     bio: "Otonom yapay zekâ araştırma asistanı.",
     avatarUrl: null,
     createdAt: "2026-01-10T10:00:00Z",
-    trustLevel: 2,
   };
 
   const sampleProfile: ActorProfile = {
@@ -115,7 +113,7 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
   });
 
   // =========================================================================
-  // 1. Profil Sayfası Başlık, Glif + Etiket Flair, Yaş ve Güven Kademesi Testi
+  // 1. Profil Sayfası Başlık, Glif + Etiket Flair ve Yaş Testi
   // =========================================================================
   describe("1. Profil Sayfası Başlık ve Rozet Render Testi", () => {
     it("profil başlığında yazar bilgisi, bio ve Plan §7.3 glif + etiket flair'ını eksiksiz render eder", () => {
@@ -147,11 +145,6 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
       expect(ageEl).toBeInTheDocument();
       expect(ageEl.textContent).toContain("Ocak 2026");
       expect(ageEl.textContent).toContain("beri üye");
-
-      // Güven Kademesi: Rütbe veya oyunlaştırma değil, nötr durum bilgisi
-      const trustEl = screen.getByTestId("trust-level");
-      expect(trustEl).toBeInTheDocument();
-      expect(trustEl).toHaveTextContent("Güven Kademesi: 1");
 
       // İstatistikler
       expect(screen.getByTestId("stat-posts")).toHaveTextContent("14");
@@ -188,9 +181,6 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveTextContent("✦");
       expect(badge).toHaveTextContent("AI agent");
-
-      // Güven Kademesi: 2
-      expect(screen.getByTestId("trust-level")).toHaveTextContent("Güven Kademesi: 2");
 
       // Ziyaretçi olduğu için FollowButton görünür, "Profili Düzenle" görünmez
       expect(screen.getByTestId("follow-button")).toBeInTheDocument();
@@ -244,10 +234,10 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
   });
 
   // =========================================================================
-  // 3. 3-Durumlu Avatar Güncelleme Testi (Dokunma, Null ile Sil, ID ile Ata)
+  // 3. Avatar Uç Noktaları Testi (POST/DELETE /api/actors/me/avatar)
   // =========================================================================
-  describe("3. 3-Durumlu Avatar Sözleşmesi Testi (YAPILACAKLAR.md §3)", () => {
-    it("Durum 1 (Dokunma): Avatar değiştirilmediğinde PATCH isteğinden avatar alanı tamamen çıkarılır", async () => {
+  describe("3. Avatar Uç Noktaları Testi", () => {
+    it("Profil kaydı: PATCH isteği yalnızca displayName ve bio taşır, avatar alanı hiç yok", async () => {
       const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -275,18 +265,15 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
 
       const callBody = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string);
       expect(callBody.displayName).toBe("Yeni Efe");
-      // Avatar alanı gönderilmemelidir (omitted)
+      // Avatar alanı hiçbir zaman gönderilmez; kendi uç noktasından yönetilir
       expect(callBody).not.toHaveProperty("avatar");
       expect(toast.success).toHaveBeenCalledWith("Profil başarıyla güncellendi.");
     });
 
-    it("Durum 2 (Null ile Sil): 'Fotoğrafı Kaldır' tıklandığında açıkça avatar: null gönderilir", async () => {
+    it("'Fotoğrafı Kaldır' tıklandığında hemen DELETE /api/actors/me/avatar isteği atar", async () => {
       const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValueOnce({
         ok: true,
-        json: async () => ({
-          ok: true,
-          actor: { ...sampleHumanActor, avatarUrl: null },
-        }),
+        json: async () => ({ ok: true }),
       } as Response);
 
       render(<ProfileSettingsForm initialActor={sampleHumanActor} />);
@@ -294,52 +281,28 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
       const removeButton = screen.getByText("Fotoğrafı Kaldır");
       fireEvent.click(removeButton);
 
-      expect(screen.getByText("Fotoğraf kaldırılacak")).toBeInTheDocument();
-
-      const saveButton = screen.getByTestId("save-profile-button");
-      fireEvent.click(saveButton);
-
       await waitFor(() => {
         expect(fetchSpy).toHaveBeenCalledWith(
-          "/api/actors/me",
-          expect.objectContaining({
-            method: "PATCH",
-          }),
+          "/api/actors/me/avatar",
+          expect.objectContaining({ method: "DELETE" }),
         );
       });
 
-      const callBody = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string);
-      // Açıkça null gönderilmelidir
-      expect(callBody.avatar).toBeNull();
+      expect(toast.success).toHaveBeenCalledWith("Fotoğraf kaldırıldı");
     });
 
-    it("Durum 3 (ID ile Güncelle): Yeni görsel yüklendiğinde upload id'si avatar: 'f_...' olarak gönderilir", async () => {
+    it("Yeni görsel seçildiğinde dosya hemen POST /api/actors/me/avatar'a multipart olarak yüklenir", async () => {
       const uploadResponse = {
         ok: true,
         data: {
-          id: "f_avatar_999",
-          url: "https://example.com/uploads/new-avatar.png",
-        },
-      };
-
-      const patchResponse = {
-        ok: true,
-        actor: {
-          ...sampleHumanActor,
           avatarUrl: "https://example.com/uploads/new-avatar.png",
         },
       };
 
-      const fetchSpy = vi
-        .spyOn(global, "fetch")
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => uploadResponse,
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => patchResponse,
-        } as Response);
+      const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValueOnce({
+        ok: true,
+        json: async () => uploadResponse,
+      } as Response);
 
       render(<ProfileSettingsForm initialActor={sampleHumanActor} />);
 
@@ -354,20 +317,13 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText("Yeni fotoğraf seçildi")).toBeInTheDocument();
+        expect(fetchSpy).toHaveBeenCalledWith(
+          "/api/actors/me/avatar",
+          expect.objectContaining({ method: "POST" }),
+        );
       });
 
-      // Kaydet
-      const saveButton = screen.getByTestId("save-profile-button");
-      fireEvent.click(saveButton);
-
-      await waitFor(() => {
-        expect(fetchSpy).toHaveBeenCalledTimes(2);
-      });
-
-      // İkinci istek PATCH /api/actors/me olmalı ve avatar: "f_avatar_999" taşımalı
-      const patchCallBody = JSON.parse(fetchSpy.mock.calls[1][1]?.body as string);
-      expect(patchCallBody.avatar).toBe("f_avatar_999");
+      expect(toast.success).toHaveBeenCalledWith("Avatar güncellendi.");
     });
   });
 

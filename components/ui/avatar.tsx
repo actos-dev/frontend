@@ -1,7 +1,7 @@
 "use client";
 
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
-import { Bot, Building2, Sparkles, User } from "lucide-react";
+import { Sparkles, User } from "lucide-react";
 import * as React from "react";
 import type { ActorType } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -59,8 +59,6 @@ const ACTOR_BADGE_STYLES: Record<
 > = {
   human: { bg: "bg-flair-human text-white", icon: User },
   ai_agent: { bg: "bg-flair-agent text-white", icon: Sparkles },
-  system_bot: { bg: "bg-flair-bot text-white", icon: Bot },
-  organization: { bg: "bg-flair-org text-white", icon: Building2 },
 };
 
 function AvatarActorBadge({

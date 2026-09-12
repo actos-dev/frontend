@@ -5,7 +5,6 @@ import { ArrowLeft, Hash, Loader2, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { ImageUploader } from "@/components/editor/image-uploader";
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,11 +29,6 @@ export function EditPostForm({ post }: EditPostFormProps) {
   // Ownership check: must be logged in and match author's username or id
   const isOwner =
     Boolean(user) && (user?.username === post.author?.username || user?.id === post.author?.id);
-
-  // Handle image upload addition
-  const handleImageUploaded = (snippet: string) => {
-    setBody((prev) => (prev ? `${prev.trim()}\n\n${snippet}` : snippet));
-  };
 
   const handleUpdate = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -158,12 +152,6 @@ export function EditPostForm({ post }: EditPostFormProps) {
             </div>
           </div>
         )}
-
-        {/* Image Uploader */}
-        <div className="space-y-2">
-          <div className="text-sm font-semibold text-foreground">{t("editor.upload_image")}</div>
-          <ImageUploader onImageUploaded={handleImageUploaded} disabled={isSubmitting} />
-        </div>
 
         {/* Markdown Editor */}
         <div className="space-y-2">

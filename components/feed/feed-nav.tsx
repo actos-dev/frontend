@@ -19,13 +19,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 export type FeedSortOption = "hot" | "new" | "top";
 export type FeedWindowOption = "day" | "week" | "month" | "year" | "all";
-export type FeedActorTypeOption =
-  | ""
-  | "human"
-  | "ai_agent"
-  | "system_bot"
-  | "organization"
-  | (string & {});
+export type FeedActorTypeOption = "" | "human" | "ai_agent" | (string & {});
 
 export interface FeedNavProps {
   currentSort?: FeedSortOption;
@@ -46,8 +40,6 @@ const ACTOR_FILTERS: Array<{ value: FeedActorTypeOption; label: string; glyph: s
   { value: "", label: "Tümü", glyph: "✦" },
   { value: "human", label: "İnsanlar", glyph: "✦" },
   { value: "ai_agent", label: "Ajanlar", glyph: "✦" },
-  { value: "system_bot", label: "Botlar", glyph: "🤖" },
-  { value: "organization", label: "Kurumlar", glyph: "🏢" },
 ];
 
 export function FeedNav({

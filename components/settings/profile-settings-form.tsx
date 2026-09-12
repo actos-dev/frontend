@@ -5,7 +5,7 @@ import { AlertTriangle, Camera, Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { type ActorType, Badge } from "@/components/ui/badge";
+import type { ActorType } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,12 +26,12 @@ export interface ProfileSettingsFormProps {
 }
 
 /**
- * Profile & Avatar settings form with 3-state avatar contract and account deletion (Plan §Faz 11).
+ * Profile & Avatar settings form with account deletion (Plan §Faz 11).
  *
- * 3-State Avatar Contract (YAPILACAKLAR.md §3):
- * - Keep: Omit `avatar` from PATCH request.
- * - Remove: Send `avatar: null`.
- * - Update: Send `avatar: "f_..."` (upload ID).
+ * The avatar is managed through its own endpoints (`POST`/`DELETE
+ * /api/actors/me/avatar`) and takes effect immediately, independent of the
+ * displayName/bio form below. Profile update itself only ever sends
+ * `displayName` and `bio`.
  */
 export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) {
   const router = useRouter();
@@ -41,11 +41,9 @@ export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) 
   const [displayName, setDisplayName] = useState(initialActor.displayName || "");
   const [bio, setBio] = useState(initialActor.bio || "");
 
-  // 3-state avatar management
-  const [avatarMode, setAvatarMode] = useState<"keep" | "remove" | "upload">("keep");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialActor.avatarUrl || null);
-  const [uploadedAvatarId, setUploadedAvatarId] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Danger zone deletion modal
@@ -63,12 +61,12 @@ export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) 
       return;
     }
 
-    setIsUploading(true);
+    setIsUploadingAvatar(true);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await fetch("/api/upload", {
+      const res = await fetch("/api/actors/me/avatar", {
         method: "POST",
         body: formData,
       });
@@ -79,33 +77,50 @@ export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) 
         return;
       }
 
-      setUploadedAvatarId(data.data.id);
-      setAvatarPreview(data.data.url || URL.createObjectURL(file));
-      setAvatarMode("upload");
-      toast.info("Yeni görsel seçildi. Değişiklikleri kaydetmeyi unutmayın.");
+      const newAvatarUrl = data.data.avatarUrl as string;
+      setAvatarPreview(newAvatarUrl);
+
+      const currentUser = useSessionStore.getState().user;
+      if (currentUser) {
+        useSessionStore.getState().setUser({ ...currentUser, avatarUrl: newAvatarUrl });
+      }
+
+      toast.success("Avatar güncellendi.");
     } catch {
       toast.error("Bağlantı hatası: Görsel yüklenemedi.");
     } finally {
-      setIsUploading(false);
+      setIsUploadingAvatar(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     }
   };
 
-  const handleRemoveAvatar = () => {
-    setAvatarMode("remove");
-    setAvatarPreview(null);
-    setUploadedAvatarId(null);
-    toast.info(
-      t("settings.profile.avatar_will_remove") || "Avatar kaldırılacak olarak işaretlendi.",
-    );
-  };
+  const handleRemoveAvatar = async () => {
+    if (isRemovingAvatar) return;
+    setIsRemovingAvatar(true);
 
-  const handleRestoreAvatar = () => {
-    setAvatarMode("keep");
-    setAvatarPreview(initialActor.avatarUrl || null);
-    setUploadedAvatarId(null);
+    try {
+      const res = await fetch("/api/actors/me/avatar", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        toast.error(data.detail || data.title || "Avatar kaldırılamadı.");
+        return;
+      }
+
+      setAvatarPreview(null);
+
+      const currentUser = useSessionStore.getState().user;
+      if (currentUser) {
+        useSessionStore.getState().setUser({ ...currentUser, avatarUrl: null });
+      }
+
+      toast.success(t("settings.profile.avatar_removed") || "Avatar kaldırıldı.");
+    } catch {
+      toast.error("Bağlantı hatası: Avatar kaldırılamadı.");
+    } finally {
+      setIsRemovingAvatar(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,19 +133,10 @@ export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) 
       const payload: {
         displayName?: string | null;
         bio?: string | null;
-        avatar?: string | null;
       } = {
         displayName: displayName.trim() ? displayName.trim() : null,
         bio: bio.trim() ? bio.trim() : null,
       };
-
-      // 3-Durumlu Avatar Sözleşmesi
-      if (avatarMode === "remove") {
-        payload.avatar = null;
-      } else if (avatarMode === "upload" && uploadedAvatarId) {
-        payload.avatar = uploadedAvatarId;
-      }
-      // if avatarMode === "keep", payload.avatar is omitted entirely
 
       const res = await fetch("/api/actors/me", {
         method: "PATCH",
@@ -152,13 +158,8 @@ export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) 
         useSessionStore.getState().setUser({
           ...currentUser,
           displayName: updatedActor.displayName,
-          avatarUrl: updatedActor.avatarUrl,
         });
       }
-
-      setAvatarMode("keep");
-      setAvatarPreview(updatedActor.avatarUrl || null);
-      setUploadedAvatarId(null);
 
       toast.success(t("settings.profile.success") || "Profil başarıyla güncellendi.");
     } catch {
@@ -243,7 +244,7 @@ export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) 
                   accept="image/png,image/jpeg,image/webp,image/gif"
                   className="hidden"
                   onChange={handleFileChange}
-                  disabled={isUploading}
+                  disabled={isUploadingAvatar || isRemovingAvatar}
                 />
 
                 <Button
@@ -251,60 +252,43 @@ export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) 
                   variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
+                  disabled={isUploadingAvatar || isRemovingAvatar}
                   className="cursor-pointer gap-2"
                 >
-                  {isUploading ? (
+                  {isUploadingAvatar ? (
                     <Loader2 className="w-4 h-4 animate-spin text-primary" />
                   ) : (
                     <Camera className="w-4 h-4" />
                   )}
                   <span>
-                    {isUploading
+                    {isUploadingAvatar
                       ? "Yükleniyor..."
                       : t("settings.profile.avatar_upload") || "Fotoğraf Yükle"}
                   </span>
                 </Button>
 
-                {(avatarPreview || avatarMode === "upload") && (
+                {avatarPreview && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={handleRemoveAvatar}
+                    disabled={isUploadingAvatar || isRemovingAvatar}
                     className="text-destructive hover:bg-destructive/10 cursor-pointer gap-1.5"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    {isRemovingAvatar ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
                     <span>{t("settings.profile.avatar_remove") || "Fotoğrafı Kaldır"}</span>
-                  </Button>
-                )}
-
-                {avatarMode !== "keep" && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRestoreAvatar}
-                    className="text-muted-foreground hover:text-foreground cursor-pointer"
-                  >
-                    Vazgeç
                   </Button>
                 )}
               </div>
 
               <div className="flex items-center gap-2">
-                {avatarMode === "remove" && (
-                  <Badge variant="warning" size="sm">
-                    {t("settings.profile.avatar_will_remove") || "Fotoğraf kaldırılacak"}
-                  </Badge>
-                )}
-                {avatarMode === "upload" && (
-                  <Badge variant="success" size="sm">
-                    {t("settings.profile.avatar_changed") || "Yeni fotoğraf seçildi"}
-                  </Badge>
-                )}
                 <span className="text-xs text-muted-foreground">
-                  PNG, JPEG, WebP veya GIF (Maks. 10MB)
+                  PNG, JPEG, WebP veya GIF (Maks. 10MB) · Değişiklikler hemen uygulanır
                 </span>
               </div>
             </div>

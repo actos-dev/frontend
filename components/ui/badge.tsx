@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { Bot, Building2, Sparkles, User } from "lucide-react";
+import { Sparkles, User } from "lucide-react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -21,8 +21,6 @@ const badgeVariants = cva(
         human: "border-flair-human/30 bg-flair-human/10 text-flair-human hover:bg-flair-human/20",
         ai_agent:
           "border-flair-agent/30 bg-flair-agent/10 text-flair-agent hover:bg-flair-agent/20",
-        system_bot: "border-flair-bot/30 bg-flair-bot/10 text-flair-bot hover:bg-flair-bot/20",
-        organization: "border-flair-org/30 bg-flair-org/10 text-flair-org hover:bg-flair-org/20",
       },
       size: {
         default: "px-2.5 py-0.5 text-xs",
@@ -45,7 +43,7 @@ function Badge({ className, variant, size, ...props }: BadgeProps) {
   return <div className={cn(badgeVariants({ variant, size }), className)} {...props} />;
 }
 
-export type ActorType = "human" | "ai_agent" | "system_bot" | "organization";
+export type ActorType = "human" | "ai_agent";
 
 export interface ActorBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   actorType: ActorType;
@@ -61,8 +59,6 @@ export interface ActorBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const ACTOR_GLYPHS: Record<ActorType, string> = {
   human: "✦",
   ai_agent: "✦",
-  system_bot: "🤖",
-  organization: "🏢",
 };
 
 const ACTOR_CONFIG: Record<
@@ -72,7 +68,7 @@ const ACTOR_CONFIG: Record<
     glyphAriaLabel: string;
     glyph: string;
     icon: React.ComponentType<{ className?: string }>;
-    variant: "human" | "ai_agent" | "system_bot" | "organization";
+    variant: "human" | "ai_agent";
   }
 > = {
   human: {
@@ -88,20 +84,6 @@ const ACTOR_CONFIG: Record<
     glyph: "✦",
     icon: Sparkles,
     variant: "ai_agent",
-  },
-  system_bot: {
-    label: "Bot",
-    glyphAriaLabel: "Aktör tipi: Bot",
-    glyph: "🤖",
-    icon: Bot,
-    variant: "system_bot",
-  },
-  organization: {
-    label: "Kurum",
-    glyphAriaLabel: "Aktör tipi: Kurum",
-    glyph: "🏢",
-    icon: Building2,
-    variant: "organization",
   },
 };
 
@@ -126,8 +108,6 @@ function ActorBadge({
           "inline-flex items-center justify-center font-mono font-bold select-none text-xs",
           config.variant === "human" && "text-flair-human",
           config.variant === "ai_agent" && "text-flair-agent",
-          config.variant === "system_bot" && "text-flair-bot",
-          config.variant === "organization" && "text-flair-org",
           className,
         )}
         title={glyphLabel}

@@ -2,7 +2,6 @@ import type { ActorType, Post } from "actos";
 import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { FeedNav, type FeedSortOption, type FeedWindowOption } from "@/components/feed/feed-nav";
 import { FeedStream } from "@/components/feed/feed-stream";
-import { TrustLevelBanner } from "@/components/feed/trust-level-banner";
 import { getServerClient } from "@/lib/actos";
 import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 
@@ -28,26 +27,14 @@ export default async function HomePage(props: HomePageProps) {
 
   const actorTypeRaw = rawParams.actor_type || rawParams.actorType;
   const actorType =
-    typeof actorTypeRaw === "string" &&
-    ["human", "ai_agent", "system_bot", "organization"].includes(actorTypeRaw)
+    typeof actorTypeRaw === "string" && ["human", "ai_agent"].includes(actorTypeRaw)
       ? (actorTypeRaw as ActorType)
       : undefined;
 
   const cursor = typeof rawParams.cursor === "string" ? rawParams.cursor : undefined;
 
-  // 1. Veri erişimi ve Aktif Oturum Kontrolü (RSC, Plan §6.1)
+  // 1. Veri erişimi (RSC, Plan §6.1)
   const client = await getServerClient();
-
-  let currentUserTrustLevel: number | null = null;
-  try {
-    const whoami = await client.auth.whoami();
-    currentUserTrustLevel = whoami.actor.trustLevel ?? null;
-  } catch {
-    // Anonim kullanıcı veya geçersiz oturum
-  }
-
-  // Seviye 0 Uyarısı: Kullanıcı trust level 0 ise ve 'hot' sekmesindeyse görünür
-  const showTrustLevel0Notice = currentUserTrustLevel === 0 && sort === "hot";
 
   let posts: Post[] = [];
   let nextCursor: string | null = null;
@@ -89,10 +76,7 @@ export default async function HomePage(props: HomePageProps) {
       {/* 1. Akış Sekmeleri ve actor_type Filtresi (Plan §4.1, §6.1) */}
       <FeedNav currentSort={sort} currentWindow={window} currentActorType={actorType || ""} />
 
-      {/* 2. Seviye 0 Uyarısı (Trust Level 0, Plan §6) */}
-      {showTrustLevel0Notice && <TrustLevelBanner visible={true} />}
-
-      {/* 3. Ana Akış Akışı ve Sayfalama (FeedStream + LoadMore) */}
+      {/* 2. Ana Akış Akışı ve Sayfalama (FeedStream + LoadMore) */}
       <FeedStream
         initialPosts={posts}
         initialNextCursor={nextCursor}
@@ -105,7 +89,7 @@ export default async function HomePage(props: HomePageProps) {
         emptyActionHref="/new"
       />
 
-      {/* 4. Plan §10.1: "Bu Sayfayı API'den Al" Kutusu */}
+      {/* 3. Plan §10.1: "Bu Sayfayı API'den Al" Kutusu */}
       <div className="p-4 sm:p-6">
         <ApiCornerBox endpoint={feedEndpoint} variant="inline" />
       </div>

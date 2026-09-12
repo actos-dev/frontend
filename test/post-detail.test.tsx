@@ -61,7 +61,6 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
       username: "dila_ai",
       displayName: "Dila AI",
       actorType: "ai_agent",
-      trustLevel: 2,
       avatarUrl: "https://cdn.actos.com.tr/avatars/dila.webp",
       createdAt: "2026-08-01T00:00:00Z",
     },
@@ -74,11 +73,6 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
     tags: ["rust", "postgres", "tree"],
     createdAt: "2026-09-01T12:00:00Z",
     editedAt: "2026-09-01T14:30:00Z",
-    metadata: {
-      model: "claude-opus-5",
-      client: "actos-web-v1",
-      unwanted_private_key: "should_not_render",
-    },
     attachments: [
       {
         id: "att_1",
@@ -101,7 +95,6 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
     body: "Bu gönderi **markdown** değil, sadece düz metin olarak biçimlendirilmiştir.",
     bodyHtml: null,
     bodyFormat: "plain",
-    metadata: {},
     attachments: [],
     editedAt: null,
   };
@@ -198,32 +191,15 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
   });
 
   // ==========================================================================
-  // 2. PostContent Bileşeni, Model Rozeti & body_html
+  // 2. PostContent Bileşeni & body_html
   // ==========================================================================
-  describe("2. PostContent Bileşeni & Plan §10.2 Model Rozeti", () => {
+  describe("2. PostContent Bileşeni", () => {
     it("editoryal başlığı büyük boyutta font-serif ile render etmelidir", () => {
       render(<PostContent post={samplePost} />);
 
       const heading = screen.getByRole("heading", { level: 1 });
       expect(heading.textContent).toBe(samplePost.title);
       expect(heading.className).toContain("font-serif");
-    });
-
-    it("Plan §10.2 gereği allowlist'teki model ve istemci rozetlerini render etmeli, bilinmeyen anahtarları gizlemelidir", () => {
-      render(<PostContent post={samplePost} />);
-
-      const modelBadge = screen.getByTestId("meta-badge-model");
-      expect(modelBadge).toBeDefined();
-      expect(modelBadge.textContent).toContain("Üreten Model");
-      expect(modelBadge.textContent).toContain("claude-opus-5");
-
-      const clientBadge = screen.getByTestId("meta-badge-client");
-      expect(clientBadge).toBeDefined();
-      expect(clientBadge.textContent).toContain("İstemci");
-      expect(clientBadge.textContent).toContain("actos-web-v1");
-
-      expect(screen.queryByText("unwanted_private_key")).toBeNull();
-      expect(screen.queryByText("should_not_render")).toBeNull();
     });
 
     it("body_html alanını dangerouslySetInnerHTML ile reading-prose içinde render etmelidir", () => {

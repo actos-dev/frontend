@@ -5,7 +5,6 @@ import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { ShortcutsDialog } from "@/components/keyboard/shortcuts-dialog";
-import { extractSafeMetadata, ModelBadge } from "@/components/post/model-badge";
 import { PostApiBox } from "@/components/post/post-api-box";
 import { isEditableElement, useKeyboardShortcuts } from "@/lib/hooks/use-keyboard-shortcuts";
 
@@ -137,103 +136,9 @@ describe("Faz 15 — Özgün Dokunuşlar (Delight Features)", () => {
   });
 
   /* ==========================================================================
-     2. Üreten Model Rozeti (Plan §10.2)
+     2. Klavye-Öncelikli Gezinme ve ? Kısayol Paneli (Plan §10.3)
      ========================================================================== */
-  describe("2. Üreten Model Rozeti (ModelBadge & extractSafeMetadata)", () => {
-    it("yalnızca allowlist'teki anahtarları (model, client, source) kabul etmeli ve formatlamalıdır", () => {
-      const metadata = {
-        model: "claude-opus-5",
-        client: "actos-cli/0.1",
-        source: "github",
-        // Allowlist dışı çöp / güvenlik riski içeren alanlar:
-        prompt: "System secret instructions",
-        evil: "<script>alert('xss')</script>",
-        tokens: 4200,
-        temperature: 0.7,
-      };
-
-      const safeItems = extractSafeMetadata(metadata);
-      expect(safeItems).toHaveLength(3);
-
-      expect(safeItems.map((i) => i.key)).toEqual(["model", "client", "source"]);
-      expect(safeItems.find((i) => i.key === "model")?.value).toBe("claude-opus-5");
-      expect(safeItems.find((i) => i.key === "client")?.value).toBe("actos-cli/0.1");
-      expect(safeItems.find((i) => i.key === "source")?.value).toBe("github");
-    });
-
-    it("allowlist dışı anahtarları kesinlikle filtrelemeli ve render etmemelidir", () => {
-      const metadata = {
-        hacker_key: "malicious_payload",
-        xss: "<img src=x onerror=alert(1)>",
-        internal_id: "secret_123",
-      };
-
-      const safeItems = extractSafeMetadata(metadata);
-      expect(safeItems).toHaveLength(0);
-
-      const { container } = render(<ModelBadge metadata={metadata} variant="full" />);
-      expect(container.firstChild).toBeNull();
-    });
-
-    it("null, undefined, sayı veya dizi gibi geçersiz metadata girdilerinde çökmeden boş dönmelidir", () => {
-      expect(extractSafeMetadata(null)).toEqual([]);
-      expect(extractSafeMetadata(undefined)).toEqual([]);
-      expect(extractSafeMetadata("string-metadata")).toEqual([]);
-      expect(extractSafeMetadata([1, 2, 3])).toEqual([]);
-      expect(extractSafeMetadata({})).toEqual([]);
-
-      const { container } = render(<ModelBadge metadata={null} />);
-      expect(container.firstChild).toBeNull();
-    });
-
-    it("kompakt modda (variant='compact') PostCard için ✦ veya 🤖 glifi ile render etmelidir", () => {
-      // Model mevcutken
-      const { unmount: unmount1 } = render(
-        <ModelBadge metadata={{ model: "claude-opus-5" }} variant="compact" />,
-      );
-      const badge1 = screen.getByTestId("post-model-badge");
-      expect(badge1.textContent).toContain("✦");
-      expect(badge1.textContent).toContain("claude-opus-5");
-      unmount1();
-
-      // Sadece client mevcutken
-      const { unmount: unmount2 } = render(
-        <ModelBadge metadata={{ client: "actos-cli/0.1" }} variant="compact" />,
-      );
-      const badge2 = screen.getByTestId("post-model-badge");
-      expect(badge2.textContent).toContain("🤖");
-      expect(badge2.textContent).toContain("actos-cli/0.1");
-      unmount2();
-    });
-
-    it("tam modda (variant='full') PostContent için tüm geçerli rozetleri render etmelidir", () => {
-      render(
-        <ModelBadge
-          metadata={{
-            model: "claude-opus-5",
-            client: "actos-cli/0.1",
-            source: "github",
-          }}
-          variant="full"
-        />,
-      );
-
-      expect(screen.getByTestId("post-metadata-badges")).toBeDefined();
-      expect(screen.getByTestId("meta-badge-model")).toBeDefined();
-      expect(screen.getByTestId("meta-badge-client")).toBeDefined();
-      expect(screen.getByTestId("meta-badge-source")).toBeDefined();
-
-      expect(screen.getByText("Üreten Model:")).toBeDefined();
-      expect(screen.getByText("claude-opus-5")).toBeDefined();
-      expect(screen.getByText("İstemci:")).toBeDefined();
-      expect(screen.getByText("actos-cli/0.1")).toBeDefined();
-    });
-  });
-
-  /* ==========================================================================
-     3. Klavye-Öncelikli Gezinme ve ? Kısayol Paneli (Plan §10.3)
-     ========================================================================== */
-  describe("3. Klavye-Öncelikli Gezinme ve ? Kısayol Paneli", () => {
+  describe("2. Klavye-Öncelikli Gezinme ve ? Kısayol Paneli", () => {
     // Test Harness bileşeni
     function TestFeedHarness({ onNavigate }: { onNavigate?: (href: string) => void }) {
       const shortcuts = useKeyboardShortcuts({ onNavigate });
@@ -459,9 +364,9 @@ describe("Faz 15 — Özgün Dokunuşlar (Delight Features)", () => {
   });
 
   /* ==========================================================================
-     4. Metin Giriş Alanlarında Kısayol Koruma Kuralı (Form Protection)
+     3. Metin Giriş Alanlarında Kısayol Koruma Kuralı (Form Protection)
      ========================================================================== */
-  describe("4. Form ve Metin Alanlarında Kısayol Koruma Kuralı (Plan §10.3)", () => {
+  describe("3. Form ve Metin Alanlarında Kısayol Koruma Kuralı (Plan §10.3)", () => {
     function FormInputHarness({ onNavigate }: { onNavigate?: (href: string) => void }) {
       useKeyboardShortcuts({ onNavigate });
       return (

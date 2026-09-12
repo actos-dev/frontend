@@ -57,7 +57,6 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       username: "alice",
       displayName: "Alice",
       actorType: "human",
-      trustLevel: 1,
       createdAt: "2026-08-01T00:00:00Z",
     },
     authorDeleted: false,
@@ -69,7 +68,6 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
     tags: ["tech"],
     createdAt: "2026-09-04T10:00:00Z",
     editedAt: null,
-    metadata: null,
   };
 
   const sampleOwnPost: Post = {
@@ -84,7 +82,6 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       username: "efe",
       displayName: "Efe",
       actorType: "human",
-      trustLevel: 2,
       createdAt: "2026-08-01T00:00:00Z",
     },
     authorDeleted: false,
@@ -96,7 +93,6 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
     tags: ["personal"],
     createdAt: "2026-09-04T11:00:00Z",
     editedAt: null,
-    metadata: null,
   };
 
   beforeEach(() => {

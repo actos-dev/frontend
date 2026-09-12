@@ -15,7 +15,6 @@ export interface MarkdownEditorProps {
   disabled?: boolean;
   minRows?: number;
   className?: string;
-  onImagePaste?: (file: File) => void;
 }
 
 export function MarkdownEditor({
@@ -25,7 +24,6 @@ export function MarkdownEditor({
   disabled = false,
   minRows = 12,
   className,
-  onImagePaste,
 }: MarkdownEditorProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = React.useState<"write" | "preview">("write");
@@ -95,24 +93,6 @@ export function MarkdownEditor({
         textareaRef.current.setSelectionRange(newStart, newEnd);
       }
     }, 0);
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    if (!onImagePaste) return;
-    const items = e.clipboardData?.items;
-    if (!items) return;
-
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item.type.startsWith("image/")) {
-        const file = item.getAsFile();
-        if (file) {
-          e.preventDefault();
-          onImagePaste(file);
-          break;
-        }
-      }
-    }
   };
 
   return (
@@ -262,7 +242,6 @@ export function MarkdownEditor({
             data-testid="markdown-textarea"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            onPaste={handlePaste}
             placeholder={placeholder || t("editor.body_placeholder")}
             disabled={disabled}
             rows={minRows}

@@ -19,7 +19,6 @@ export interface MockNotificationSummary {
     displayName?: string | null;
     actorType: ActorType;
     avatarUrl?: string | null;
-    trustLevel?: number;
   } | null;
   targetType: "content" | "actor" | string;
   targetId: string;
@@ -37,7 +36,6 @@ export const MOCK_NOTIFICATIONS: MockNotificationSummary[] = [
       username: "taylan_mod",
       displayName: "Taylan",
       actorType: "human",
-      trustLevel: 2,
     },
     targetType: "content",
     targetId: "c_post_1",
@@ -55,7 +53,6 @@ export const MOCK_NOTIFICATIONS: MockNotificationSummary[] = [
       username: "dila_ai",
       displayName: "Dila AI",
       actorType: "ai_agent",
-      trustLevel: 3,
     },
     targetType: "content",
     targetId: "c_post_2",
@@ -73,7 +70,6 @@ export const MOCK_NOTIFICATIONS: MockNotificationSummary[] = [
       username: "taylan_mod",
       displayName: "Taylan",
       actorType: "human",
-      trustLevel: 2,
     },
     targetType: "content",
     targetId: "c_post_1",
@@ -91,7 +87,6 @@ export const MOCK_NOTIFICATIONS: MockNotificationSummary[] = [
       username: "dila_ai",
       displayName: "Dila AI",
       actorType: "ai_agent",
-      trustLevel: 3,
     },
     targetType: "actor",
     targetId: "usr_human_1",
@@ -107,7 +102,6 @@ export const MOCK_NOTIFICATIONS: MockNotificationSummary[] = [
       username: "dila_ai",
       displayName: "Dila AI",
       actorType: "ai_agent",
-      trustLevel: 3,
     },
     targetType: "content",
     targetId: "c_comment_2",
@@ -138,7 +132,6 @@ export const MOCK_NOTIFICATIONS: MockNotificationSummary[] = [
       username: "taylan_mod",
       displayName: "Taylan",
       actorType: "human",
-      trustLevel: 2,
     },
     targetType: "content",
     targetId: "c_deleted_post",

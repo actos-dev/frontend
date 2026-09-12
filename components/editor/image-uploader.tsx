@@ -1,88 +1,93 @@
 "use client";
 
-import { AlertCircle, ImageIcon, Loader2, UploadCloud } from "lucide-react";
+import { AlertCircle, ImageIcon, UploadCloud, X } from "lucide-react";
 import * as React from "react";
-import { toast } from "@/components/ui/toast";
-import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-export const STORAGE_QUOTA_USER_MESSAGE =
-  "Depolama kotanız doldu veya dosya sınırı aşıldı. Güven kademeniz yükseldikçe yükleme kotanız ve limitleriniz otomatik olarak artacaktır.";
+export const IMAGE_LIMIT_USER_MESSAGE =
+  "Desteklenmeyen dosya biçimi veya boyut sınırı aşıldı. Görsel başına en fazla 10MB, gönderi başına en fazla 4 görsel ekleyebilirsiniz.";
 
 export const SUPPORTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
+export const MAX_ATTACHMENTS = 4;
+
 export interface ImageUploaderProps {
-  onImageUploaded: (markdownSnippet: string, url: string) => void;
+  /** Images staged to be sent alongside the post/comment on submit. */
+  files: File[];
+  onFilesChange: (files: File[]) => void;
+  maxFiles?: number;
   disabled?: boolean;
   className?: string;
 }
 
+/**
+ * Stages up to `maxFiles` images locally for attachment to a post or comment.
+ * There is no standalone upload step any more — the selected files are only
+ * sent to the server as part of the `posts.create()` / `comments.create()`
+ * multipart request, via the `files` option.
+ */
 export function ImageUploader({
-  onImageUploaded,
+  files,
+  onFilesChange,
+  maxFiles = MAX_ATTACHMENTS,
   disabled = false,
   className,
 }: ImageUploaderProps) {
-  const { t } = useTranslation();
   const [isDragging, setIsDragging] = React.useState(false);
-  const [isUploading, setIsUploading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const uploadFile = async (file: File) => {
-    if (disabled || isUploading) return;
+  const previews = React.useMemo(
+    () => files.map((file) => ({ file, url: URL.createObjectURL(file) })),
+    [files],
+  );
 
-    // Validate type and size client-side
-    if (!SUPPORTED_IMAGE_TYPES.includes(file.type) || file.size > MAX_FILE_SIZE_BYTES) {
-      setErrorMessage(STORAGE_QUOTA_USER_MESSAGE);
-      toast.error(STORAGE_QUOTA_USER_MESSAGE);
+  React.useEffect(() => {
+    return () => {
+      for (const { url } of previews) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, [previews]);
+
+  const addFiles = (incoming: FileList | File[]) => {
+    if (disabled) return;
+
+    const remainingSlots = maxFiles - files.length;
+    if (remainingSlots <= 0) {
+      setErrorMessage(IMAGE_LIMIT_USER_MESSAGE);
       return;
     }
 
-    setErrorMessage(null);
-    setIsUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        // Plan §Faz 10: Never show raw technical error string on quota or media rejection
-        setErrorMessage(STORAGE_QUOTA_USER_MESSAGE);
-        toast.error(STORAGE_QUOTA_USER_MESSAGE);
-        return;
+    const accepted: File[] = [];
+    for (const file of Array.from(incoming)) {
+      if (!SUPPORTED_IMAGE_TYPES.includes(file.type) || file.size > MAX_FILE_SIZE_BYTES) {
+        setErrorMessage(IMAGE_LIMIT_USER_MESSAGE);
+        continue;
       }
-
-      const json = await res.json();
-      if (json.ok && json.data?.url) {
-        const altText = file.name.replace(/\.[^.]+$/, "") || "görsel";
-        const snippet = `![${altText}](${json.data.url})\n`;
-        onImageUploaded(snippet, json.data.url);
-        toast.success("Görsel başarıyla yüklendi.");
-      } else {
-        setErrorMessage(STORAGE_QUOTA_USER_MESSAGE);
-        toast.error(STORAGE_QUOTA_USER_MESSAGE);
+      if (accepted.length >= remainingSlots) {
+        setErrorMessage(IMAGE_LIMIT_USER_MESSAGE);
+        break;
       }
-    } catch {
-      setErrorMessage(STORAGE_QUOTA_USER_MESSAGE);
-      toast.error(STORAGE_QUOTA_USER_MESSAGE);
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      accepted.push(file);
     }
+
+    if (accepted.length > 0) {
+      setErrorMessage(null);
+      onFilesChange([...files, ...accepted]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    onFilesChange(files.filter((_, i) => i !== index));
+    setErrorMessage(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!disabled && !isUploading) {
+    if (!disabled) {
       setIsDragging(true);
     }
   };
@@ -95,61 +100,85 @@ export function ImageUploader({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    if (disabled || isUploading) return;
+    if (disabled) return;
 
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      uploadFile(files[0]);
+    const dropped = e.dataTransfer.files;
+    if (dropped && dropped.length > 0) {
+      addFiles(dropped);
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      uploadFile(files[0]);
+    const selected = e.target.files;
+    if (selected && selected.length > 0) {
+      addFiles(selected);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
+  const atLimit = files.length >= maxFiles;
+
   return (
     <div data-testid="image-uploader" className={cn("w-full space-y-2", className)}>
-      {/* Drag and Drop Zone */}
-      <button
-        type="button"
-        data-testid="image-dropzone"
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => {
-          if (!disabled && !isUploading) {
-            fileInputRef.current?.click();
-          }
-        }}
-        disabled={disabled || isUploading}
-        className={cn(
-          "w-full flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors bg-surface-1/50 border-border hover:bg-surface-2 hover:border-primary/50",
-          isDragging && "border-primary bg-primary/5 scale-[1.005]",
-          (disabled || isUploading) && "opacity-60 cursor-not-allowed",
-        )}
-      >
-        <input
-          ref={fileInputRef}
-          data-testid="image-file-input"
-          type="file"
-          accept={SUPPORTED_IMAGE_TYPES.join(",")}
-          onChange={handleFileInputChange}
-          disabled={disabled || isUploading}
-          className="hidden"
-        />
+      {/* Staged Image Previews */}
+      {previews.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {previews.map(({ file, url }, index) => (
+            <div
+              key={`${file.name}-${file.lastModified}-${file.size}`}
+              data-testid={`staged-image-${index}`}
+              className="relative w-20 h-20 rounded-lg overflow-hidden border border-border bg-surface-2 shrink-0"
+            >
+              {/* biome-ignore lint/performance/noImgElement: local object URL preview */}
+              <img src={url} alt={file.name} className="w-full h-full object-cover" />
+              <button
+                type="button"
+                data-testid={`remove-staged-image-${index}`}
+                onClick={() => removeFile(index)}
+                disabled={disabled}
+                aria-label={`${file.name} görselini kaldır`}
+                className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-background/80 text-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
-        {isUploading ? (
-          <div
-            data-testid="uploading-spinner"
-            className="flex items-center gap-2 text-sm text-primary py-2 font-medium"
-          >
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>{t("editor.uploading")}</span>
-          </div>
-        ) : (
+      {/* Drag and Drop Zone */}
+      {!atLimit && (
+        <button
+          type="button"
+          data-testid="image-dropzone"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => {
+            if (!disabled) {
+              fileInputRef.current?.click();
+            }
+          }}
+          disabled={disabled}
+          className={cn(
+            "w-full flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors bg-surface-1/50 border-border hover:bg-surface-2 hover:border-primary/50",
+            isDragging && "border-primary bg-primary/5 scale-[1.005]",
+            disabled && "opacity-60 cursor-not-allowed",
+          )}
+        >
+          <input
+            ref={fileInputRef}
+            data-testid="image-file-input"
+            type="file"
+            accept={SUPPORTED_IMAGE_TYPES.join(",")}
+            multiple
+            onChange={handleFileInputChange}
+            disabled={disabled}
+            className="hidden"
+          />
+
           <div className="flex flex-col items-center gap-1.5 py-1 text-muted-foreground">
             <div className="p-2 rounded-full bg-surface-2 text-foreground">
               {isDragging ? (
@@ -159,16 +188,17 @@ export function ImageUploader({
               )}
             </div>
             <p className="text-xs text-foreground font-medium">
-              {isDragging ? t("editor.upload_drop_active") : t("editor.upload_drag_drop")}
+              {isDragging ? "Bırak, eklensin" : "Görsel eklemek için tıkla veya sürükle"}
             </p>
             <p data-testid="upload-quota-note" className="text-[11px] text-muted-foreground">
-              {t("editor.storage_quota_formats")}
+              PNG, JPEG, WebP veya GIF · Görsel başına maks. 10MB · Gönderi başına en fazla{" "}
+              {maxFiles} görsel
             </p>
           </div>
-        )}
-      </button>
+        </button>
+      )}
 
-      {/* Storage Quota / File Rejection User-Friendly Message */}
+      {/* File Rejection / Limit Message */}
       {errorMessage && (
         <div
           data-testid="upload-quota-error"
@@ -177,7 +207,7 @@ export function ImageUploader({
         >
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <p className="font-semibold">Yükleme Sınırı</p>
+            <p className="font-semibold">Görsel Sınırı</p>
             <p>{errorMessage}</p>
           </div>
         </div>

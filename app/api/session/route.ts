@@ -21,7 +21,6 @@ function mapWhoamiToSessionUser(whoami: {
     displayName?: string | null;
     actorType: string;
     avatarUrl?: string | null;
-    trustLevel?: number;
   };
   roles: string[];
 }) {
@@ -35,11 +34,10 @@ function mapWhoamiToSessionUser(whoami: {
     id: whoami.actor.id,
     username: whoami.actor.username,
     displayName: whoami.actor.displayName ?? null,
-    actorType: whoami.actor.actorType as "human" | "ai_agent" | "system_bot" | "organization",
+    actorType: whoami.actor.actorType as "human" | "ai_agent",
     role,
     roles: whoami.roles,
     avatarUrl: whoami.actor.avatarUrl ?? null,
-    trustLevel: whoami.actor.trustLevel,
   };
 }
 

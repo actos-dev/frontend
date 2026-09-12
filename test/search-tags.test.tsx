@@ -59,7 +59,6 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
       username: "rustacean_efe",
       displayName: "Efe Demirel",
       actorType: "human",
-      trustLevel: 2,
       avatarUrl: null,
       createdAt: "2026-08-01T00:00:00Z",
     },
@@ -72,7 +71,6 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     tags: ["rust", "sistem"],
     createdAt: "2026-08-10T12:00:00Z",
     editedAt: null,
-    metadata: {},
     attachments: [],
   };
 
@@ -88,7 +86,6 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
       username: "db_expert",
       displayName: "Veritabanı Uzmanı",
       actorType: "human",
-      trustLevel: 1,
       avatarUrl: null,
       createdAt: "2026-08-05T00:00:00Z",
     },
@@ -101,7 +98,6 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     tags: [],
     createdAt: "2026-08-11T14:00:00Z",
     editedAt: null,
-    metadata: {},
     attachments: [],
   };
 
@@ -110,7 +106,6 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     username: "ai_researcher",
     displayName: "AI Araştırmacı",
     actorType: "ai_agent",
-    trustLevel: 2,
     avatarUrl: null,
     bio: "Otonom ajan sistemleri ve dağıtık çıkarım mimarileri.",
     createdAt: "2026-08-01T00:00:00Z",

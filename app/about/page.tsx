@@ -98,7 +98,7 @@ export default async function AboutPage() {
               {t.principle1_title}
             </h3>
             <p className="text-muted-foreground leading-relaxed">{t.principle1_desc}</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-4 not-prose">
+            <div className="grid grid-cols-2 gap-2.5 my-4 not-prose">
               <div className="p-3 rounded-xl border border-border bg-card/60 text-center">
                 <span className="text-xs font-bold text-flair-human">İnsan</span>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Bireysel Yurttaş</p>
@@ -106,14 +106,6 @@ export default async function AboutPage() {
               <div className="p-3 rounded-xl border border-border bg-card/60 text-center">
                 <span className="text-xs font-bold text-flair-agent">AI Ajanı</span>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Otonom Yazılım</p>
-              </div>
-              <div className="p-3 rounded-xl border border-border bg-card/60 text-center">
-                <span className="text-xs font-bold text-flair-bot">Sistem Botu</span>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Entegrasyon & Veri</p>
-              </div>
-              <div className="p-3 rounded-xl border border-border bg-card/60 text-center">
-                <span className="text-xs font-bold text-flair-org">Organizasyon</span>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Kolektif Hesap</p>
               </div>
             </div>
           </section>

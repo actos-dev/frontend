@@ -6,7 +6,7 @@ import type { Post } from "actos";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import NewPostPage from "@/app/new/page";
 import { EditPostForm } from "@/components/editor/edit-post-form";
-import { ImageUploader, STORAGE_QUOTA_USER_MESSAGE } from "@/components/editor/image-uploader";
+import { IMAGE_LIMIT_USER_MESSAGE, ImageUploader } from "@/components/editor/image-uploader";
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
 import { sanitizeTag, TagsInput } from "@/components/editor/tags-input";
 import { toast } from "@/components/ui/toast";
@@ -78,7 +78,6 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
       username: "efe",
       displayName: "Efe",
       actorType: "human",
-      trustLevel: 1,
       createdAt: "2026-08-01T00:00:00Z",
     },
     authorDeleted: false,
@@ -91,7 +90,6 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
     createdAt: "2026-09-01T00:00:00Z",
     editedAt: null,
     attachments: [],
-    metadata: {},
   };
 
   const sampleOtherUserPost: Post = {
@@ -106,7 +104,6 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
       username: "dila_ai",
       displayName: "Dila",
       actorType: "ai_agent",
-      trustLevel: 2,
       createdAt: "2026-08-01T00:00:00Z",
     },
     authorDeleted: false,
@@ -119,7 +116,6 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
     createdAt: "2026-09-02T00:00:00Z",
     editedAt: null,
     attachments: [],
-    metadata: {},
   };
 
   beforeEach(() => {
@@ -451,24 +447,14 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
   });
 
   // =========================================================================
-  // 5. Görsel Yükleme ve Depolama Kotası Mesajı Testleri
+  // 5. Görsel Ekleme (Staged) Testleri (components/editor/image-uploader.tsx)
   // =========================================================================
-  describe("5. Görsel Yükleme ve Depolama Kotası (components/editor/image-uploader.tsx)", () => {
-    it("başarılı görsel yüklemesinde onImageUploaded çağrılmalı ve markdown kodu üretilmelidir", async () => {
-      const handleUploaded = vi.fn();
+  describe("5. Görsel Ekleme — Standalone yükleme yok, görseller gönderiyle birlikte gider", () => {
+    it("seçilen görsel hemen onFilesChange ile bildirilmeli ve önizlemesi render edilmelidir (ağ isteği YOK)", async () => {
+      const handleFilesChange = vi.fn();
+      global.fetch = vi.fn();
 
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          ok: true,
-          data: {
-            id: "u_123",
-            url: "https://example.com/screenshot.webp",
-          },
-        }),
-      } as unknown as Response);
-
-      render(<ImageUploader onImageUploaded={handleUploaded} />);
+      render(<ImageUploader files={[]} onFilesChange={handleFilesChange} />);
 
       const fileInput = screen.getByTestId("image-file-input");
       const file = new File(["dummy content"], "diyagram.png", { type: "image/png" });
@@ -476,49 +462,28 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
       fireEvent.change(fileInput, { target: { files: [file] } });
 
       await waitFor(() => {
-        expect(global.fetch).toHaveBeenCalledWith("/api/upload", expect.any(Object));
+        expect(handleFilesChange).toHaveBeenCalledWith([file]);
       });
 
-      await waitFor(() => {
-        expect(handleUploaded).toHaveBeenCalledWith(
-          expect.stringContaining("![diyagram](https://example.com/screenshot.webp)"),
-          "https://example.com/screenshot.webp",
-        );
-      });
+      // Standalone upload artık yok: hiçbir ağ isteği atılmamalı
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
-    it("kota aşıldığında veya dosya reddedildiğinde (415 / 429) asla ham teknik hata metni göstermeyip anlaşılır kullanıcı mesajı sunmalıdır", async () => {
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        status: 429,
-        json: async () => ({
-          code: "RATE_LIMITED",
-          detail: "Storage quota exceeded for trust level 1 (429 Too Many Requests)",
-        }),
-      } as unknown as Response);
+    it("seçili görseller kaldırılabilmelidir", () => {
+      const file = new File(["dummy content"], "diyagram.png", { type: "image/png" });
+      const handleFilesChange = vi.fn();
 
-      render(<ImageUploader onImageUploaded={vi.fn()} />);
+      render(<ImageUploader files={[file]} onFilesChange={handleFilesChange} />);
 
-      const fileInput = screen.getByTestId("image-file-input");
-      const file = new File(["huge image"], "resim.png", { type: "image/png" });
+      expect(screen.getByTestId("staged-image-0")).toBeInTheDocument();
 
-      fireEvent.change(fileInput, { target: { files: [file] } });
+      fireEvent.click(screen.getByTestId("remove-staged-image-0"));
 
-      await waitFor(() => {
-        const errorAlert = screen.getByTestId("upload-quota-error");
-        expect(errorAlert).toBeInTheDocument();
-        // Ham metin OLMAMALI
-        expect(errorAlert.textContent).not.toContain("429 Too Many Requests");
-        expect(errorAlert.textContent).not.toContain("trust level 1");
-        // Plan kuralındaki anlaşılır mesaj OLMALI
-        expect(errorAlert.textContent).toContain(STORAGE_QUOTA_USER_MESSAGE);
-      });
-
-      expect(toast.error).toHaveBeenCalledWith(STORAGE_QUOTA_USER_MESSAGE);
+      expect(handleFilesChange).toHaveBeenCalledWith([]);
     });
 
-    it("desteklenmeyen dosya formatında veya dosya boyutu aşımında da depolama kotası mesajı sunmalıdır", async () => {
-      render(<ImageUploader onImageUploaded={vi.fn()} />);
+    it("desteklenmeyen dosya formatında veya dosya boyutu aşımında anlaşılır bir sınır mesajı sunmalıdır", async () => {
+      render(<ImageUploader files={[]} onFilesChange={vi.fn()} />);
 
       const fileInput = screen.getByTestId("image-file-input");
       const unsupportedFile = new File(["content"], "doc.pdf", { type: "application/pdf" });
@@ -527,8 +492,20 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
 
       await waitFor(() => {
         const errorAlert = screen.getByTestId("upload-quota-error");
-        expect(errorAlert.textContent).toContain(STORAGE_QUOTA_USER_MESSAGE);
+        expect(errorAlert.textContent).toContain(IMAGE_LIMIT_USER_MESSAGE);
       });
+    });
+
+    it("gönderi başına en fazla 4 görsel kabul etmelidir", () => {
+      const existing = Array.from(
+        { length: 4 },
+        (_, i) => new File([`content-${i}`], `img-${i}.png`, { type: "image/png" }),
+      );
+
+      render(<ImageUploader files={existing} onFilesChange={vi.fn()} />);
+
+      // Sınıra ulaşıldığında dropzone gizlenmelidir
+      expect(screen.queryByTestId("image-dropzone")).not.toBeInTheDocument();
     });
   });
 

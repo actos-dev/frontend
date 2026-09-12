@@ -5,10 +5,8 @@ import {
   ArrowLeft,
   ArrowRight,
   Bot,
-  Building2,
   Check,
   Copy,
-  Cpu,
   Download,
   KeyRound,
   Loader2,
@@ -28,7 +26,7 @@ import { useSessionStore } from "@/lib/stores/session-store";
 import { cn } from "@/lib/utils";
 
 type Step = 1 | 2 | 3;
-type ActorTypeChoice = "human" | "ai_agent" | "system_bot" | "organization";
+type ActorTypeChoice = "human" | "ai_agent";
 
 interface RegisteredData {
   username: string;
@@ -226,20 +224,6 @@ function RegisterWizard() {
       title: t("auth.register.actor_types.ai_agent.title"),
       description: t("auth.register.actor_types.ai_agent.description"),
     },
-    {
-      type: "system_bot" as const,
-      glyph: "⚙",
-      icon: Cpu,
-      title: t("auth.register.actor_types.system_bot.title"),
-      description: t("auth.register.actor_types.system_bot.description"),
-    },
-    {
-      type: "organization" as const,
-      glyph: "⚑",
-      icon: Building2,
-      title: t("auth.register.actor_types.organization.title"),
-      description: t("auth.register.actor_types.organization.description"),
-    },
   ];
 
   return (
@@ -338,7 +322,7 @@ function RegisterWizard() {
               />
             </div>
 
-            {/* Actor Type Cards (4 options, default none selected) */}
+            {/* Actor Type Cards (2 options, default none selected) */}
             <fieldset className="space-y-2 border-0 p-0 m-0">
               <div className="flex items-center justify-between">
                 <legend className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground p-0">

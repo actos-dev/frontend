@@ -46,7 +46,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
         username: "yazar_7",
         displayName: "Yazar 7",
         actorType: "human",
-        trustLevel: 1,
         createdAt: "2026-08-01T00:00:00Z",
       },
       authorDeleted: false,
@@ -58,7 +57,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       tags: [],
       createdAt: "2026-09-01T12:06:00Z",
       editedAt: null,
-      metadata: {},
       replies: [],
     };
 
@@ -73,7 +71,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
           username: `yazar_${lvl}`,
           displayName: `Yazar ${lvl}`,
           actorType: lvl % 2 === 0 ? "ai_agent" : "human",
-          trustLevel: 1,
           createdAt: "2026-08-01T00:00:00Z",
         },
         authorDeleted: false,
@@ -85,7 +82,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
         tags: [],
         createdAt: `2026-09-01T12:0${lvl - 1}:00Z`,
         editedAt: lvl === 2 ? "2026-09-01T12:30:00Z" : null,
-        metadata: {},
         replies: [current],
       };
     }
@@ -155,7 +151,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
           username: "eski_yazar",
           displayName: "Eski Yazar",
           actorType: "human",
-          trustLevel: 0,
           createdAt: "2026-08-01T00:00:00Z",
         },
         authorDeleted: true,
@@ -167,7 +162,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
         tags: [],
         createdAt: "2026-09-01T10:00:00Z",
         editedAt: null,
-        metadata: {},
         replies: [
           {
             id: "c_living_child",
@@ -179,7 +173,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
               username: "can",
               displayName: "Can",
               actorType: "human",
-              trustLevel: 1,
               createdAt: "2026-08-02T00:00:00Z",
             },
             authorDeleted: false,
@@ -191,7 +184,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
             tags: [],
             createdAt: "2026-09-01T11:00:00Z",
             editedAt: null,
-            metadata: {},
             replies: [],
           },
         ],
@@ -233,7 +225,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
           username: "silindi",
           displayName: "silindi",
           actorType: "human",
-          trustLevel: 0,
           createdAt: "2026-01-01T00:00:00Z",
         },
         authorDeleted: true,
@@ -245,7 +236,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
         tags: [],
         createdAt: "2026-09-01T10:00:00Z",
         editedAt: null,
-        metadata: {},
         replies: [],
       };
 
@@ -281,7 +271,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
           username: "efe",
           displayName: "Efe",
           actorType: "human",
-          trustLevel: 1,
           createdAt: "2026-08-01T00:00:00Z",
         },
         authorDeleted: false,
@@ -293,7 +282,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
         tags: [],
         createdAt: "2026-09-01T12:00:00Z",
         editedAt: null,
-        metadata: {},
         replies: [
           {
             id: "c_child_1",
@@ -305,7 +293,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
               username: "dila_ai",
               displayName: "Dila AI",
               actorType: "ai_agent",
-              trustLevel: 2,
               createdAt: "2026-08-01T00:00:00Z",
             },
             authorDeleted: false,
@@ -317,7 +304,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
             tags: [],
             createdAt: "2026-09-01T12:05:00Z",
             editedAt: null,
-            metadata: {},
             replies: [
               {
                 id: "c_grandchild_1",
@@ -329,7 +315,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
                   username: "taylan",
                   displayName: "Taylan",
                   actorType: "human",
-                  trustLevel: 1,
                   createdAt: "2026-08-01T00:00:00Z",
                 },
                 authorDeleted: false,
@@ -341,7 +326,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
                 tags: [],
                 createdAt: "2026-09-01T12:10:00Z",
                 editedAt: null,
-                metadata: {},
                 replies: [],
               },
             ],
@@ -423,7 +407,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
         username: "efe",
         displayName: "Efe",
         actorType: "human",
-        trustLevel: 1,
         createdAt: "2026-08-01T00:00:00Z",
       },
       authorDeleted: false,
@@ -435,7 +418,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       tags: [],
       createdAt: "2026-09-01T12:00:00Z",
       editedAt: null,
-      metadata: {},
       replies: [],
     };
 
@@ -612,7 +594,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
           username: "ai_helper",
           displayName: "AI Yardımcı",
           actorType: "ai_agent",
-          trustLevel: 2,
           createdAt: "2026-08-01T00:00:00Z",
         },
         authorDeleted: false,
@@ -624,7 +605,6 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
         tags: [],
         createdAt: "2026-09-01T12:00:00Z",
         editedAt: "2026-09-01T12:45:00Z", // Düzenlenmiş!
-        metadata: {},
         replies: [],
       };
 

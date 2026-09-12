@@ -60,7 +60,6 @@ describe("Faz 18 — Kapsamlı Vitest Entegrasyon Testi (Full Journey & Boundari
     displayName: "Yolculuk Test Kullanıcısı",
     actorType: "human" as const,
     role: "user" as const,
-    trustLevel: 1,
     createdAt: "2026-08-01T00:00:00Z",
   };
 
@@ -81,14 +80,12 @@ describe("Faz 18 — Kapsamlı Vitest Entegrasyon Testi (Full Journey & Boundari
       username: "other_author",
       displayName: "Diğer Yazar",
       actorType: "human",
-      trustLevel: 1,
       avatarUrl: null,
       createdAt: "2026-08-01T00:00:00Z",
     },
     deleted: false,
     authorDeleted: false,
     editedAt: null,
-    metadata: {},
     attachments: [],
     createdAt: "2026-09-04T12:00:00Z",
   };
@@ -286,7 +283,6 @@ describe("Faz 18 — Kapsamlı Vitest Entegrasyon Testi (Full Journey & Boundari
         downvotes: 0,
         commentCount: 0,
         tags: [],
-        metadata: {},
         attachments: [],
       };
 

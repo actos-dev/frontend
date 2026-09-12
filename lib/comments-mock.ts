@@ -21,7 +21,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
       username: "efe",
       displayName: "Efe",
       actorType: "human",
-      trustLevel: 1,
       avatarUrl: null,
       createdAt: "2026-08-10T00:00:00Z",
     },
@@ -34,7 +33,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
     tags: [],
     createdAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
     editedAt: null,
-    metadata: {},
     replies: [
       {
         id: "c_reply_1_1",
@@ -48,7 +46,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
           username: "dila_ai",
           displayName: "Dila AI",
           actorType: "ai_agent",
-          trustLevel: 2,
           avatarUrl: null,
           createdAt: "2026-08-01T00:00:00Z",
         },
@@ -61,7 +58,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
         tags: [],
         createdAt: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
         editedAt: new Date(Date.now() - 80 * 60 * 1000).toISOString(),
-        metadata: { model: "claude-3-7-sonnet" },
         replies: [
           {
             id: "c_reply_1_1_1",
@@ -75,7 +71,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
               username: "taylan_mod",
               displayName: "Taylan",
               actorType: "human",
-              trustLevel: 2,
               avatarUrl: null,
               createdAt: "2026-08-05T00:00:00Z",
             },
@@ -88,7 +83,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
             tags: [],
             createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
             editedAt: null,
-            metadata: {},
             replies: [
               {
                 id: "c_reply_1_1_1_1",
@@ -102,7 +96,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
                   username: "efe",
                   displayName: "Efe",
                   actorType: "human",
-                  trustLevel: 1,
                   avatarUrl: null,
                   createdAt: "2026-08-10T00:00:00Z",
                 },
@@ -115,7 +108,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
                 tags: [],
                 createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
                 editedAt: null,
-                metadata: {},
                 replies: [
                   {
                     id: "c_reply_1_1_1_1_1",
@@ -128,8 +120,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
                       id: "usr_bot_1",
                       username: "metric_bot",
                       displayName: "Metrik Bot",
-                      actorType: "system_bot",
-                      trustLevel: 1,
+                      actorType: "ai_agent",
                       avatarUrl: null,
                       createdAt: "2026-08-12T00:00:00Z",
                     },
@@ -142,7 +133,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
                     tags: [],
                     createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
                     editedAt: null,
-                    metadata: {},
                     replies: [
                       {
                         id: "c_reply_1_1_1_1_1_1", // Seviye 6 (index 5)
@@ -156,7 +146,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
                           username: "dila_ai",
                           displayName: "Dila AI",
                           actorType: "ai_agent",
-                          trustLevel: 2,
                           avatarUrl: null,
                           createdAt: "2026-08-01T00:00:00Z",
                         },
@@ -169,7 +158,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
                         tags: [],
                         createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
                         editedAt: null,
-                        metadata: {},
                         replies: [
                           {
                             id: "c_reply_1_1_1_1_1_1_1", // Seviye 7 (index 6) -> Cutoff!
@@ -183,7 +171,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
                               username: "can",
                               displayName: "Can",
                               actorType: "human",
-                              trustLevel: 1,
                               avatarUrl: null,
                               createdAt: "2026-08-15T00:00:00Z",
                             },
@@ -196,7 +183,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
                             tags: [],
                             createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
                             editedAt: null,
-                            metadata: {},
                             replies: [],
                           },
                         ],
@@ -222,7 +208,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
       username: "silindi",
       displayName: "silindi",
       actorType: "human",
-      trustLevel: 0,
       avatarUrl: null,
       createdAt: "2026-01-01T00:00:00Z",
     },
@@ -235,7 +220,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
     tags: [],
     createdAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
     editedAt: null,
-    metadata: {},
     replies: [
       {
         id: "c_reply_2_child",
@@ -249,7 +233,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
           username: "taylan_mod",
           displayName: "Taylan",
           actorType: "human",
-          trustLevel: 2,
           avatarUrl: null,
           createdAt: "2026-08-05T00:00:00Z",
         },
@@ -262,7 +245,6 @@ export const MOCK_COMMENTS: CommentNode[] = [
         tags: [],
         createdAt: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
         editedAt: null,
-        metadata: {},
         replies: [],
       },
     ],

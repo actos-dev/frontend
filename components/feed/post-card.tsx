@@ -5,7 +5,6 @@ import { ArrowBigDown, ArrowBigUp, Bookmark, MessageSquare, Share2 } from "lucid
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ModelBadge } from "@/components/post/model-badge";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
@@ -62,7 +61,7 @@ export function PostCard({
 
   const excerpt = extractExcerpt(post.bodyHtml || post.body, 220);
 
-  // Thumbnail from post property, attachments, or metadata
+  // Thumbnail from post property or attachments
   const rawAttachments = post.attachments as
     | Array<{ thumbnailUrl?: string; url?: string }>
     | undefined;
@@ -252,7 +251,7 @@ export function PostCard({
         className,
       )}
     >
-      {/* 1. Üst Satır: Yazar Bilgisi, Glif Flair (Plan §7.3), Zaman, Model Rozeti ve Etiketler */}
+      {/* 1. Top row: author info, glyph flair (Plan §7.3), timestamp, and tags */}
       <div className="flex items-center justify-between gap-2 mb-2.5">
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <Link
@@ -290,9 +289,6 @@ export function PostCard({
             >
               {relativeTime}
             </time>
-
-            {/* Plan §10.2: Üreten Model / İstemci Rozeti */}
-            <ModelBadge metadata={post.metadata} variant="compact" />
           </div>
         </div>
 

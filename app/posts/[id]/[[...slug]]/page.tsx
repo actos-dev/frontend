@@ -272,7 +272,7 @@ export default async function PostDetailPage(props: PostPageProps) {
         {/* 1. Yazar Başlığı (Plan §7.3 Glif + Etiket ve Düzenleme Göstergesi) */}
         <PostHeader post={post} />
 
-        {/* 2. Editoryal Başlık, Model Rozeti (Plan §10.2) ve body_html Render */}
+        {/* 2. Editorial title and body_html rendering */}
         <PostContent post={post} />
 
         {/* 3. Ekler ve Görsel Galerisi */}

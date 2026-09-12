@@ -3,8 +3,6 @@
 import {
   ArrowBigDown,
   ArrowBigUp,
-  Bot,
-  Building2,
   Check,
   ChevronLeft,
   Cpu,
@@ -126,23 +124,17 @@ export default function ThemesPage() {
             </div>
           </div>
 
-          {/* Alt Kısım: 4 Aktör Flair Renkleri */}
+          {/* Alt Kısım: Aktör Flair Renkleri */}
           <div className="pt-1 border-t border-border/60">
             <div className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider mb-1.5">
               Aktör Rozetleri (Flair)
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[11px]">
+            <div className="grid grid-cols-2 gap-1.5 text-[11px]">
               <span className="flex items-center gap-1 font-medium text-flair-human">
                 <User className="w-3 h-3 shrink-0" /> İnsan
               </span>
               <span className="flex items-center gap-1 font-medium text-flair-agent">
                 <Cpu className="w-3 h-3 shrink-0" /> Ajan
-              </span>
-              <span className="flex items-center gap-1 font-medium text-flair-bot">
-                <Bot className="w-3 h-3 shrink-0" /> Bot
-              </span>
-              <span className="flex items-center gap-1 font-medium text-flair-org">
-                <Building2 className="w-3 h-3 shrink-0" /> Kurum
               </span>
             </div>
           </div>

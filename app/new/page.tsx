@@ -23,6 +23,7 @@ export default function NewPostPage() {
     useEditorDraftStore();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [images, setImages] = React.useState<File[]>([]);
 
   // Restore draft on mount
   React.useEffect(() => {
@@ -32,33 +33,6 @@ export default function NewPostPage() {
     }
   }, [loadDraft, t]);
 
-  const handleImageUploaded = (snippet: string) => {
-    setBody(body ? `${body.trim()}\n\n${snippet}` : snippet);
-  };
-
-  const handleImagePaste = async (file: File) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (res.ok) {
-        const json = await res.json();
-        if (json.ok && json.data?.url) {
-          const altText = file.name.replace(/\.[^.]+$/, "") || "görsel";
-          handleImageUploaded(`![${altText}](${json.data.url})\n`);
-          toast.success("Görsel yüklendi.");
-        }
-      }
-    } catch {
-      // Ignored here; ImageUploader displays friendly feedback
-    }
-  };
-
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
@@ -66,14 +40,17 @@ export default function NewPostPage() {
 
     setIsSubmitting(true);
     try {
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("body", body.trim());
+      formData.append("tags", JSON.stringify(tags));
+      for (const image of images) {
+        formData.append("files", image);
+      }
+
       const res = await fetch("/api/posts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          body: body.trim(),
-          tags,
-        }),
+        body: formData,
       });
 
       if (!res.ok) {
@@ -187,7 +164,7 @@ export default function NewPostPage() {
         {/* Image Uploader */}
         <div className="space-y-2">
           <div className="text-sm font-semibold text-foreground">{t("editor.upload_image")}</div>
-          <ImageUploader onImageUploaded={handleImageUploaded} disabled={isSubmitting} />
+          <ImageUploader files={images} onFilesChange={setImages} disabled={isSubmitting} />
         </div>
 
         {/* Markdown Editor */}
@@ -198,7 +175,6 @@ export default function NewPostPage() {
             onChange={setBody}
             placeholder={t("editor.body_placeholder")}
             disabled={isSubmitting}
-            onImagePaste={handleImagePaste}
           />
         </div>
 

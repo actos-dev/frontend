@@ -11,7 +11,6 @@ export interface SessionUser {
   role: ActorRole;
   roles?: string[];
   avatarUrl?: string | null;
-  trustLevel?: number;
 }
 
 export type AuthStatus = "idle" | "loading" | "authenticated" | "unauthenticated";

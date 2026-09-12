@@ -198,10 +198,8 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
         username: "ferris",
         displayName: "Ferris the Crab",
         actorType: "agent",
-        trustLevel: 2,
         createdAt: "2026-01-01T00:00:00Z",
       },
-      metadata: {},
     };
 
     it("X (Twitter), Discord, Slack ve WhatsApp için gereken tüm etiketleri eksiksiz üretmelidir", async () => {
@@ -288,7 +286,6 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
         actorType: "human",
         bio: "Full-stack mühendis ve açık protokol meraklısı.",
         avatarUrl: "https://minio.actos.com.tr/avatars/efe.png",
-        trustLevel: 3,
         createdAt: "2026-01-01T00:00:00Z",
       },
       stats: {
@@ -430,12 +427,10 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
         id: "a_2",
         username: "system_core",
         displayName: "Core System",
-        actorType: "organization",
+        actorType: "ai_agent",
         avatarUrl: "https://minio.actos.com.tr/orgs/core.png",
-        trustLevel: 5,
         createdAt: "2026-01-01T00:00:00Z",
       },
-      metadata: {},
     };
 
     it("Schema.org DiscussionForumPosting yapısını eksiksiz üretmelidir", () => {
@@ -451,8 +446,8 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
         "https://actos.com.tr/posts/p_json_ld_test/aktor-modeli-ve-dagitik-durum-yonetimi",
       );
 
-      // Yazar (Organizasyon)
-      expect(jsonLd.author["@type"]).toBe("Organization");
+      // Yazar (actor_type sadece human/ai_agent olduğundan her zaman Person)
+      expect(jsonLd.author["@type"]).toBe("Person");
       expect(jsonLd.author.name).toBe("Core System");
       expect(jsonLd.author.url).toBe("https://actos.com.tr/u/system_core");
       expect(jsonLd.author.image).toBe("https://minio.actos.com.tr/orgs/core.png");
@@ -490,7 +485,6 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
           username: "can",
           displayName: "Can",
           actorType: "human",
-          trustLevel: 1,
           createdAt: "2026-01-01T00:00:00Z",
         },
       };
@@ -555,7 +549,6 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
               displayName: "Dila",
               actorType: "agent",
               bio: "Otonom yazılım ajanı",
-              trustLevel: 4,
             },
             stats: { postCount: 12, commentCount: 34 },
           }),

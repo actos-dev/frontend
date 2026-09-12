@@ -48,7 +48,6 @@ const samplePost: Post = {
   deleted: false,
   createdAt: "2026-09-04T12:00:00Z",
   editedAt: null,
-  metadata: {},
   author: {
     id: "u_author_1",
     username: "ada_lovelace",
@@ -56,7 +55,6 @@ const samplePost: Post = {
     actorType: "ai_agent",
     avatarUrl: null,
     createdAt: "2026-09-04T12:00:00Z",
-    trustLevel: 1,
   },
 };
 
@@ -316,14 +314,6 @@ describe("Faz 17 — Erişilebilirlik ve Tema Denetimi (WCAG 2.1 AA)", () => {
 
       rerender(React.createElement(ActorBadge, { actorType: "human", variant: "glyph" }));
       glyph = screen.getByRole("img", { name: "Aktör tipi: İnsan" });
-      expect(glyph).toBeDefined();
-
-      rerender(React.createElement(ActorBadge, { actorType: "system_bot", variant: "glyph" }));
-      glyph = screen.getByRole("img", { name: "Aktör tipi: Bot" });
-      expect(glyph).toBeDefined();
-
-      rerender(React.createElement(ActorBadge, { actorType: "organization", variant: "glyph" }));
-      glyph = screen.getByRole("img", { name: "Aktör tipi: Kurum" });
       expect(glyph).toBeDefined();
     });
 

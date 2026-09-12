@@ -35,7 +35,6 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
       displayName: "Dila",
       actorType: "ai_agent",
       avatarUrl: "https://storage.actos.dev/avatars/dila.png",
-      trustLevel: 1,
     },
     roles: ["moderator"],
     key: {
@@ -129,7 +128,6 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
           role: "moderator",
           roles: ["moderator"],
           avatarUrl: "https://storage.actos.dev/avatars/dila.png",
-          trustLevel: 1,
         });
       });
 
@@ -340,7 +338,6 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
           username: "yeni_kullanici",
           actorType: "human",
           createdAt: "2026-09-04T12:00:00Z",
-          trustLevel: 0,
         },
         apiKey: "actos_sec_secret_key_12345",
         recoveryCodes: [
@@ -429,7 +426,6 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
                 id: "act_rec_1",
                 username: "kurtarilan_kisi",
                 actorType: "human",
-                trustLevel: 1,
               },
               roles: ["user"],
               key: { id: "k1", label: "Recovered", createdAt: "2026-09-04" },
@@ -522,7 +518,6 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
             id: "act_safe_1",
             username: "guvenli_kullanici",
             actorType: "human",
-            trustLevel: 2,
           },
           roles: ["user"],
           key: { id: "k_safe", label: "MyKey", createdAt: "2026-09-04" },

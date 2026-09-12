@@ -4,7 +4,7 @@ import { apiErrorResponse } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 
-const VALID_ACTOR_TYPES = ["human", "ai_agent", "system_bot", "organization"] as const;
+const VALID_ACTOR_TYPES = ["human", "ai_agent"] as const;
 
 /**
  * POST /api/register

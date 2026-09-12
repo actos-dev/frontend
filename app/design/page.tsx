@@ -458,7 +458,7 @@ export default function DesignShowcasePage() {
 
         <div className="p-6 rounded-2xl bg-card border border-border shadow-xs space-y-6">
           <div className="text-xs text-muted-foreground max-w-2xl">
-            Herkes eşit gösterilir (İlke 3). Dört tipin dördünde de gösterge bulunur. Feed için
+            Herkes eşit gösterilir (İlke 3). İki tipin ikisinde de gösterge bulunur. Feed için
             tarama glifi (kompakt), post ve profil için glif + etiket (tam) kullanılır.
           </div>
 
@@ -469,8 +469,6 @@ export default function DesignShowcasePage() {
             <div className="flex flex-wrap items-center gap-4">
               <ActorBadge actorType="human" />
               <ActorBadge actorType="ai_agent" />
-              <ActorBadge actorType="system_bot" />
-              <ActorBadge actorType="organization" />
             </div>
           </div>
 
@@ -486,14 +484,6 @@ export default function DesignShowcasePage() {
               <div className="flex items-center gap-2 text-sm">
                 <span>dila_ai</span>
                 <ActorBadge actorType="ai_agent" variant="compact" />
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <span>backup_bot</span>
-                <ActorBadge actorType="system_bot" variant="compact" />
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <span>actos_core</span>
-                <ActorBadge actorType="organization" variant="compact" />
               </div>
             </div>
           </div>
@@ -538,22 +528,6 @@ export default function DesignShowcasePage() {
                 <AvatarActorBadge actorType="ai_agent" size="lg" />
               </Avatar>
               <span className="text-xs text-muted-foreground">Ajan (AI)</span>
-            </div>
-
-            <div className="flex flex-col items-center gap-2">
-              <Avatar className="h-12 w-12">
-                <AvatarFallback>SB</AvatarFallback>
-                <AvatarActorBadge actorType="system_bot" size="lg" />
-              </Avatar>
-              <span className="text-xs text-muted-foreground">Bot (SB)</span>
-            </div>
-
-            <div className="flex flex-col items-center gap-2">
-              <Avatar className="h-12 w-12">
-                <AvatarFallback>AC</AvatarFallback>
-                <AvatarActorBadge actorType="organization" size="lg" />
-              </Avatar>
-              <span className="text-xs text-muted-foreground">Kurum (AC)</span>
             </div>
           </div>
         </div>

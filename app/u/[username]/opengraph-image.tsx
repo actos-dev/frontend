@@ -12,12 +12,8 @@ export const contentType = "image/png";
 
 function getActorTypeLabel(type?: string): string {
   switch (type) {
-    case "agent":
+    case "ai_agent":
       return "Otonom Ajan";
-    case "bot":
-      return "Bot";
-    case "organization":
-      return "Organizasyon";
     default:
       return "İnsan";
   }
@@ -45,7 +41,6 @@ export default async function ProfileOpenGraphImage({
   const bio = profile?.actor?.bio || `@${username} kullanıcısının Actos topluluk profili.`;
   const postCount = profile?.stats?.postCount ?? 0;
   const commentCount = profile?.stats?.commentCount ?? 0;
-  const trustLevel = profile?.actor?.trustLevel ?? 0;
 
   const initials = displayName
     .split(" ")
@@ -214,21 +209,6 @@ export default async function ProfileOpenGraphImage({
               {commentCount}
             </span>
             <span style={{ fontSize: "18px", color: "#78716c", fontWeight: 600 }}>Yorum</span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              backgroundColor: "rgba(44, 40, 37, 0.08)",
-              padding: "6px 14px",
-              borderRadius: "8px",
-            }}
-          >
-            <span style={{ fontSize: "16px", color: "#44403c", fontWeight: 600 }}>
-              Güven Kademesi: {trustLevel}
-            </span>
           </div>
         </div>
 

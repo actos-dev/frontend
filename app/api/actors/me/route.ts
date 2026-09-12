@@ -7,12 +7,10 @@ export const dynamic = "force-dynamic";
 
 /**
  * PATCH /api/actors/me
- * Partially updates authenticated actor profile (Plan §Faz 11, YAPILACAKLAR.md §3).
+ * Partially updates authenticated actor profile (Plan §Faz 11).
  *
- * 3-State Avatar Contract:
- * - Omit 'avatar' from payload: Leaves current avatar untouched.
- * - 'avatar: null': Removes current avatar.
- * - 'avatar: "f_..."': Sets new avatar to uploaded file ID.
+ * Only `displayName` and `bio` are accepted. The avatar is managed separately
+ * through `POST`/`DELETE /api/actors/me/avatar`.
  */
 export async function PATCH(req: NextRequest) {
   try {
@@ -22,7 +20,6 @@ export async function PATCH(req: NextRequest) {
     const updatePayload: {
       displayName?: string | null;
       bio?: string | null;
-      avatar?: string | null;
     } = {};
 
     if ("displayName" in body) {
@@ -32,12 +29,6 @@ export async function PATCH(req: NextRequest) {
 
     if ("bio" in body) {
       updatePayload.bio = body.bio === null || typeof body.bio === "string" ? body.bio : null;
-    }
-
-    // 3-Durumlu Avatar Sözleşmesi (YAPILACAKLAR.md §3)
-    if ("avatar" in body) {
-      updatePayload.avatar =
-        body.avatar === null || typeof body.avatar === "string" ? body.avatar : null;
     }
 
     const updated = await client.actors.updateMe(updatePayload);
