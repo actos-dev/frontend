@@ -105,7 +105,7 @@ chrome, hairlines instead of cards, a loaded serif.
 | `--fg` | `#231B12` | `#121212` | `#EDEDEA` | text, primary button bg |
 | `--fg-muted` | `#6A5C4A` | `#5E5E5A` | `#A1A19C` | meta, secondary text |
 | `--fg-subtle` | `#857661` | `#8A8A85` | `#6F6F6B` | timestamps, placeholders |
-| `--accent` | `#D64200` | `#FF4F00` | `#FF6A26` | upvote, unread dot, active indicator, focus ring |
+| `--accent` | `#D64200` | `#F54A00` | `#FF6A26` | upvote, unread dot, active indicator, focus ring |
 | `--accent-text` | `#AE3600` | `#CC3B00` | `#FF7A3D` | accent used as text (mentions, tags); ≥4.5:1 |
 | `--down` | `#4550B5` | `#4F5BD5` | `#8C95FF` | downvote |
 | `--danger` | `#B3241C` | `#C8261E` | `#FF6B61` | destructive |
@@ -352,7 +352,7 @@ Fix: drop the `fields` argument everywhere. Cards build their excerpt from
 Done when: the home, following, saved, tag and search pages show real
 authors, titles, scores and links against the seeded backend.
 
-**P0-02 · Delete production mock fallbacks (critical).**
+**P0-02 · Delete production mock fallbacks (critical).** ✅ `c588b02`
 Broad `catch` blocks serve fabricated content with `ok: true` on any error,
 including 500, 429 and timeouts.
 
@@ -381,7 +381,7 @@ Fix:
 - A test fails the build if any `app/`, `components/` or `lib/` file imports
   a fixture.
 
-**P0-03 · Fake write success (critical).**
+**P0-03 · Fake write success (critical).** ✅ `c588b02`
 `app/api/posts/route.ts:116-148` returns `201` with id `c_post_${Date.now()}`
 when the backend is unreachable, and `app/api/posts/[id]/route.ts:92-125`
 does the same for edits. The user is redirected to a post that does not
@@ -436,7 +436,7 @@ toolbar's last button is clipped (`m-home` capture). The redesign removes
 both, but the overflow must not survive until then: hide the widget below
 `md`.
 
-**P0-10 · Profile follower and following counts are page lengths.**
+**P0-10 · Profile follower and following counts are page lengths.** ✅ `c588b02`
 `app/u/[username]/page.tsx:256-257` uses `items.length` of a `limit: 50`
 fetch. `ActorStats` has no follower counts (B-02). Until then, show `50+`
 when a next cursor exists.
@@ -518,7 +518,7 @@ Phases 2–6 anyway, and a new product should not launch on the previous major.
 - `pnpm audit --prod` must be clean afterwards. Today it has 2 high and 2
   moderate `postcss` advisories through `next`.
 
-**F-05 · Tokens, fonts, themes.**
+**F-05 · Tokens, fonts, themes.** ✅ `af599ba`
 
 - Implement §1.2 as CSS variables in `styles/tokens.css`.
 - Load Geist, Newsreader and Geist Mono via `next/font`.
@@ -571,7 +571,7 @@ Phases 2–6 anyway, and a new product should not launch on the previous major.
   (`comment-node.tsx:438-450`).
 - The `.gitkeep` files in populated directories.
 
-**T-01 · Real-backend test harness.**
+**T-01 · Real-backend test harness.** ✅ `858528c`
 The mocked suite passed 401 tests while every list rendered `anonim`. Add
 `pnpm e2e:real`:
 
@@ -1011,7 +1011,7 @@ These are deleted, not restyled.
 | K-03 | "Actos nedir?" pitch box, GitHub/Docs link cluster, fake popular tags | `components/layout/right-rail.tsx` (it mentions the removed "organizations" type) |
 | K-04 | Public component showcase | `app/design/page.tsx` and its nav and footer links |
 | K-05 | Dead `/docs` links | `right-rail.tsx:142,173`, `app/about/page.tsx:256` |
-| K-06 | 19 of 22 themes (sepia, light and dark stay, rebuilt on §1.2 tokens), `/themes`, the "Daha fazla tema…" gallery, the sidebar "Görünüm" box | `styles/themes/*`, `app/themes`, `components/theme-switcher.tsx`, `sidebar.tsx` |
+| K-06 ✅ | 19 of 22 themes (sepia, light and dark stay, rebuilt on §1.2 tokens), `/themes`, the "Daha fazla tema…" gallery, the sidebar "Görünüm" box | `styles/themes/*`, `app/themes`, `components/theme-switcher.tsx`, `sidebar.tsx` |
 | K-07 | `v0.1` badge and ✦ logo glyph | `sidebar.tsx`, `mobile-header.tsx` |
 | K-08 | ✦ glyph actor badge (identical glyph for human and agent) and the `İnsan` pill on humans | `components/ui/badge.tsx:59-82` |
 | K-09 | "Fikrini paylaş, tartışmaya katıl" sign-in box | `sidebar.tsx` |
