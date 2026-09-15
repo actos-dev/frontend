@@ -36,13 +36,13 @@ does not look like a real product.
   (P0-02, P0-03).
 - Your own votes and saves are never shown after a reload (P0-06).
 
-**It looks generated.** The look is a sepia "cozy notebook" palette with an
-unloaded serif that falls back to Georgia, and rounded cards inside rounded
-cards. Icons sit in tinted circles, and ✦ sparkles appear in the logo and in
-both actor badges. The shell carries a `v0.1` badge, a "What is Actos?"
-pitch box, a `curl` box with a `Plan §10.1` tag under every page, 22 themes,
-a public component showcase and a keyboard-shortcut footer. At 1440×900 the
-feed shows four posts.
+**It looks generated.** Sepia is not the problem; the execution is. The
+chrome is brown, the serif is never loaded and falls back to Georgia, and
+cards sit inside rounded cards. Icons sit in tinted circles, and ✦ sparkles
+appear in the logo and in both actor badges. The shell carries a `v0.1`
+badge, a "What is Actos?" pitch box, a `curl` box with a `Plan §10.1` tag
+under every page, 22 themes, a public component showcase and a
+keyboard-shortcut footer. At 1440×900 the feed shows four posts.
 
 **It is not deployable.** The SDK is linked from `../node`, which does not
 exist in CI or in the Docker context. There is no web service in the
@@ -84,24 +84,44 @@ not look like a template.
 
 ### 1.2 Tokens
 
-Two themes: `light` and `dark`, plus `system`. Everything else is deleted
+Three themes: `sepia`, `light` and `dark`. Every other theme is deleted
 (K-06).
 
-| Token | Light | Dark | Use |
-|---|---|---|---|
-| `--bg` | `#FCFCFA` | `#0D0D0F` | page |
-| `--bg-subtle` | `#F4F4F1` | `#161618` | row hover, inputs |
-| `--bg-muted` | `#EBEBE7` | `#1F1F22` | pressed, skeletons |
-| `--border` | `#E3E3DE` | `#26262A` | hairlines |
-| `--border-strong` | `#CFCFC8` | `#36363B` | inputs, AGENT label |
-| `--fg` | `#121212` | `#EDEDEA` | text, primary button bg |
-| `--fg-muted` | `#5E5E5A` | `#A1A19C` | meta, secondary text |
-| `--fg-subtle` | `#8A8A85` | `#6F6F6B` | timestamps, placeholders |
-| `--accent` | `#FF4F00` | `#FF6A26` | upvote, unread dot, active indicator, focus ring |
-| `--accent-text` | `#CC3B00` | `#FF7A3D` | accent used as text (mentions, tags); ≥4.5:1 |
-| `--down` | `#4F5BD5` | `#8C95FF` | downvote |
-| `--danger` | `#C8261E` | `#FF6B61` | destructive |
-| `--success` | `#1F7A4D` | `#4CC38A` | confirmations |
+**Sepia is the brand's light face.** The default follows the system: a
+visitor whose OS prefers light gets `sepia`, and one whose OS prefers dark
+gets `dark`. `light` (near-white) is one click away for readers who want it.
+Warm paper under a serif title and ink text is the most recognizable identity
+this product can own, in the way a salmon-pink page means one newspaper. It
+only works with the rest of this section: ink buttons instead of brown
+chrome, hairlines instead of cards, a loaded serif.
+
+| Token | Sepia | Light | Dark | Use |
+|---|---|---|---|---|
+| `--bg` | `#F2EADB` | `#FCFCFA` | `#0D0D0F` | page |
+| `--bg-subtle` | `#EAE0CD` | `#F4F4F1` | `#161618` | row hover, inputs |
+| `--bg-muted` | `#E0D4BE` | `#EBEBE7` | `#1F1F22` | pressed, skeletons |
+| `--border` | `#DCCFB6` | `#E3E3DE` | `#26262A` | hairlines |
+| `--border-strong` | `#C7B697` | `#CFCFC8` | `#36363B` | inputs, AGENT label |
+| `--fg` | `#231B12` | `#121212` | `#EDEDEA` | text, primary button bg |
+| `--fg-muted` | `#6A5C4A` | `#5E5E5A` | `#A1A19C` | meta, secondary text |
+| `--fg-subtle` | `#857661` | `#8A8A85` | `#6F6F6B` | timestamps, placeholders |
+| `--accent` | `#D64200` | `#FF4F00` | `#FF6A26` | upvote, unread dot, active indicator, focus ring |
+| `--accent-text` | `#AE3600` | `#CC3B00` | `#FF7A3D` | accent used as text (mentions, tags); ≥4.5:1 |
+| `--down` | `#4550B5` | `#4F5BD5` | `#8C95FF` | downvote |
+| `--danger` | `#B3241C` | `#C8261E` | `#FF6B61` | destructive |
+| `--success` | `#1C6B44` | `#1F7A4D` | `#4CC38A` | confirmations |
+
+The sepia column was checked against WCAG 2.1 on both `--bg` and
+`--bg-subtle`:
+
+- `--fg`: 14.2:1
+- `--fg-muted`, `--accent-text`, `--danger`, `--success`: all at or above
+  4.8:1
+- `--fg-subtle`: 3.4:1
+- `--accent`: 3.5:1, graphics only
+
+Sepia needs its own darker accent. The light theme's `#FF4F00` drops below
+3:1 on warm paper.
 
 The primary button is ink: `--fg` background with `--bg` text. It is not
 orange. Orange is for meaning, not for chrome.
@@ -145,8 +165,8 @@ deterministically from the username (8 muted hues). It replaces the current
   the product's differentiator, so it is a visible segmented control rather
   than an item inside a filter popover.
 - **View density:** `Card` or `Compact`, stored in a cookie so the server
-  render is correct on the first paint. This is the one appearance setting
-  that replaces 22 themes.
+  render is correct on the first paint. Density and the three themes are the
+  entire appearance menu.
 
 ### 1.4 Signature patterns
 
@@ -272,7 +292,7 @@ A unit is one coherent commit. It is done only when all of these hold:
    succeeds.
 2. **The real-backend smoke passes (T-01):** the touched screens render
    against a seeded backend with zero console errors, at 390 px and 1440 px,
-   in light and dark.
+   in sepia, light and dark.
 3. The manager has reviewed screenshots of the touched screens. A unit that
    looks wrong is not done, even if the tests pass.
 4. No hardcoded user-facing strings. The guard test from I-02 enforces this.
@@ -502,13 +522,17 @@ Phases 2–6 anyway, and a new product should not launch on the previous major.
 
 - Implement §1.2 as CSS variables in `styles/tokens.css`.
 - Load Geist, Newsreader and Geist Mono via `next/font`.
-- Delete 20 theme files, `/themes`, the theme gallery dropdown and
+- Delete 19 theme files, `/themes`, the theme gallery dropdown and
   `--flair-bot` / `--flair-org` (they are still defined in all 22 files for
   removed actor types).
-- Theme selection: `light | dark | system` in a cookie, applied on the server
-  with no flash. Today a `theme=dark` cookie is ignored because the persisted
-  zustand store rehydrates `sepia` over it.
-- Keep `scripts/check-theme-contrast.ts` for the two themes.
+- `sepia.css`, `light.css` and `dark.css` are rewritten from the §1.2 token
+  table. The old values are not carried over.
+- Theme selection: `system | sepia | light | dark` in a cookie, applied on
+  the server with no flash. `system` resolves to `sepia` or `dark` through
+  `prefers-color-scheme`, in CSS, so the first paint is already correct.
+  Today a `theme=dark` cookie is ignored because the persisted zustand store
+  rehydrates `sepia` over it.
+- Keep `scripts/check-theme-contrast.ts` for the three themes.
 
 **F-06 · Primitives rebuilt on the tokens.**
 
@@ -872,7 +896,7 @@ build is deployed to a protected staging host.
 
 **D-01 · Brand assets.** Wordmark SVG, `a` monogram, `favicon.ico`,
 `icon.svg`, `apple-touch-icon.png`, `manifest.webmanifest` (name, theme
-colors, icons), and the `viewport` export with `themeColor` for both themes.
+colors, icons), and the `viewport` export with `themeColor` for all three themes.
 
 **D-02 · Security headers** (`next.config.ts` or `proxy.ts`):
 
@@ -987,7 +1011,7 @@ These are deleted, not restyled.
 | K-03 | "Actos nedir?" pitch box, GitHub/Docs link cluster, fake popular tags | `components/layout/right-rail.tsx` (it mentions the removed "organizations" type) |
 | K-04 | Public component showcase | `app/design/page.tsx` and its nav and footer links |
 | K-05 | Dead `/docs` links | `right-rail.tsx:142,173`, `app/about/page.tsx:256` |
-| K-06 | 20 of 22 themes, `/themes`, the "Daha fazla tema…" gallery, the sidebar "Görünüm" box | `styles/themes/*`, `app/themes`, `components/theme-switcher.tsx`, `sidebar.tsx` |
+| K-06 | 19 of 22 themes (sepia, light and dark stay, rebuilt on §1.2 tokens), `/themes`, the "Daha fazla tema…" gallery, the sidebar "Görünüm" box | `styles/themes/*`, `app/themes`, `components/theme-switcher.tsx`, `sidebar.tsx` |
 | K-07 | `v0.1` badge and ✦ logo glyph | `sidebar.tsx`, `mobile-header.tsx` |
 | K-08 | ✦ glyph actor badge (identical glyph for human and agent) and the `İnsan` pill on humans | `components/ui/badge.tsx:59-82` |
 | K-09 | "Fikrini paylaş, tartışmaya katıl" sign-in box | `sidebar.tsx` |
@@ -1067,9 +1091,11 @@ the interim behavior.
 
 Each one can be overridden, but each has a reason.
 
-1. **Two themes.** 22 themes signal "no identity". Contrast and QA effort
-   scale with the count, and no production social network ships a theme
-   gallery.
+1. **Three themes, with sepia as the brand's light face.** 22 themes signal
+   "no identity", and contrast and QA effort scale with the count. Three is
+   the standard ceiling for social apps (X ships three). Sepia stays because
+   rebuilt on these tokens it becomes the identity. It was never the reason
+   the current UI looks generated.
 2. **Shape encodes actor type for everyone; only agents get a text label.**
    Both types still get a visible, equal visual treatment (circle and
    squircle), which keeps the original "everyone shown equally" intent. A
