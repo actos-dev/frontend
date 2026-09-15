@@ -8,6 +8,10 @@ import { fileURLToPath } from "node:url";
 export const WCAG_NORMAL_TEXT_THRESHOLD = 4.5;
 export const WCAG_LARGE_TEXT_OR_UI_THRESHOLD = 3.0;
 
+/** The three themes this app ships (ROADMAP §1.2, K-06). "system" resolves to sepia or dark and needs no separate check. */
+export const THEME_IDS = ["sepia", "light", "dark"] as const;
+export type ThemeId = (typeof THEME_IDS)[number];
+
 export interface ContrastCheckDefinition {
   name: string;
   foregroundToken: string;
@@ -16,83 +20,133 @@ export interface ContrastCheckDefinition {
   category: "normal-text" | "ui-component";
 }
 
+/**
+ * ROADMAP F-05 §6 pairs:
+ *   --fg, --fg-muted, --accent-text, --danger, --success, --warning: >= 4.5:1
+ *     on both --bg and --bg-subtle
+ *   --fg-subtle and --accent: >= 3:1 on both --bg and --bg-subtle, because
+ *     vote arrows and timestamps sit on hovered rows as often as on the page
+ *   --bg on --fg (the ink button's text): >= 4.5:1
+ */
 export const CONTRAST_CHECKS: ContrastCheckDefinition[] = [
   {
-    name: "foreground / background",
-    foregroundToken: "--foreground",
-    backgroundToken: "--background",
+    name: "fg / bg",
+    foregroundToken: "--fg",
+    backgroundToken: "--bg",
     minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
     category: "normal-text",
   },
   {
-    name: "card-foreground / card",
-    foregroundToken: "--card-foreground",
-    backgroundToken: "--card",
+    name: "fg / bg-subtle",
+    foregroundToken: "--fg",
+    backgroundToken: "--bg-subtle",
     minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
     category: "normal-text",
   },
   {
-    name: "primary-foreground / primary",
-    foregroundToken: "--primary-foreground",
-    backgroundToken: "--primary",
+    name: "fg-muted / bg",
+    foregroundToken: "--fg-muted",
+    backgroundToken: "--bg",
     minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
     category: "normal-text",
   },
   {
-    name: "muted-foreground / background",
-    foregroundToken: "--muted-foreground",
-    backgroundToken: "--background",
+    name: "fg-muted / bg-subtle",
+    foregroundToken: "--fg-muted",
+    backgroundToken: "--bg-subtle",
     minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
     category: "normal-text",
   },
   {
-    name: "muted-foreground / card",
-    foregroundToken: "--muted-foreground",
-    backgroundToken: "--card",
+    name: "accent-text / bg",
+    foregroundToken: "--accent-text",
+    backgroundToken: "--bg",
     minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
     category: "normal-text",
   },
   {
-    name: "vote-up / card",
-    foregroundToken: "--vote-up",
-    backgroundToken: "--card",
+    name: "accent-text / bg-subtle",
+    foregroundToken: "--accent-text",
+    backgroundToken: "--bg-subtle",
+    minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
+    category: "normal-text",
+  },
+  {
+    name: "danger / bg",
+    foregroundToken: "--danger",
+    backgroundToken: "--bg",
+    minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
+    category: "normal-text",
+  },
+  {
+    name: "danger / bg-subtle",
+    foregroundToken: "--danger",
+    backgroundToken: "--bg-subtle",
+    minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
+    category: "normal-text",
+  },
+  {
+    name: "success / bg",
+    foregroundToken: "--success",
+    backgroundToken: "--bg",
+    minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
+    category: "normal-text",
+  },
+  {
+    name: "success / bg-subtle",
+    foregroundToken: "--success",
+    backgroundToken: "--bg-subtle",
+    minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
+    category: "normal-text",
+  },
+  {
+    name: "warning / bg",
+    foregroundToken: "--warning",
+    backgroundToken: "--bg",
+    minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
+    category: "normal-text",
+  },
+  {
+    name: "warning / bg-subtle",
+    foregroundToken: "--warning",
+    backgroundToken: "--bg-subtle",
+    minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
+    category: "normal-text",
+  },
+  {
+    name: "fg-subtle / bg",
+    foregroundToken: "--fg-subtle",
+    backgroundToken: "--bg",
     minContrast: WCAG_LARGE_TEXT_OR_UI_THRESHOLD,
     category: "ui-component",
   },
   {
-    name: "vote-down / card",
-    foregroundToken: "--vote-down",
-    backgroundToken: "--card",
+    name: "fg-subtle / bg-subtle",
+    foregroundToken: "--fg-subtle",
+    backgroundToken: "--bg-subtle",
     minContrast: WCAG_LARGE_TEXT_OR_UI_THRESHOLD,
     category: "ui-component",
   },
   {
-    name: "flair-human / card",
-    foregroundToken: "--flair-human",
-    backgroundToken: "--card",
+    name: "accent / bg",
+    foregroundToken: "--accent",
+    backgroundToken: "--bg",
     minContrast: WCAG_LARGE_TEXT_OR_UI_THRESHOLD,
     category: "ui-component",
   },
   {
-    name: "flair-agent / card",
-    foregroundToken: "--flair-agent",
-    backgroundToken: "--card",
+    name: "accent / bg-subtle",
+    foregroundToken: "--accent",
+    backgroundToken: "--bg-subtle",
     minContrast: WCAG_LARGE_TEXT_OR_UI_THRESHOLD,
     category: "ui-component",
   },
   {
-    name: "flair-bot / card",
-    foregroundToken: "--flair-bot",
-    backgroundToken: "--card",
-    minContrast: WCAG_LARGE_TEXT_OR_UI_THRESHOLD,
-    category: "ui-component",
-  },
-  {
-    name: "flair-org / card",
-    foregroundToken: "--flair-org",
-    backgroundToken: "--card",
-    minContrast: WCAG_LARGE_TEXT_OR_UI_THRESHOLD,
-    category: "ui-component",
+    name: "bg / fg (button text)",
+    foregroundToken: "--bg",
+    backgroundToken: "--fg",
+    minContrast: WCAG_NORMAL_TEXT_THRESHOLD,
+    category: "normal-text",
   },
 ];
 
@@ -121,7 +175,7 @@ export function hexToRgb(color: string): [number, number, number] {
   }
   const num = Number.parseInt(hex, 16);
   if (Number.isNaN(num)) {
-    throw new Error(`Geçersiz renk kodu: ${color}`);
+    throw new Error(`Invalid color value: ${color}`);
   }
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 }
@@ -153,18 +207,45 @@ export function contrastRatio(color1: string, color2: string): number {
 }
 
 /**
- * Parses CSS variable tokens from CSS file text.
+ * Extracts the `:root` (default / sepia), `:root[data-theme="..."]` and the
+ * `prefers-color-scheme: dark` blocks from styles/tokens.css and returns the
+ * token map for each of the three themes.
  */
-export function parseThemeTokens(cssContent: string): Record<string, string> {
-  const tokens: Record<string, string> = {};
-  const lines = cssContent.split("\n");
-  for (const line of lines) {
-    const match = line.match(/^\s*(--[\w-]+):\s*([^;]+);/);
-    if (match) {
+export function parseTokenThemes(cssContent: string): Record<ThemeId, Record<string, string>> {
+  const declRegex = /(--[\w-]+):\s*([^;]+);/g;
+
+  function parseBlock(block: string): Record<string, string> {
+    const tokens: Record<string, string> = {};
+    for (const match of block.matchAll(declRegex)) {
       tokens[match[1]] = match[2].trim();
     }
+    return tokens;
   }
-  return tokens;
+
+  /** Extracts the body of the first `{...}` block that follows `selector`, respecting brace nesting. */
+  function extractBlock(selector: string): string {
+    const startIdx = cssContent.indexOf(selector);
+    if (startIdx === -1) {
+      throw new Error(`Selector not found in styles/tokens.css: ${selector}`);
+    }
+    const braceStart = cssContent.indexOf("{", startIdx);
+    let depth = 0;
+    let i = braceStart;
+    for (; i < cssContent.length; i++) {
+      if (cssContent[i] === "{") depth++;
+      if (cssContent[i] === "}") {
+        depth--;
+        if (depth === 0) break;
+      }
+    }
+    return cssContent.slice(braceStart + 1, i);
+  }
+
+  return {
+    sepia: parseBlock(extractBlock('[data-theme="sepia"]')),
+    light: parseBlock(extractBlock('[data-theme="light"]')),
+    dark: parseBlock(extractBlock('[data-theme="dark"]')),
+  };
 }
 
 export interface ContrastCheckResult {
@@ -180,7 +261,6 @@ export interface ContrastCheckResult {
 
 export interface ThemeContrastResult {
   themeId: string;
-  fileName: string;
   passed: boolean;
   checks: ContrastCheckResult[];
   failures: ContrastCheckResult[];
@@ -199,7 +279,6 @@ export interface ThemeContrastReport {
 export function auditThemeContrast(
   themeId: string,
   tokens: Record<string, string>,
-  fileName = `${themeId}.css`,
 ): ThemeContrastResult {
   const checks: ContrastCheckResult[] = [];
   const failures: ContrastCheckResult[] = [];
@@ -259,7 +338,6 @@ export function auditThemeContrast(
 
   return {
     themeId,
-    fileName,
     passed: failures.length === 0,
     checks,
     failures,
@@ -267,24 +345,16 @@ export function auditThemeContrast(
 }
 
 /**
- * Audits all 22 CSS theme files in styles/themes.
+ * Audits sepia, light and dark from styles/tokens.css against every WCAG AA contrast rule.
  */
-export function auditAllThemes(themesDir?: string): ThemeContrastReport {
-  const targetDir = themesDir || path.resolve(process.cwd(), "styles/themes");
-  const files = fs
-    .readdirSync(targetDir)
-    .filter((f) => f.endsWith(".css") && f !== "base.css" && f !== "index.css")
-    .sort();
+export function auditAllThemes(tokensCssPath?: string): ThemeContrastReport {
+  const targetPath = tokensCssPath || path.resolve(process.cwd(), "styles/tokens.css");
+  const content = fs.readFileSync(targetPath, "utf8");
+  const themeTokens = parseTokenThemes(content);
 
-  const themeResults: ThemeContrastResult[] = [];
-
-  for (const file of files) {
-    const themeId = file.replace(/\.css$/, "");
-    const content = fs.readFileSync(path.join(targetDir, file), "utf8");
-    const tokens = parseThemeTokens(content);
-    const result = auditThemeContrast(themeId, tokens, file);
-    themeResults.push(result);
-  }
+  const themeResults: ThemeContrastResult[] = THEME_IDS.map((themeId) =>
+    auditThemeContrast(themeId, themeTokens[themeId]),
+  );
 
   const passedCount = themeResults.filter((t) => t.passed).length;
   const failedCount = themeResults.filter((t) => !t.passed).length;
@@ -302,33 +372,31 @@ export function auditAllThemes(themesDir?: string): ThemeContrastReport {
  */
 export function runCli(): void {
   console.log("================================================================================");
-  console.log("Actos Frontend — 22 Tema Otomatik WCAG 2.1 AA Kontrast Denetimi (Faz 17)");
+  console.log("Actos Frontend — WCAG 2.1 AA contrast audit (sepia, light, dark)");
   console.log("================================================================================");
 
   const report = auditAllThemes();
 
   for (const theme of report.themes) {
     const status = theme.passed ? "✔ PASS" : "✖ FAIL";
-    console.log(`\n[${status}] Tema: ${theme.themeId} (${theme.fileName})`);
+    console.log(`\n[${status}] Theme: ${theme.themeId}`);
 
     for (const check of theme.checks) {
       const checkStatus = check.passed ? "  ✔" : "  ✖";
       console.log(
-        `${checkStatus} ${check.checkName.padEnd(30)}: ${check.contrastRatio.toFixed(2)}:1 (Min: ${check.minContrast.toFixed(1)}:1) [${check.foregroundValue} on ${check.backgroundValue}]`,
+        `${checkStatus} ${check.checkName.padEnd(24)}: ${check.contrastRatio.toFixed(2)}:1 (min ${check.minContrast.toFixed(1)}:1) [${check.foregroundValue} on ${check.backgroundValue}]`,
       );
     }
   }
 
   console.log("\n--------------------------------------------------------------------------------");
-  console.log(
-    `Sonuç: ${report.totalThemes} temanın ${report.passedCount} tanesi WCAG AA standartlarına uygun.`,
-  );
+  console.log(`Result: ${report.passedCount} / ${report.totalThemes} themes pass WCAG AA.`);
 
   if (report.failedCount > 0) {
-    console.error(`HATA: ${report.failedCount} tema kontrast eşiklerini geçemedi!`);
+    console.error(`FAILED: ${report.failedCount} theme(s) did not clear the contrast thresholds.`);
     process.exit(1);
   } else {
-    console.log("BAŞARILI: 22 temanın tamamı WCAG 2.1 AA kontrast denetiminden geçti.");
+    console.log("PASSED: all themes clear WCAG 2.1 AA contrast.");
     process.exit(0);
   }
 }

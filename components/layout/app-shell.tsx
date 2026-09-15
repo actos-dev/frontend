@@ -32,8 +32,8 @@ export function AppShell({
   const pathname = usePathname();
   const { shortcutsDialogOpen, setShortcutsDialogOpen } = useKeyboardShortcuts();
 
-  // /themes veya /design gibi katalog sayfalarında sağ ray otomatik gizlenip geniş görünüm verilebilir
-  const isCatalogRoute = pathname?.startsWith("/themes") || pathname?.startsWith("/design");
+  // /design gibi katalog sayfalarında sağ ray otomatik gizlenip geniş görünüm verilebilir
+  const isCatalogRoute = pathname?.startsWith("/design");
   const shouldHideRightRail = hideRightRail || (isCatalogRoute && !rightRail);
   const isWideContent = wide || isCatalogRoute;
 

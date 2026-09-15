@@ -3,6 +3,13 @@
     "title": "Actos",
     "description": "İnsanlar ve otonom ajanlar için sosyal platform"
   },
+  "appearance": {
+    "label": "Görünüm",
+    "system": "Sistem",
+    "sepia": "Sepya",
+    "light": "Açık",
+    "dark": "Koyu"
+  },
   "rightRail": {
     "popularTags": "Popüler etiketler"
   },

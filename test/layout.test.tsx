@@ -99,7 +99,7 @@ describe("Faz 3 — Uygulama Kabuğu ve Düzen Bileşenleri", () => {
 
     it("tema seçici bileşenini içermelidir", () => {
       render(<Sidebar />);
-      expect(screen.getByRole("group", { name: "Tema seçici" })).toBeDefined();
+      expect(screen.getByRole("group", { name: /(Görünüm|Appearance)/i })).toBeDefined();
     });
   });
 

@@ -1,128 +1,82 @@
 "use client";
 
-import { BookOpen, Check, Moon, Palette, Sun } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { Check, Laptop, Moon, Sun, SunMedium } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useThemeStore } from "@/lib/stores/theme-store";
-import {
-  DEFAULT_THEME,
-  isValidTheme,
-  OTHER_THEMES,
-  PRIMARY_THEMES,
-  type ThemeName,
-  themes,
-} from "@/lib/themes";
+import { DEFAULT_THEME, THEME_NAMES, type ThemeName } from "@/lib/themes";
+import { cn } from "@/lib/utils";
 
 interface ThemeSwitcherProps {
   className?: string;
   showLabels?: boolean;
 }
 
-export function ThemeSwitcher({ className = "", showLabels = true }: ThemeSwitcherProps) {
+const ICONS: Record<ThemeName, typeof Laptop> = {
+  system: Laptop,
+  sepia: SunMedium,
+  light: Sun,
+  dark: Moon,
+};
+
+const LABEL_KEYS: Record<ThemeName, string> = {
+  system: "appearance.system",
+  sepia: "appearance.sepia",
+  light: "appearance.light",
+  dark: "appearance.dark",
+};
+
+/**
+ * Compact 4-option theme control: System, Sepia, Light, Dark (ROADMAP F-05).
+ * The old 22-theme gallery is gone; density and theme are the entire
+ * appearance menu now (ROADMAP §1.3).
+ */
+export function ThemeSwitcher({ className, showLabels = true }: ThemeSwitcherProps) {
+  const { t } = useTranslation();
   const currentTheme = useThemeStore((state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);
   const [mounted, setMounted] = useState(false);
-  const selectId = useId();
 
-  // Hydration sonrası DOM ile senkronize ol
   useEffect(() => {
     setMounted(true);
-    const domTheme = document.documentElement.getAttribute("data-theme");
-    if (domTheme && isValidTheme(domTheme) && domTheme !== currentTheme) {
-      setTheme(domTheme as ThemeName);
-    }
-  }, [currentTheme, setTheme]);
+  }, []);
 
   const activeTheme = mounted ? currentTheme : DEFAULT_THEME;
-  const isOtherSelected = OTHER_THEMES.some((t) => t.id === activeTheme);
-
-  const getPrimaryIcon = (id: ThemeName) => {
-    switch (id) {
-      case "sepia":
-        return <BookOpen className="w-3.5 h-3.5" />;
-      case "light":
-        return <Sun className="w-3.5 h-3.5" />;
-      case "florence":
-        return <Moon className="w-3.5 h-3.5" />;
-      default:
-        return null;
-    }
-  };
 
   return (
     <fieldset
-      className={`inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-surface-2 border border-border shadow-xs ${className}`}
+      className={cn(
+        "inline-flex flex-wrap items-center gap-1 p-1 rounded-xl bg-bg-subtle border border-border",
+        className,
+      )}
     >
-      <legend className="sr-only">Tema seçici</legend>
+      <legend className="sr-only">{t("appearance.label")}</legend>
 
-      {/* Ana Üçlü Hızlı Erişim Butonları */}
-      <div className="flex items-center gap-1">
-        {PRIMARY_THEMES.map((t) => {
-          const isActive = activeTheme === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTheme(t.id)}
-              aria-label={t.name}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
-                isActive
-                  ? "bg-card text-foreground shadow-xs ring-1 ring-border-strong"
-                  : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-              }`}
-              title={`${t.name} (${t.description})`}
-              aria-pressed={isActive}
-            >
-              <span
-                className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0"
-                style={{ backgroundColor: t.preview.primary }}
-                aria-hidden="true"
-              />
-              {getPrimaryIcon(t.id)}
-              {showLabels && <span>{t.name}</span>}
-              {isActive && <Check className="w-3 h-3 text-primary ml-0.5" />}
-            </button>
-          );
-        })}
-      </div>
+      {THEME_NAMES.map((name) => {
+        const Icon = ICONS[name];
+        const isActive = activeTheme === name;
+        const label = t(LABEL_KEYS[name]);
 
-      {/* Dikey Ayırıcı Çizgi */}
-      <div className="w-px h-4 bg-border mx-0.5" aria-hidden="true" />
-
-      {/* Kalan 19 Tema Açılır Menüsü */}
-      <div className="relative flex items-center">
-        <label htmlFor={selectId} className="sr-only">
-          Diğer temalar
-        </label>
-        <div
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-            isOtherSelected
-              ? "bg-card text-foreground shadow-xs ring-1 ring-border-strong"
-              : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-          }`}
-        >
-          <Palette className="w-3.5 h-3.5 shrink-0 text-primary" />
-          <select
-            id={selectId}
-            value={isOtherSelected ? activeTheme : ""}
-            onChange={(e) => {
-              if (e.target.value && isValidTheme(e.target.value)) {
-                setTheme(e.target.value);
-              }
-            }}
-            className="bg-transparent text-xs font-medium text-foreground outline-hidden cursor-pointer pr-1 appearance-none focus-visible:ring-1 focus-visible:ring-ring rounded-xs"
-            aria-label="Diğer temalar listesi"
+        return (
+          <button
+            key={name}
+            type="button"
+            onClick={() => setTheme(name)}
+            aria-pressed={isActive}
+            title={label}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
+              isActive
+                ? "bg-bg text-fg shadow-xs ring-1 ring-border-strong"
+                : "text-fg-muted hover:text-fg hover:bg-bg/60",
+            )}
           >
-            <option value="" disabled className="bg-card text-foreground">
-              {isOtherSelected ? themes[activeTheme]?.name || "Diğer Tema" : "Daha fazla tema..."}
-            </option>
-            {OTHER_THEMES.map((t) => (
-              <option key={t.id} value={t.id} className="bg-card text-foreground py-1">
-                {t.name} ({t.mode === "dark" ? "Koyu" : "Açık"})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+            <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            {showLabels && <span>{label}</span>}
+            {isActive && <Check className="w-3 h-3 shrink-0" aria-hidden="true" />}
+          </button>
+        );
+      })}
     </fieldset>
   );
 }

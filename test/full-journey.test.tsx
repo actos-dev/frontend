@@ -18,7 +18,7 @@ import { generateRecoveryFileContent } from "@/lib/recovery-file";
 import { useEditorDraftStore } from "@/lib/stores/editor-draft";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { syncThemeToDom, useThemeStore } from "@/lib/stores/theme-store";
-import { DEFAULT_THEME, getTheme, isValidTheme, PRIMARY_THEMES, THEME_LIST } from "@/lib/themes";
+import { DEFAULT_THEME, isValidTheme, THEME_NAMES } from "@/lib/themes";
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -517,46 +517,45 @@ describe("Faz 18 — Kapsamlı Vitest Entegrasyon Testi (Full Journey & Boundari
     });
   });
 
-  describe("4. Tema Çözümlemesi ve DOM Senkronizasyonu Sınır Durumları (Plan §Faz 18 & §5.3)", () => {
-    it("22 temanın tamamı geçerli olmalı, geçersiz isimler reddedilmelidir", () => {
-      expect(THEME_LIST).toHaveLength(22);
-      expect(PRIMARY_THEMES).toHaveLength(3);
+  describe("4. Tema Çözümlemesi ve DOM Senkronizasyonu Sınır Durumları (F-05)", () => {
+    it("tam 4 tema (system, sepia, light, dark) geçerli olmalı, geçersiz isimler reddedilmelidir", () => {
+      expect(THEME_NAMES).toHaveLength(4);
 
+      expect(isValidTheme("system")).toBe(true);
       expect(isValidTheme("sepia")).toBe(true);
       expect(isValidTheme("light")).toBe(true);
-      expect(isValidTheme("florence")).toBe(true);
-      expect(isValidTheme("emerald")).toBe(true);
+      expect(isValidTheme("dark")).toBe(true);
 
+      expect(isValidTheme("florence")).toBe(false);
       expect(isValidTheme("cyberpunk")).toBe(false);
       expect(isValidTheme("")).toBe(false);
       expect(isValidTheme("unknown_theme")).toBe(false);
     });
 
-    it("getTheme geçersiz veya bilinmeyen tema isimlerinde varsayılan 'sepia' temasına dönmelidir", () => {
-      expect(getTheme("sepia").id).toBe("sepia");
-      expect(getTheme("light").id).toBe("light");
+    it("syncThemeToDom DOM data-theme attribute'unu ve cookie'sini güncellemelidir", () => {
+      syncThemeToDom("dark");
 
-      // Sınır durumu: geçersiz isim
-      expect(getTheme("non_existent").id).toBe(DEFAULT_THEME);
-      expect(getTheme("").id).toBe(DEFAULT_THEME);
+      expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+      expect(document.cookie).toContain("theme=dark");
     });
 
-    it("syncThemeToDom DOM data-theme attribute'unu ve cookie'sini güncellemelidir", () => {
-      syncThemeToDom("emerald");
+    it("syncThemeToDom 'system' için data-theme attribute'unu kaldırmalıdır", () => {
+      document.documentElement.setAttribute("data-theme", "dark");
+      syncThemeToDom("system");
 
-      expect(document.documentElement.getAttribute("data-theme")).toBe("emerald");
-      expect(document.cookie).toContain("theme=emerald");
+      expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+      expect(document.cookie).toContain("theme=system");
     });
 
     it("useThemeStore geçersiz temayı atamayı engellemelidir", () => {
       const store = useThemeStore.getState();
-      store.setTheme("florence");
-      expect(useThemeStore.getState().theme).toBe("florence");
+      store.setTheme("light");
+      expect(useThemeStore.getState().theme).toBe("light");
 
       // Geçersiz tema ataması denendiğinde yok sayılmalıdır
       // @ts-expect-error - testing invalid string runtime input
       store.setTheme("invalid_theme_name");
-      expect(useThemeStore.getState().theme).toBe("florence");
+      expect(useThemeStore.getState().theme).toBe("light");
     });
   });
 });

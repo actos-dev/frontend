@@ -93,92 +93,69 @@ describe("Faz 17 — Erişilebilirlik ve Tema Denetimi (WCAG 2.1 AA)", () => {
   });
 
   // ==========================================================================
-  // 2. 22 Temanın Tamamı İçin WCAG AA Kontrast Denetimi
+  // 2. WCAG AA Contrast Audit for the 3 Themes (sepia, light, dark)
   // ==========================================================================
-  describe("2. 22 Temanın WCAG AA Kontrast Denetimi", () => {
+  describe("2. sepia / light / dark WCAG AA Contrast Audit", () => {
     const report = auditAllThemes();
 
-    it("tam 22 tema taranmış olmalıdır", () => {
-      expect(report.totalThemes).toBe(22);
+    it("scans exactly the 3 shipped themes", () => {
+      expect(report.totalThemes).toBe(3);
+      expect(report.themes.map((t) => t.themeId).sort()).toEqual(["dark", "light", "sepia"]);
     });
 
-    it("22 temanın her birinde tek bir kontrast hatası dahi bulunmamalıdır (0 fail)", () => {
+    it("has zero contrast failures across all 3 themes", () => {
       expect(report.failedCount).toBe(0);
-      expect(report.passedCount).toBe(22);
+      expect(report.passedCount).toBe(3);
     });
 
-    it("tüm temalarda foreground / background kontrastı en az 4.5:1 (Normal Text AA) olmalıdır", () => {
+    it("fg / bg and fg / bg-subtle are at least 4.5:1 (Normal Text AA) in every theme", () => {
       for (const theme of report.themes) {
-        const fgCheck = theme.checks.find((c) => c.checkName === "foreground / background");
-        expect(
-          fgCheck,
-          `${theme.themeId} için foreground / background kontrolü bulunamadı`,
-        ).toBeDefined();
-        expect(
-          fgCheck?.passed,
-          `${theme.themeId} foreground/background kontrastı yetersiz: ${fgCheck?.contrastRatio}:1`,
-        ).toBe(true);
-        expect(fgCheck?.contrastRatio).toBeGreaterThanOrEqual(4.5);
+        for (const checkName of ["fg / bg", "fg / bg-subtle"]) {
+          const check = theme.checks.find((c) => c.checkName === checkName);
+          expect(check, `${theme.themeId}: ${checkName} check missing`).toBeDefined();
+          expect(check?.passed, `${theme.themeId}: ${checkName} = ${check?.contrastRatio}:1`).toBe(
+            true,
+          );
+          expect(check?.contrastRatio).toBeGreaterThanOrEqual(4.5);
+        }
       }
     });
 
-    it("tüm temalarda card-foreground / card kontrastı en az 4.5:1 (Normal Text AA) olmalıdır", () => {
+    it("fg-muted, accent-text, danger, success and warning are at least 4.5:1 on both bg and bg-subtle", () => {
+      const tokens = ["fg-muted", "accent-text", "danger", "success", "warning"];
       for (const theme of report.themes) {
-        const cardCheck = theme.checks.find((c) => c.checkName === "card-foreground / card");
-        expect(
-          cardCheck,
-          `${theme.themeId} için card-foreground / card kontrolü bulunamadı`,
-        ).toBeDefined();
-        expect(
-          cardCheck?.passed,
-          `${theme.themeId} card-foreground/card kontrastı yetersiz: ${cardCheck?.contrastRatio}:1`,
-        ).toBe(true);
-        expect(cardCheck?.contrastRatio).toBeGreaterThanOrEqual(4.5);
+        for (const token of tokens) {
+          for (const surface of ["bg", "bg-subtle"]) {
+            const checkName = `${token} / ${surface}`;
+            const check = theme.checks.find((c) => c.checkName === checkName);
+            expect(check, `${theme.themeId}: ${checkName} check missing`).toBeDefined();
+            expect(
+              check?.passed,
+              `${theme.themeId}: ${checkName} = ${check?.contrastRatio}:1`,
+            ).toBe(true);
+            expect(check?.contrastRatio).toBeGreaterThanOrEqual(4.5);
+          }
+        }
       }
     });
 
-    it("tüm temalarda primary-foreground / primary kontrastı en az 4.5:1 (Normal Text AA) olmalıdır", () => {
+    it("fg-subtle and accent are at least 3.0:1 on bg (UI AA)", () => {
       for (const theme of report.themes) {
-        const priCheck = theme.checks.find((c) => c.checkName === "primary-foreground / primary");
-        expect(
-          priCheck,
-          `${theme.themeId} için primary-foreground / primary kontrolü bulunamadı`,
-        ).toBeDefined();
-        expect(
-          priCheck?.passed,
-          `${theme.themeId} primary-foreground/primary kontrastı yetersiz: ${priCheck?.contrastRatio}:1`,
-        ).toBe(true);
-        expect(priCheck?.contrastRatio).toBeGreaterThanOrEqual(4.5);
-      }
-    });
-
-    it("tüm temalarda vote-up ve vote-down renkleri card üzerinde en az 3.0:1 (UI AA) olmalıdır", () => {
-      for (const theme of report.themes) {
-        const voteUpCheck = theme.checks.find((c) => c.checkName === "vote-up / card");
-        const voteDownCheck = theme.checks.find((c) => c.checkName === "vote-down / card");
-
-        expect(voteUpCheck?.passed).toBe(true);
-        expect(voteUpCheck?.contrastRatio).toBeGreaterThanOrEqual(3.0);
-
-        expect(voteDownCheck?.passed).toBe(true);
-        expect(voteDownCheck?.contrastRatio).toBeGreaterThanOrEqual(3.0);
-      }
-    });
-
-    it("tüm temalarda 4 aktör tipi flair token'ı card üzerinde en az 3.0:1 (UI AA) olmalıdır", () => {
-      for (const theme of report.themes) {
-        const flairTokens = [
-          "flair-human / card",
-          "flair-agent / card",
-          "flair-bot / card",
-          "flair-org / card",
-        ];
-
-        for (const tokenName of flairTokens) {
-          const check = theme.checks.find((c) => c.checkName === tokenName);
-          expect(check?.passed, `${theme.themeId} için ${tokenName} yetersiz`).toBe(true);
+        for (const checkName of ["fg-subtle / bg", "accent / bg"]) {
+          const check = theme.checks.find((c) => c.checkName === checkName);
+          expect(check?.passed, `${theme.themeId}: ${checkName} = ${check?.contrastRatio}:1`).toBe(
+            true,
+          );
           expect(check?.contrastRatio).toBeGreaterThanOrEqual(3.0);
         }
+      }
+    });
+
+    it("bg on fg (the ink button's text) is at least 4.5:1 in every theme", () => {
+      for (const theme of report.themes) {
+        const check = theme.checks.find((c) => c.checkName === "bg / fg (button text)");
+        expect(check?.passed).toBe(true);
+        expect(check?.contrastRatio).toBeGreaterThanOrEqual(4.5);
       }
     });
   });

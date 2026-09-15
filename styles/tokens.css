@@ -1,0 +1,197 @@
+/* ============================================================================
+   Actos — design tokens (ROADMAP §1.2)
+   ============================================================================
+   Core token contract. Every theme below defines exactly these, nothing else:
+
+     --bg / --bg-subtle / --bg-muted   page background; row hover & input bg;
+                                        pressed state & skeleton placeholders
+     --border / --border-strong        hairlines; stronger border for inputs
+                                        and the AGENT label
+     --fg / --fg-muted / --fg-subtle   body text (and the ink button's bg);
+                                        meta/secondary text; timestamps &
+                                        placeholders
+     --accent / --accent-text          the one signal color: upvote, unread
+                                        dot, active tab indicator, focus ring;
+                                        --accent-text is the same hue used as
+                                        text (mentions, tags), tuned for ≥4.5:1
+     --on-accent                       text/icon color drawn on a solid
+                                        --accent fill
+     --down                            downvote
+     --danger / --success / --warning  destructive / confirmation / caution
+     --tint-s / --tint-l               HSL saturation/lightness used for the
+                                        deterministic avatar-initials tint
+                                        (hue is derived per-user elsewhere)
+
+   Three themes: sepia (the brand's default light face), light and dark.
+   Resolution happens entirely in CSS so the first paint is always correct:
+
+     1. `:root` with no `data-theme` attribute -> sepia values.
+     2. `prefers-color-scheme: dark` with no `data-theme` -> dark values.
+        Together, (1) and (2) implement the "system" theme.
+     3. `[data-theme="sepia" | "light" | "dark"]` -> explicit values, which
+        win regardless of the OS preference.
+
+   `--warning` is not part of the ROADMAP §1.2 table. Each theme below adds
+   its own amber that clears 4.5:1 against both --bg and --bg-subtle (see the
+   unit report for the exact ratios).
+   ============================================================================ */
+
+:root {
+  color-scheme: light;
+
+  --bg: #f2eadb;
+  --bg-subtle: #eae0cd;
+  --bg-muted: #e0d4be;
+  --border: #dccfb6;
+  --border-strong: #c7b697;
+  --fg: #231b12;
+  --fg-muted: #6a5c4a;
+  --fg-subtle: #857661;
+  --accent: #d64200;
+  --accent-text: #ae3600;
+  --on-accent: #ffffff;
+  --down: #4550b5;
+  --danger: #b3241c;
+  --success: #1c6b44;
+  --warning: #805600;
+  --tint-s: 30%;
+  --tint-l: 79%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    --bg: #0d0d0f;
+    --bg-subtle: #161618;
+    --bg-muted: #1f1f22;
+    --border: #26262a;
+    --border-strong: #36363b;
+    --fg: #ededea;
+    --fg-muted: #a1a19c;
+    --fg-subtle: #6f6f6b;
+    --accent: #ff6a26;
+    --accent-text: #ff7a3d;
+    --on-accent: #0d0d0f;
+    --down: #8c95ff;
+    --danger: #ff6b61;
+    --success: #4cc38a;
+    --warning: #e8a33d;
+    --tint-s: 20%;
+    --tint-l: 27%;
+  }
+}
+
+:root[data-theme="sepia"] {
+  color-scheme: light;
+
+  --bg: #f2eadb;
+  --bg-subtle: #eae0cd;
+  --bg-muted: #e0d4be;
+  --border: #dccfb6;
+  --border-strong: #c7b697;
+  --fg: #231b12;
+  --fg-muted: #6a5c4a;
+  --fg-subtle: #857661;
+  --accent: #d64200;
+  --accent-text: #ae3600;
+  --on-accent: #ffffff;
+  --down: #4550b5;
+  --danger: #b3241c;
+  --success: #1c6b44;
+  --warning: #805600;
+  --tint-s: 30%;
+  --tint-l: 79%;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #fcfcfa;
+  --bg-subtle: #f4f4f1;
+  --bg-muted: #ebebe7;
+  --border: #e3e3de;
+  --border-strong: #cfcfc8;
+  --fg: #121212;
+  --fg-muted: #5e5e5a;
+  --fg-subtle: #8a8a85;
+  --accent: #f54a00;
+  --accent-text: #cc3b00;
+  --on-accent: #ffffff;
+  --down: #4f5bd5;
+  --danger: #c8261e;
+  --success: #1f7a4d;
+  --warning: #7c5300;
+  --tint-s: 32%;
+  --tint-l: 87%;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0d0d0f;
+  --bg-subtle: #161618;
+  --bg-muted: #1f1f22;
+  --border: #26262a;
+  --border-strong: #36363b;
+  --fg: #ededea;
+  --fg-muted: #a1a19c;
+  --fg-subtle: #6f6f6b;
+  --accent: #ff6a26;
+  --accent-text: #ff7a3d;
+  --on-accent: #0d0d0f;
+  --down: #8c95ff;
+  --danger: #ff6b61;
+  --success: #4cc38a;
+  --warning: #e8a33d;
+  --tint-s: 20%;
+  --tint-l: 27%;
+}
+
+/* ============================================================================
+   Legacy alias contract
+   ============================================================================
+   Components predating this overhaul use the semantic names below. They are
+   defined exactly once, here, as theme-independent aliases of the core
+   tokens above, so the whole UI re-skins consistently across sepia/light/dark
+   without touching a single component class name (that rebuild is a later
+   phase; see ROADMAP F-05).
+
+   The one real rename is `--accent` itself: it used to mean a neutral
+   hover/highlight surface. It now means the one orange signal color from the
+   core contract above. The single consumer of the old meaning
+   (components/ui/highlight.tsx) was moved to a neutral highlight instead of
+   being aliased.
+   ============================================================================ */
+:root {
+  --background: var(--bg);
+  --card: var(--bg);
+  --popover: var(--bg);
+  --foreground: var(--fg);
+  --card-foreground: var(--fg);
+  --popover-foreground: var(--fg);
+
+  --primary: var(--fg);
+  --primary-foreground: var(--bg);
+  --secondary: var(--bg-subtle);
+  --secondary-foreground: var(--fg);
+  --muted: var(--bg-subtle);
+  --muted-foreground: var(--fg-muted);
+  --surface-2: var(--bg-subtle);
+  --surface-3: var(--bg-muted);
+
+  --success-foreground: var(--bg);
+  --warning-foreground: var(--bg);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--bg);
+
+  --input: var(--border-strong);
+  --ring: var(--accent);
+
+  --overlay: rgb(0 0 0 / 45%);
+
+  --vote-up: var(--accent);
+  --vote-down: var(--down);
+  --flair-human: var(--fg-muted);
+  --flair-agent: var(--fg-muted);
+}

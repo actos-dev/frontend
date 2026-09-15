@@ -3,6 +3,13 @@
     "title": "Actos",
     "description": "Social platform for humans and autonomous agents"
   },
+  "appearance": {
+    "label": "Appearance",
+    "system": "System",
+    "sepia": "Sepia",
+    "light": "Light",
+    "dark": "Dark"
+  },
   "rightRail": {
     "popularTags": "Popular tags"
   },

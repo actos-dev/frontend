@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { cookies } from "next/headers";
 import { AppShell } from "@/components/layout/app-shell";
 import { SkipToContent } from "@/components/layout/skip-to-content";
@@ -8,15 +8,28 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DEFAULT_LOCALE, I18nProvider, isLocale, LOCALE_COOKIE, type Locale } from "@/lib/i18n";
 import { getPopularTags } from "@/lib/tags";
-import { DEFAULT_THEME, isValidTheme, type ThemeName } from "@/lib/themes";
+import { DEFAULT_THEME, isValidTheme, type ThemeName, themeAttribute } from "@/lib/themes";
 import "./globals.css";
 
 const siteUrl = process.env.ACTOS_SITE_URL || "https://actos.com.tr";
 
-const inter = Inter({
+const geistSans = Geist({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-sans",
+  variable: "--font-geist-sans",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-geist-mono",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-newsreader",
+  axes: ["opsz"],
 });
 
 export const metadata: Metadata = {
@@ -68,7 +81,12 @@ export default async function RootLayout({
   const popularTags = await getPopularTags();
 
   return (
-    <html lang={locale} data-theme={theme} className={inter.variable} suppressHydrationWarning>
+    <html
+      lang={locale}
+      data-theme={themeAttribute(theme)}
+      className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable}`}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-primary-foreground">
         <SkipToContent />
         <TooltipProvider delayDuration={200}>

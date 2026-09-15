@@ -242,8 +242,8 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
 
       const mark = screen.getByText("Rust");
       expect(mark.tagName.toLowerCase()).toBe("mark");
-      expect(mark.className).toContain("bg-accent/20");
-      expect(mark.className).toContain("text-accent-foreground");
+      expect(mark.className).toContain("bg-bg-muted");
+      expect(mark.className).toContain("text-fg");
     });
 
     it("büyük/küçük harf duyarsız ve çoklu kelimeli sorguları vurgulamalıdır", () => {

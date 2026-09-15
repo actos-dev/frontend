@@ -7,7 +7,6 @@ import {
   Info,
   Layers,
   MessageSquare,
-  Palette,
   Send,
   Share2,
   Sparkles,
@@ -63,13 +62,6 @@ export default function DesignShowcasePage() {
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronLeft className="h-4 w-4" /> Ana Akış
-            </Link>
-            <span className="text-muted-foreground/40">•</span>
-            <Link
-              href="/themes"
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Palette className="h-3.5 w-3.5" /> 22 Tema Galerisi
             </Link>
           </div>
 

@@ -10,13 +10,16 @@ export interface HighlightProps {
 
 /**
  * Highlights matches of query terms in the given text.
- * Uses <mark> with semantic accent styling per Plan §Faz 12.
+ *
+ * Uses a neutral <mark> (bg-bg-muted / text-fg): `--accent` is now the one
+ * orange signal color (ROADMAP §1.2 — votes, unread, active tab, focus), not
+ * a general-purpose highlight tint, so query matches no longer borrow it.
  */
 export function Highlight({
   text,
   query,
   className,
-  highlightClassName = "bg-accent/20 text-accent-foreground font-medium rounded-xs px-0.5",
+  highlightClassName = "bg-bg-muted text-fg font-medium rounded-xs px-0.5",
 }: HighlightProps) {
   if (!query?.trim() || !text) {
     return <span className={className}>{text}</span>;

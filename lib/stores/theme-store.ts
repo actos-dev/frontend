@@ -1,97 +1,86 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { DEFAULT_THEME, isValidTheme, type ThemeName } from "@/lib/themes";
+import { DEFAULT_THEME, isValidTheme, type ThemeName, themeAttribute } from "@/lib/themes";
+
+const THEME_COOKIE_NAME = "theme";
+const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+
+/**
+ * Reads the `theme` cookie directly. This is the single source of truth for
+ * the active theme (ROADMAP F-05): there is no localStorage fallback, so
+ * nothing can ever resurrect a stale client-side value over it.
+ */
+export function readThemeCookie(): ThemeName {
+  if (typeof document === "undefined") {
+    return DEFAULT_THEME;
+  }
+  const match = document.cookie.match(/(?:^|;\s*)theme=([^;]+)/);
+  const value = match ? decodeURIComponent(match[1]) : undefined;
+  return value && isValidTheme(value) ? value : DEFAULT_THEME;
+}
+
+function writeThemeCookie(theme: ThemeName): void {
+  if (typeof document === "undefined") {
+    return;
+  }
+  try {
+    document.cookie = `${THEME_COOKIE_NAME}=${theme}; path=/; max-age=${THEME_COOKIE_MAX_AGE}; SameSite=Lax`;
+  } catch {
+    // Cookies disabled or unavailable; the in-memory store still works for
+    // this tab, it just won't survive a reload.
+  }
+}
+
+/** Applies the resolved theme to <html data-theme>, or removes the attribute for "system". */
+export function applyThemeToDom(theme: ThemeName): void {
+  if (typeof document === "undefined" || !document.documentElement) {
+    return;
+  }
+  const attr = themeAttribute(theme);
+  if (attr) {
+    document.documentElement.setAttribute("data-theme", attr);
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+}
+
+/** Writes the cookie and applies the theme to the DOM. Used by setTheme and tests. */
+export function syncThemeToDom(theme: ThemeName): void {
+  writeThemeCookie(theme);
+  applyThemeToDom(theme);
+}
 
 interface ThemeState {
   theme: ThemeName;
   setTheme: (theme: ThemeName) => void;
+  /**
+   * Re-reads the `theme` cookie (never localStorage) into the store and the
+   * DOM. It never *writes* the cookie, so it can only ever follow the
+   * cookie, not override it. Called once when this module loads on the
+   * client, and safe to call again (e.g. after a same-tab cookie change).
+   */
+  syncFromCookie: () => void;
 }
 
-export function syncThemeToDom(theme: ThemeName): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  // LocalStorage senkronizasyonu
-  try {
-    if (typeof localStorage !== "undefined" && localStorage.setItem) {
-      localStorage.setItem("theme", theme);
+export const useThemeStore = create<ThemeState>()((set) => ({
+  theme: DEFAULT_THEME,
+  setTheme: (theme: ThemeName) => {
+    if (!isValidTheme(theme)) {
+      return;
     }
-  } catch {
-    // LocalStorage devre dışı veya kota dolu olabilir
-  }
+    syncThemeToDom(theme);
+    set({ theme });
+  },
+  syncFromCookie: () => {
+    const theme = readThemeCookie();
+    applyThemeToDom(theme);
+    set({ theme });
+  },
+}));
 
-  // Cookie senkronizasyonu (1 yıl ömürlü, SameSite=Lax, SSR FOUC önleme)
-  try {
-    if (typeof document !== "undefined") {
-      document.cookie = `theme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
-    }
-  } catch {
-    // Cookie erişim hatası
-  }
-
-  // DOM data-theme attribute senkronizasyonu
-  try {
-    if (typeof document !== "undefined" && document.documentElement) {
-      document.documentElement.setAttribute("data-theme", theme);
-    }
-  } catch {
-    // DOM erişim hatası
-  }
+// Read the cookie once, on module load, on the client. There is no
+// localStorage persistence to race against, so this is the only thing that
+// can set the store's initial theme, and it always agrees with the
+// server-rendered <html data-theme> (both come from the same cookie).
+if (typeof document !== "undefined") {
+  useThemeStore.getState().syncFromCookie();
 }
-
-// Güvenli ve hata fırlatmayan Storage adaptörü
-const safeStorage = {
-  getItem: (name: string): string | null => {
-    if (typeof window === "undefined") return null;
-    try {
-      return typeof localStorage !== "undefined" ? localStorage.getItem(name) : null;
-    } catch {
-      return null;
-    }
-  },
-  setItem: (name: string, value: string): void => {
-    if (typeof window === "undefined") return;
-    try {
-      if (typeof localStorage !== "undefined") {
-        localStorage.setItem(name, value);
-      }
-    } catch {
-      // sessizce yut
-    }
-  },
-  removeItem: (name: string): void => {
-    if (typeof window === "undefined") return;
-    try {
-      if (typeof localStorage !== "undefined") {
-        localStorage.removeItem(name);
-      }
-    } catch {
-      // sessizce yut
-    }
-  },
-};
-
-export const useThemeStore = create<ThemeState>()(
-  persist(
-    (set) => ({
-      theme: DEFAULT_THEME,
-      setTheme: (theme: ThemeName) => {
-        if (!isValidTheme(theme)) {
-          return;
-        }
-        syncThemeToDom(theme);
-        set({ theme });
-      },
-    }),
-    {
-      name: "actos-theme-storage",
-      storage: createJSONStorage(() => safeStorage),
-      onRehydrateStorage: () => (state) => {
-        if (state?.theme && isValidTheme(state.theme)) {
-          syncThemeToDom(state.theme);
-        }
-      },
-    },
-  ),
-);
