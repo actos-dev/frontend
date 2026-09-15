@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
 import { getServerClient } from "@/lib/actos";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 
 export const runtime = "nodejs";
 export const alt = "Actos Etiket Önizlemesi";
@@ -26,9 +25,9 @@ export default async function TagOpenGraphImage({ params }: { params: Promise<{ 
       postCount = postsPage.items.length > 0 ? 1 : 0;
     }
   } catch {
-    postCount = MOCK_FEED_POSTS.filter((p) =>
-      p.tags?.some((t) => t.toLowerCase() === tagName),
-    ).length;
+    // No fabricated post count: the card below already renders a vague
+    // "many" label for postCount === 0 (ROADMAP.md P0-02, decision 7).
+    postCount = 0;
   }
 
   return new ImageResponse(

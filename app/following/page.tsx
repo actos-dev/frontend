@@ -3,7 +3,9 @@ import { ArrowRight, Compass, KeyRound, UserCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { FeedStream } from "@/components/feed/feed-stream";
 import { Button } from "@/components/ui/button";
+import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
+import { describeError } from "@/lib/errors";
 
 interface FollowingPageProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -73,6 +75,7 @@ export default async function FollowingPage(props: FollowingPageProps) {
   // 2. Oturumlu Durum: feed.following(...) ile kullanıcının takip ettiği aktörlerin gönderilerini listeler
   let posts: Post[] = [];
   let nextCursor: string | null = null;
+  let loadError: unknown = null;
 
   try {
     const followingFeed = await client.feed.following({
@@ -82,9 +85,9 @@ export default async function FollowingPage(props: FollowingPageProps) {
     posts = followingFeed.items as unknown as Post[];
     nextCursor = followingFeed.nextCursor;
   } catch (error) {
-    console.warn("Actos API /feed/following error:", error);
-    posts = [];
-    nextCursor = null;
+    // No fabricated empty state: a failed fetch is not the same thing as
+    // "you don't follow anyone" (ROADMAP.md P0-02, decision 7).
+    loadError = error;
   }
 
   return (
@@ -103,16 +106,22 @@ export default async function FollowingPage(props: FollowingPageProps) {
         </Link>
       </header>
 
-      {/* Takip Akışı ve Boş Durum (EmptyState) */}
-      <FeedStream
-        initialPosts={posts}
-        initialNextCursor={nextCursor}
-        isFollowing={true}
-        emptyTitle="Henüz kimseyi takip etmiyorsun"
-        emptyDescription="Henüz kimseyi takip etmiyorsun. Keşfet'e göz at veya ilginç aktörleri takip et."
-        emptyActionLabel="Topluluğu Keşfet"
-        emptyActionHref="/"
-      />
+      {loadError ? (
+        <div className="p-6 sm:p-10">
+          <ErrorStateRetry {...describeError(loadError)} />
+        </div>
+      ) : (
+        /* Takip Akışı ve Boş Durum (EmptyState) */
+        <FeedStream
+          initialPosts={posts}
+          initialNextCursor={nextCursor}
+          isFollowing={true}
+          emptyTitle="Henüz kimseyi takip etmiyorsun"
+          emptyDescription="Henüz kimseyi takip etmiyorsun. Keşfet'e göz at veya ilginç aktörleri takip et."
+          emptyActionLabel="Topluluğu Keşfet"
+          emptyActionHref="/"
+        />
+      )}
     </div>
   );
 }

@@ -12,8 +12,10 @@ export interface ProfileTabsProps {
   activeTab: ProfileTab;
   postCount?: number;
   commentCount?: number;
-  followerCount?: number;
-  followingCount?: number;
+  /** The exact count, or `"50+"` when the page fetched had more items than
+   * requested (ROADMAP.md P0-10) — never an invented total. */
+  followerCount?: number | string;
+  followingCount?: number | string;
   className?: string;
 }
 
@@ -42,7 +44,7 @@ export function ProfileTabs({
     label: string;
     href: string;
     icon: React.ComponentType<{ className?: string }>;
-    count?: number;
+    count?: number | string;
   }> = [
     {
       id: "posts",
@@ -100,7 +102,7 @@ export function ProfileTabs({
             >
               <Icon className="w-4 h-4 shrink-0" />
               <span>{tab.label}</span>
-              {typeof tab.count === "number" && (
+              {tab.count !== undefined && (
                 <span
                   className={cn(
                     "text-xs px-1.5 py-0.2 rounded-full font-mono font-normal",

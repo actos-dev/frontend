@@ -109,5 +109,17 @@ describe("Feed route handlers — sparse fieldset fix (P0-01) and param validati
 
       expect(res.status).toBe(400);
     });
+
+    it("returns a mapped error instead of a fake empty page when the backend call fails (ROADMAP.md P0-02)", async () => {
+      mockFeedFollowing.mockRejectedValueOnce({ status: 503, code: "NETWORK_ERROR" });
+
+      const req = new NextRequest("http://localhost:3000/api/feed/following");
+      const res = await followingRoute.GET(req);
+
+      expect(res.status).toBe(503);
+      const body = await res.json();
+      expect(body.code).toBe("NETWORK_ERROR");
+      expect(body.items).toBeUndefined();
+    });
   });
 });

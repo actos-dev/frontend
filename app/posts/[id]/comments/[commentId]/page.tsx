@@ -1,12 +1,14 @@
 import type { CommentDetail, CommentNode, Post } from "actos";
+import { GoneError, NotFoundError } from "actos";
 import { ArrowLeft, GitFork } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommentNodeComponent } from "@/components/comments/comment-node";
+import { ErrorStateRetry } from "@/components/ui/error-state-retry";
+import { Gone } from "@/components/ui/gone";
 import { getServerClient } from "@/lib/actos";
-import { MOCK_COMMENTS } from "@/lib/comments-mock";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
+import { describeError } from "@/lib/errors";
 import { extractExcerpt, slugify } from "@/lib/utils";
 
 interface DeepCommentPageProps {
@@ -19,17 +21,17 @@ interface DeepCommentPageProps {
 export const dynamic = "force-dynamic";
 
 /**
- * Recursive finder for mock/fallback data when API is unreachable.
+ * Classifies a comment thread fetch failure. Anything that is not
+ * specifically a 404 or a 410 is a real backend failure and must render an
+ * error state, never fabricated content (ROADMAP.md P0-02, decision 7).
  */
-function findNodeRecursive(nodes: CommentNode[], targetId: string): CommentNode | null {
-  for (const node of nodes) {
-    if (node.id === targetId) return node;
-    if (node.replies && node.replies.length > 0) {
-      const found = findNodeRecursive(node.replies, targetId);
-      if (found) return found;
-    }
-  }
-  return null;
+function classifyCommentError(err: unknown): "gone" | "not-found" | "error" {
+  if (err instanceof GoneError) return "gone";
+  if (err instanceof NotFoundError) return "not-found";
+  const { status, code } = describeError(err);
+  if (status === 410 || code === "GONE") return "gone";
+  if (status === 404 || code === "NOT_FOUND") return "not-found";
+  return "error";
 }
 
 export async function generateMetadata(props: DeepCommentPageProps): Promise<Metadata> {
@@ -49,59 +51,63 @@ export async function generateMetadata(props: DeepCommentPageProps): Promise<Met
 export default async function DeepCommentPage(props: DeepCommentPageProps) {
   const { id: postId, commentId } = await props.params;
 
+  const client = await getServerClient();
+
+  // The source post preview is optional context (the "Kaynak Gönderi" card
+  // below already renders conditionally), so a failure here does not block
+  // the comment thread itself.
   let post: Post | null = null;
+  try {
+    post = (await client.posts.get(postId)) as Post;
+  } catch {
+    post = null;
+  }
+
   let commentDetail: CommentDetail | null = null;
   let childNodes: CommentNode[] = [];
+  let isGone = false;
+  let loadError: unknown = null;
 
   try {
-    const client = await getServerClient();
-    post = (await client.posts.get(postId)) as Post;
     commentDetail = await client.comments.get(commentId);
     childNodes = await client.comments.list(postId, {
       parent: commentId,
       bodyHtml: true,
     });
-  } catch {
-    // Fallback: Test veya backend kapalı durumu
-    post = MOCK_FEED_POSTS.find((p) => p.id === postId) || MOCK_FEED_POSTS[0];
-    const foundMockNode = findNodeRecursive(MOCK_COMMENTS, commentId);
-
-    if (foundMockNode) {
-      commentDetail = {
-        comment: foundMockNode,
-        ancestors: [],
-      };
-      childNodes = foundMockNode.replies || [];
+  } catch (err) {
+    const outcome = classifyCommentError(err);
+    if (outcome === "gone") {
+      isGone = true;
+    } else if (outcome === "not-found") {
+      notFound();
     } else {
-      // Varsayılan tekil düğüm
-      commentDetail = {
-        comment: {
-          id: commentId,
-          contentType: "comment",
-          body: "Derin dal kök yorumu.",
-          bodyHtml: "<p>Derin dal kök yorumu.</p>",
-          bodyFormat: "markdown",
-          author: {
-            id: "usr_mock",
-            username: "dila_ai",
-            displayName: "Dila AI",
-            actorType: "ai_agent",
-            avatarUrl: null,
-            createdAt: "2026-08-01T00:00:00Z",
-          },
-          authorDeleted: false,
-          deleted: false,
-          score: 5,
-          upvotes: 5,
-          downvotes: 0,
-          commentCount: 0,
-          createdAt: new Date().toISOString(),
-          editedAt: null,
-          tags: [],
-        },
-        ancestors: [],
-      };
+      // A real backend failure (500, 429, timeout, connection): render an
+      // error state below, never fabricated content.
+      loadError = err;
     }
+  }
+
+  if (isGone) {
+    return (
+      <div className="min-h-[calc(100vh-3.5rem)] py-8 px-4 sm:px-6">
+        <div className="reading-container">
+          <Gone
+            title="Bu yorum silindi"
+            message="Bu yorum daha önce Actos'ta mevcuttu, ancak yazarın kendi isteğiyle veya moderasyon kararıyla kaldırıldı."
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-[calc(100vh-3.5rem)] py-8 px-4 sm:px-6">
+        <div className="reading-container">
+          <ErrorStateRetry {...describeError(loadError)} />
+        </div>
+      </div>
+    );
   }
 
   if (!commentDetail?.comment) {

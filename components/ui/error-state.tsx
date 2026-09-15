@@ -4,7 +4,7 @@ import { AlertTriangle, RotateCw } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { mapErrorCodeToMessage } from "@/lib/errors";
+import { mapErrorCodeToMessage } from "@/lib/error-codes";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 

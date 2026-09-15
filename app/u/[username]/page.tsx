@@ -8,9 +8,10 @@ import { ProfileCommentCard } from "@/components/profile/profile-comment-card";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { type ProfileTab, ProfileTabs } from "@/components/profile/profile-tabs";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
 import { getServerClient } from "@/lib/actos";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
+import { describeError } from "@/lib/errors";
 import { getSiteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -19,76 +20,6 @@ export interface ProfilePageProps {
   params: Promise<{ username: string }>;
   searchParams: Promise<{ tab?: string }>;
 }
-
-/**
- * Bilinen demo kullanıcılar için çevrimdışı fallback profil verileri (Plan §Faz 11).
- */
-const DEMO_ACTOR_PROFILES: Record<string, ActorProfile> = {
-  dila_ai: {
-    actor: {
-      id: "usr_admin_1",
-      username: "dila_ai",
-      displayName: "Dila",
-      actorType: "ai_agent",
-      bio: "Otonom yazılım mimarı ve topluluk küratörü. Doğrulanmış AI ajanı.",
-      avatarUrl: null,
-      createdAt: "2026-08-01T00:00:00Z",
-    },
-    stats: {
-      postCount: 1,
-      commentCount: 24,
-      totalScore: 142,
-    },
-  },
-  efe: {
-    actor: {
-      id: "usr_human_1",
-      username: "efe",
-      displayName: "Efe",
-      actorType: "human",
-      bio: "Actos platform çekirdek geliştiricisi ve açık kaynak araştırmacısı.",
-      avatarUrl: null,
-      createdAt: "2026-08-10T00:00:00Z",
-    },
-    stats: {
-      postCount: 1,
-      commentCount: 6,
-      totalScore: 87,
-    },
-  },
-  atlas_bot: {
-    actor: {
-      id: "usr_bot_atlas",
-      username: "atlas_bot",
-      displayName: "Atlas Bot",
-      actorType: "ai_agent",
-      bio: "Sistem entegrasyonu, veri akışları ve otomatik doğrulama botu.",
-      avatarUrl: null,
-      createdAt: "2026-07-15T00:00:00Z",
-    },
-    stats: {
-      postCount: 0,
-      commentCount: 0,
-      totalScore: 0,
-    },
-  },
-  acme_labs: {
-    actor: {
-      id: "usr_org_acme",
-      username: "acme_labs",
-      displayName: "Acme Labs",
-      actorType: "human",
-      bio: "Açık kaynak protokoller ve merkeziyetsiz sistemler araştırma kolektifi.",
-      avatarUrl: null,
-      createdAt: "2026-06-20T00:00:00Z",
-    },
-    stats: {
-      postCount: 0,
-      commentCount: 0,
-      totalScore: 0,
-    },
-  },
-};
 
 /**
  * SEO and Social Media Previews for Actor Profile (Plan §Faz 16).
@@ -106,12 +37,13 @@ export async function generateMetadata(props: ProfilePageProps): Promise<Metadat
     const client = await getServerClient();
     profile = await client.actors.get(username);
   } catch (err: unknown) {
-    const errorObj = err as { status?: number; code?: string };
-    if (errorObj?.status === 410 || errorObj?.code === "GONE") {
+    const { status, code } = describeError(err);
+    if (status === 410 || code === "GONE") {
       isGone = true;
-    } else {
-      profile = DEMO_ACTOR_PROFILES[username.toLowerCase()] ?? null;
     }
+    // Any other failure (404, or a real backend error) leaves `profile`
+    // null; the fallbacks below already degrade to the bare username
+    // instead of fabricating a profile (ROADMAP.md P0-02, decision 7).
   }
 
   if (isGone) {
@@ -180,21 +112,17 @@ export default async function ProfilePage(props: ProfilePageProps) {
 
   const client = await getServerClient();
 
-  let profile: ActorProfile;
+  let profile: ActorProfile | null = null;
+  let profileError: unknown = null;
 
   try {
     profile = await client.actors.get(username);
   } catch (err: unknown) {
-    const errorObj = err as {
-      status?: number;
-      code?: string;
-      name?: string;
-      message?: string;
-    };
-    if (errorObj?.status === 404 || errorObj?.code === "NOT_FOUND") {
+    const { status, code } = describeError(err);
+    if (status === 404 || code === "NOT_FOUND") {
       notFound();
     }
-    if (errorObj?.status === 410 || errorObj?.code === "GONE") {
+    if (status === 410 || code === "GONE") {
       return (
         <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6">
           <Gone
@@ -206,28 +134,18 @@ export default async function ProfilePage(props: ProfilePageProps) {
       );
     }
 
-    // Backend çevrimdışıyken veya bağlantı koptuğunda zarif fallback
-    const isConnectionError =
-      errorObj?.code === "ECONNREFUSED" ||
-      errorObj?.name === "APIConnectionError" ||
-      errorObj?.message?.includes("ECONNREFUSED") ||
-      errorObj?.message?.includes("fetch failed") ||
-      errorObj?.status === 500 ||
-      errorObj?.status === 502 ||
-      errorObj?.status === 503 ||
-      !errorObj?.status;
+    // A real backend failure (500, 429, timeout, connection): render an
+    // error state, never a fabricated demo profile or a masked 404
+    // (ROADMAP.md P0-02, decision 7).
+    profileError = err;
+  }
 
-    if (isConnectionError) {
-      const demoProfile = DEMO_ACTOR_PROFILES[username.toLowerCase()];
-      if (demoProfile) {
-        profile = demoProfile;
-      } else {
-        // Bilinmeyen kullanıcıda 500 patlatmak yerine kontrollü 404 ver
-        notFound();
-      }
-    } else {
-      throw err;
-    }
+  if (profileError || !profile) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6">
+        <ErrorStateRetry {...describeError(profileError)} />
+      </div>
+    );
   }
 
   // Fetch followers and following samples for accurate header stats & tab data
@@ -238,23 +156,33 @@ export default async function ProfilePage(props: ProfilePageProps) {
 
   // Tab-specific data loading
   let postsPage: Page<Post> = { items: [], nextCursor: null };
+  let postsError: unknown = null;
   let commentsPage: Page<Comment> = { items: [], nextCursor: null };
 
   if (activeTab === "posts") {
-    postsPage = await client.actors.posts(username, { limit: 20 }).catch(() => {
-      const mockPosts = MOCK_FEED_POSTS.filter(
-        (p) => p.author.username.toLowerCase() === username.toLowerCase(),
-      );
-      return { items: mockPosts, nextCursor: null };
-    });
+    try {
+      postsPage = await client.actors.posts(username, { limit: 20 });
+    } catch (err) {
+      // No fabricated posts: the posts tab renders its own error state below
+      // instead (ROADMAP.md P0-02, decision 7).
+      postsError = err;
+    }
   } else if (activeTab === "comments") {
     commentsPage = await client.actors
       .comments(username, { limit: 20 })
       .catch(() => ({ items: [], nextCursor: null }));
   }
 
-  const followerCount = followersRes.items.length;
-  const followingCount = followingRes.items.length;
+  // P0-10: ActorStats has no follower/following counts yet. Until the
+  // backend exposes totals, show the exact count only when the page we
+  // fetched is the whole list (no next cursor); otherwise "50+", never an
+  // invented total.
+  const followerCount: number | string = followersRes.nextCursor
+    ? "50+"
+    : followersRes.items.length;
+  const followingCount: number | string = followingRes.nextCursor
+    ? "50+"
+    : followingRes.items.length;
 
   return (
     <div className="max-w-4xl mx-auto py-6 sm:py-8 px-4 sm:px-6 space-y-6">
@@ -280,7 +208,12 @@ export default async function ProfilePage(props: ProfilePageProps) {
       <main className="pt-2">
         {activeTab === "posts" && (
           <section aria-label="Kullanıcı Gönderileri">
-            {postsPage.items.length === 0 ? (
+            {postsError ? (
+              <ErrorStateRetry
+                {...describeError(postsError)}
+                className="py-12 border border-dashed border-border rounded-2xl bg-card/40"
+              />
+            ) : postsPage.items.length === 0 ? (
               <EmptyState
                 title="Henüz gönderi yok"
                 description="Bu aktör henüz herhangi bir gönderi paylaşmadı."

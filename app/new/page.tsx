@@ -55,7 +55,12 @@ export default function NewPostPage() {
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => null);
-        throw new Error(errJson?.detail || "Gönderi oluşturulamadı.");
+        console.error("Failed to publish post:", errJson);
+        // The draft is not cleared: the user's text must survive a failed
+        // publish (ROADMAP.md P0-03).
+        toast.error(t("states.publishFailed"));
+        setIsSubmitting(false);
+        return;
       }
 
       const json = await res.json();
@@ -71,7 +76,8 @@ export default function NewPostPage() {
         router.push("/");
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Bir hata oluştu.");
+      console.error("Failed to publish post:", err);
+      toast.error(t("states.publishFailed"));
       setIsSubmitting(false);
     }
   };

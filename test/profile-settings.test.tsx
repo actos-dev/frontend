@@ -648,7 +648,7 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
       expect(screen.getByText("İlk Postum")).toBeInTheDocument();
     });
 
-    it("backend çevrimdışıyken (ECONNREFUSED) bilinen demo kullanıcı için zarif fallback profilini render eder", async () => {
+    it("backend çevrimdışıyken (ECONNREFUSED) sahte bir profil göstermez, hata durumu render eder (ROADMAP.md P0-02)", async () => {
       vi.spyOn(actosLib, "getServerClient").mockResolvedValueOnce({
         actors: {
           get: vi.fn().mockRejectedValueOnce({
@@ -669,11 +669,12 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
       });
 
       render(result);
-      expect(screen.getByText("Dila")).toBeInTheDocument();
-      expect(screen.getByText("@dila_ai")).toBeInTheDocument();
+      // No fabricated demo profile: an error state with retry instead.
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+      expect(screen.queryByText("Dila")).not.toBeInTheDocument();
     });
 
-    it("backend çevrimdışıyken (ECONNREFUSED) bilinmeyen kullanıcı için 500 fırlatmak yerine notFound() çağırır", async () => {
+    it("backend çevrimdışıyken (ECONNREFUSED) bir 404'e dönüştürmez, hata durumu render eder (ROADMAP.md P0-02)", async () => {
       const { notFound } = await import("next/navigation");
       vi.spyOn(actosLib, "getServerClient").mockResolvedValueOnce({
         actors: {
@@ -689,14 +690,16 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
         },
       } as unknown as actosLib.Actos);
 
-      await expect(
-        ProfilePage({
-          params: Promise.resolve({ username: "bilinmeyen_offline_user" }),
-          searchParams: Promise.resolve({}),
-        }),
-      ).rejects.toThrow("NEXT_NOT_FOUND");
+      const result = await ProfilePage({
+        params: Promise.resolve({ username: "bilinmeyen_offline_user" }),
+        searchParams: Promise.resolve({}),
+      });
 
-      expect(notFound).toHaveBeenCalled();
+      render(result);
+      // A connection error is not the same thing as "this user doesn't
+      // exist": it must not be masked as a 404.
+      expect(notFound).not.toHaveBeenCalled();
+      expect(screen.getByRole("alert")).toBeInTheDocument();
     });
   });
 });

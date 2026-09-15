@@ -7,6 +7,7 @@ import DeepCommentPage from "@/app/posts/[id]/comments/[commentId]/page";
 import { CommentForm } from "@/components/comments/comment-form";
 import { CommentNodeComponent } from "@/components/comments/comment-node";
 import { CommentTree } from "@/components/comments/comment-tree";
+import * as actosLib from "@/lib/actos";
 import { getDraft, saveDraft } from "@/lib/drafts";
 import { useSessionStore } from "@/lib/stores/session-store";
 
@@ -564,6 +565,46 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
 
   describe("6. Derin Dal Sayfası (app/posts/[id]/comments/[commentId]/page.tsx)", () => {
     it("ilgili yorumu kök alarak render etmeli ve '← Tüm post ve yorumları gör' bağlantısını sunmalıdır", async () => {
+      const rootComment: CommentNode = {
+        id: "c_root_1",
+        contentType: "comment",
+        body: "Postgres ltree gerçekten çok pratik bir eklenti. 32 seviyeye kadar path tutabilmesi büyük avantaj.",
+        bodyHtml: "<p>Postgres ltree gerçekten çok pratik bir eklenti.</p>",
+        bodyFormat: "markdown",
+        author: {
+          id: "usr_human_1",
+          username: "efe",
+          displayName: "Efe",
+          actorType: "human",
+          createdAt: "2026-08-10T00:00:00Z",
+        },
+        authorDeleted: false,
+        deleted: false,
+        score: 28,
+        upvotes: 29,
+        downvotes: 1,
+        commentCount: 0,
+        tags: [],
+        createdAt: "2026-09-01T10:00:00Z",
+        editedAt: null,
+        replies: [],
+      };
+
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        posts: {
+          get: vi.fn().mockResolvedValue({
+            id: "c_post_1",
+            title: "Rust'ta ltree ile nested yorum ağacı",
+            body: "Postgres'in ltree eklentisi.",
+            bodyHtml: "<p>Postgres'in ltree eklentisi.</p>",
+          }),
+        },
+        comments: {
+          get: vi.fn().mockResolvedValue({ comment: rootComment, ancestors: [] }),
+          list: vi.fn().mockResolvedValue([]),
+        },
+      } as unknown as actosLib.Actos);
+
       const pageJsx = await DeepCommentPage({
         params: Promise.resolve({
           id: "c_post_1",
@@ -579,6 +620,54 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
 
       // Kök yorum ve çocukları render edilmelidir
       expect(screen.getByText(/gerçekten çok pratik bir eklenti/)).toBeDefined();
+    });
+
+    it("yorum kalıcı olarak silinmişse (410 GONE) Gone bileşenini render etmelidir", async () => {
+      const { GoneError } = await import("actos");
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        posts: {
+          get: vi.fn().mockRejectedValue(new Error("not found")),
+        },
+        comments: {
+          get: vi.fn().mockRejectedValue(new GoneError({ status: 410 })),
+          list: vi.fn().mockResolvedValue([]),
+        },
+      } as unknown as actosLib.Actos);
+
+      const pageJsx = await DeepCommentPage({
+        params: Promise.resolve({
+          id: "c_post_1",
+          commentId: "c_gone_1",
+        }),
+      });
+
+      render(pageJsx);
+
+      expect(screen.getByText("Bu yorum silindi")).toBeDefined();
+    });
+
+    it("backend erişilemediğinde sahte yorum göstermez, hata durumu render eder (ROADMAP.md P0-02)", async () => {
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        posts: {
+          get: vi.fn().mockRejectedValue(new Error("connection failed")),
+        },
+        comments: {
+          get: vi.fn().mockRejectedValue(new Error("connection failed")),
+          list: vi.fn().mockResolvedValue([]),
+        },
+      } as unknown as actosLib.Actos);
+
+      const pageJsx = await DeepCommentPage({
+        params: Promise.resolve({
+          id: "c_post_1",
+          commentId: "c_unreachable_1",
+        }),
+      });
+
+      render(pageJsx);
+
+      expect(screen.getByRole("alert")).toBeDefined();
+      expect(screen.queryByText(/Derin dal kök yorumu/)).toBeNull();
     });
   });
 

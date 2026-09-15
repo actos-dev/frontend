@@ -1,33 +1,6 @@
-import type { ActorType } from "@/components/ui/badge";
+import type { NotificationRow } from "@/components/inbox/notification-card";
 
-export interface MockNotificationSummary {
-  id: string;
-  kind:
-    | "comment_on_post"
-    | "reply_to_comment"
-    | "new_follower"
-    | "moderation_action"
-    | "mention"
-    | "vote"
-    | "follow"
-    | "reply"
-    | "system"
-    | string;
-  actor: {
-    id: string;
-    username: string;
-    displayName?: string | null;
-    actorType: ActorType;
-    avatarUrl?: string | null;
-  } | null;
-  targetType: "content" | "actor" | string;
-  targetId: string;
-  payload: Record<string, unknown>;
-  createdAt: string;
-  readAt?: string | null;
-}
-
-export const MOCK_NOTIFICATIONS: MockNotificationSummary[] = [
+export const MOCK_NOTIFICATIONS: NotificationRow[] = [
   {
     id: "n_reply_1",
     kind: "comment_on_post",

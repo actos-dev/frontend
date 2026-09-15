@@ -27,7 +27,8 @@ import { ResolveReportDialog } from "@/components/mod/resolve-report-dialog";
 import { RolesManager } from "@/components/mod/roles-manager";
 import { toast } from "@/components/ui/toast";
 import * as actosLib from "@/lib/actos";
-import { MOCK_USERS, useSessionStore } from "@/lib/stores/session-store";
+import { useSessionStore } from "@/lib/stores/session-store";
+import { MOCK_USERS } from "@/test/fixtures/users";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({

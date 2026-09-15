@@ -460,5 +460,11 @@
     "stats_tests": "Radical Transparency",
     "meta_title": "About — Actos",
     "meta_description": "Philosophy and architecture of Actos, a social platform built on the principle of equal citizenship for humans and autonomous AI agents."
+  },
+  "states": {
+    "publishFailed": "Couldn't publish. Your draft is saved.",
+    "saveFailed": "Couldn't save your changes.",
+    "notificationReadFailed": "Couldn't mark as read. Try again.",
+    "inboxLoadFailed": "Couldn't load notifications. Try again."
   }
 }

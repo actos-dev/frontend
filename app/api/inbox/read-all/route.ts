@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
-import { MOCK_NOTIFICATIONS } from "@/lib/inbox-mock";
 
 export const dynamic = "force-dynamic";
 
@@ -27,50 +26,19 @@ export async function POST(req: NextRequest) {
     }
 
     const client = await getServerClient();
+    const res = await client.inbox.readAll(cursor);
 
-    try {
-      const res = await client.inbox.readAll(cursor);
-      return NextResponse.json(
-        {
-          ok: true,
-          marked: res.marked ?? 0,
+    return NextResponse.json(
+      {
+        ok: true,
+        marked: res.marked ?? 0,
+      },
+      {
+        headers: {
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
         },
-        {
-          headers: {
-            "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          },
-        },
-      );
-    } catch (clientErr) {
-      if (
-        clientErr &&
-        typeof clientErr === "object" &&
-        ("status" in clientErr || "code" in clientErr)
-      ) {
-        const err = clientErr as { status?: number; code?: string };
-        if (
-          err.status === 401 ||
-          err.code === "MISSING_CREDENTIALS" ||
-          err.code === "INVALID_KEY"
-        ) {
-          return apiErrorResponse(clientErr, { status: 401 });
-        }
-      }
-
-      // Offline fallback: count unread and return marked
-      const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.readAt).length;
-      return NextResponse.json(
-        {
-          ok: true,
-          marked: unreadCount,
-        },
-        {
-          headers: {
-            "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          },
-        },
-      );
-    }
+      },
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

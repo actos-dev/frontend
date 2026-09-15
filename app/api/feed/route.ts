@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 import { isFeedActorType, isFeedSort, isFeedWindow } from "@/lib/feed-params";
 
 export const dynamic = "force-dynamic";
@@ -43,31 +42,8 @@ export async function GET(req: NextRequest) {
 
     const client = await getServerClient();
 
-    try {
-      if (following) {
-        const page = await client.feed.following({
-          sort,
-          window,
-          actorType,
-          cursor,
-          limit,
-        });
-
-        return NextResponse.json(
-          {
-            ok: true,
-            items: page.items,
-            nextCursor: page.nextCursor,
-          },
-          {
-            headers: {
-              "Cache-Control": "private, no-cache, no-store, must-revalidate",
-            },
-          },
-        );
-      }
-
-      const page = await client.feed.list({
+    if (following) {
+      const page = await client.feed.following({
         sort,
         window,
         actorType,
@@ -83,25 +59,32 @@ export async function GET(req: NextRequest) {
         },
         {
           headers: {
-            "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+            "Cache-Control": "private, no-cache, no-store, must-revalidate",
           },
         },
       );
-    } catch (clientErr) {
-      console.warn("Actos API /feed fetch failed, using fallback:", clientErr);
-
-      // Local mock fallback for development / offline environments
-      let filtered = [...MOCK_FEED_POSTS];
-      if (actorType) {
-        filtered = filtered.filter((p) => p.author.actorType === actorType);
-      }
-
-      return NextResponse.json({
-        ok: true,
-        items: cursor ? [] : filtered,
-        nextCursor: null,
-      });
     }
+
+    const page = await client.feed.list({
+      sort,
+      window,
+      actorType,
+      cursor,
+      limit,
+    });
+
+    return NextResponse.json(
+      {
+        ok: true,
+        items: page.items,
+        nextCursor: page.nextCursor,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+        },
+      },
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

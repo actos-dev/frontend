@@ -18,7 +18,8 @@ import {
   saveStoredDraft,
   useEditorDraftStore,
 } from "@/lib/stores/editor-draft";
-import { MOCK_USERS, useSessionStore } from "@/lib/stores/session-store";
+import { useSessionStore } from "@/lib/stores/session-store";
+import { MOCK_USERS } from "@/test/fixtures/users";
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -447,6 +448,42 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
   });
 
   // =========================================================================
+  // 4b. Yayınlama Başarısız Olduğunda Taslak Korunur (ROADMAP.md P0-03)
+  // =========================================================================
+  describe("4b. Yayınlama Hatası — Taslak Korunur ve Net Mesaj Gösterilir", () => {
+    it("yayınlama başarısız olduğunda taslak silinmemeli ve 'Yayınlanamadı. Taslağın kaydedildi.' mesajı gösterilmelidir", async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ ok: false, code: "INTERNAL", detail: "Something broke" }),
+      });
+
+      render(<NewPostPage />);
+
+      const titleInput = screen.getByTestId("post-title-input") as HTMLInputElement;
+      const bodyTextarea = screen.getByTestId("markdown-textarea") as HTMLTextAreaElement;
+      const publishBtn = screen.getByTestId("publish-button");
+
+      fireEvent.change(titleInput, { target: { value: "Kaybolmaması gereken başlık" } });
+      fireEvent.change(bodyTextarea, { target: { value: "Kaybolmaması gereken içerik" } });
+
+      await act(async () => {
+        fireEvent.click(publishBtn);
+      });
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("Yayınlanamadı. Taslağın kaydedildi.");
+      });
+
+      // The draft is not cleared: the typed text is still there and still
+      // persisted to localStorage.
+      expect(titleInput.value).toBe("Kaybolmaması gereken başlık");
+      expect(bodyTextarea.value).toBe("Kaybolmaması gereken içerik");
+      expect(getStoredDraft()?.title).toBe("Kaybolmaması gereken başlık");
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
   // 5. Görsel Ekleme (Staged) Testleri (components/editor/image-uploader.tsx)
   // =========================================================================
   describe("5. Görsel Ekleme — Standalone yükleme yok, görseller gönderiyle birlikte gider", () => {
@@ -589,6 +626,36 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
       await waitFor(() => {
         expect(mockPush).toHaveBeenCalledWith(`/posts/${sampleAuthorPost.id}`);
       });
+    });
+
+    it("güncelleme başarısız olduğunda form içeriği korunmalı ve 'Değişiklikler kaydedilemedi.' mesajı gösterilmelidir (ROADMAP.md P0-03)", async () => {
+      useSessionStore.setState({
+        user: MOCK_USERS.humanUser,
+        status: "authenticated",
+      });
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ ok: false, code: "INTERNAL", detail: "Something broke" }),
+      } as unknown as Response);
+
+      render(<EditPostForm post={sampleAuthorPost} />);
+
+      const titleInput = screen.getByTestId("edit-title-input") as HTMLInputElement;
+      fireEvent.change(titleInput, { target: { value: "Kaybolmaması gereken değişiklik" } });
+
+      const updateBtn = screen.getByTestId("update-button");
+      await act(async () => {
+        fireEvent.click(updateBtn);
+      });
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("Değişiklikler kaydedilemedi.");
+      });
+
+      // The edited title stays in the form and the user is not redirected away.
+      expect(titleInput.value).toBe("Kaybolmaması gereken değişiklik");
+      expect(mockPush).not.toHaveBeenCalled();
     });
   });
 });

@@ -40,36 +40,26 @@ export async function GET(req: NextRequest) {
     const limit = Number.parseInt(searchParams.get("limit") || "25", 10);
 
     const client = await getServerClient();
+    const page = await client.feed.following({
+      sort,
+      window,
+      actorType,
+      cursor,
+      limit,
+    });
 
-    try {
-      const page = await client.feed.following({
-        sort,
-        window,
-        actorType,
-        cursor,
-        limit,
-      });
-
-      return NextResponse.json(
-        {
-          ok: true,
-          items: page.items,
-          nextCursor: page.nextCursor,
-        },
-        {
-          headers: {
-            "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          },
-        },
-      );
-    } catch (clientErr) {
-      console.warn("Actos API /feed/following fetch failed:", clientErr);
-      return NextResponse.json({
+    return NextResponse.json(
+      {
         ok: true,
-        items: [],
-        nextCursor: null,
-      });
-    }
+        items: page.items,
+        nextCursor: page.nextCursor,
+      },
+      {
+        headers: {
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
+        },
+      },
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

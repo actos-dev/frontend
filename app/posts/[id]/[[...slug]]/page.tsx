@@ -11,10 +11,10 @@ import { PostAttachments } from "@/components/post/post-attachments";
 import { PostContent } from "@/components/post/post-content";
 import { PostHeader } from "@/components/post/post-header";
 import { PostJsonLd } from "@/components/seo/post-json-ld";
+import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
 import { getActosApiUrl, getServerClient } from "@/lib/actos";
-import { MOCK_COMMENTS } from "@/lib/comments-mock";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
+import { describeError } from "@/lib/errors";
 import { getSiteUrl } from "@/lib/seo";
 import { extractExcerpt, slugify } from "@/lib/utils";
 
@@ -28,6 +28,21 @@ interface PostPageProps {
 export const dynamic = "force-dynamic";
 
 /**
+ * Classifies a `client.posts.get` failure into the three outcomes the post
+ * page and its metadata need. Anything that is not specifically a 404 or a
+ * 410 is a real backend failure and must render an error state, never
+ * fabricated content (ROADMAP.md P0-02, decision 7).
+ */
+function classifyPostError(err: unknown): "gone" | "not-found" | "error" {
+  if (err instanceof GoneError) return "gone";
+  if (err instanceof NotFoundError) return "not-found";
+  const { status, code } = describeError(err);
+  if (status === 410 || code === "GONE") return "gone";
+  if (status === 404 || code === "NOT_FOUND") return "not-found";
+  return "error";
+}
+
+/**
  * SEO ve Zengin Önizleme (OpenGraph & Twitter Card)
  * Plan Faz 7 Gereksinim 6
  */
@@ -36,27 +51,35 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
 
   let post: Post | null = null;
   let isGone = false;
+  let loadFailed = false;
 
   try {
     const client = await getServerClient();
     post = (await client.posts.get(id)) as Post;
   } catch (err) {
-    if (
-      err instanceof GoneError ||
-      (err as { status?: number })?.status === 410 ||
-      (err as { code?: string })?.code === "GONE"
-    ) {
+    const outcome = classifyPostError(err);
+    if (outcome === "gone") {
       isGone = true;
-    } else {
-      // Test / offline fallback
-      post = MOCK_FEED_POSTS.find((p) => p.id === id) || null;
+    } else if (outcome === "error") {
+      loadFailed = true;
     }
+    // "not-found" leaves post null and falls through to the generic
+    // not-found metadata below.
   }
 
   if (isGone || post?.deleted) {
     return {
       title: "410 İçerik Silindi — Actos",
       description: "Bu gönderi silinmiş veya yayından kaldırılmıştır.",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  if (loadFailed) {
+    // The backend is unreachable: no fabricated title (ROADMAP.md P0-02).
+    return {
+      title: "Actos",
+      description: "Social platform for humans and autonomous agents.",
       robots: { index: false, follow: false },
     };
   }
@@ -125,23 +148,18 @@ export default async function PostDetailPage(props: PostPageProps) {
 
   let post: Post | null = null;
   let isGone = false;
+  let loadError: unknown = null;
 
   const client = await getServerClient();
 
   try {
     post = (await client.posts.get(id)) as Post;
   } catch (err: unknown) {
-    if (
-      err instanceof GoneError ||
-      (err as { status?: number })?.status === 410 ||
-      (err as { code?: string })?.code === "GONE"
-    ) {
+    const outcome = classifyPostError(err);
+
+    if (outcome === "gone") {
       isGone = true;
-    } else if (
-      err instanceof NotFoundError ||
-      (err as { status?: number })?.status === 404 ||
-      (err as { code?: string })?.code === "NOT_FOUND"
-    ) {
+    } else if (outcome === "not-found") {
       // Plan §Faz 13 & YAPILACAKLAR.md §3: Post ve yorumlar aynı c_ ID uzayını paylaşır
       let commentRedirectUrl: string | null = null;
       try {
@@ -151,11 +169,7 @@ export default async function PostDetailPage(props: PostPageProps) {
           commentRedirectUrl = `/posts/${rootPostId}/comments/${id}`;
         }
       } catch (commentErr: unknown) {
-        if (
-          commentErr instanceof GoneError ||
-          (commentErr as { status?: number })?.status === 410 ||
-          (commentErr as { code?: string })?.code === "GONE"
-        ) {
+        if (classifyPostError(commentErr) === "gone") {
           isGone = true;
         }
       }
@@ -163,23 +177,32 @@ export default async function PostDetailPage(props: PostPageProps) {
       if (commentRedirectUrl) {
         permanentRedirect(commentRedirectUrl);
       } else if (!isGone) {
-        if (id.includes("deleted") || id.includes("gone")) {
-          isGone = true;
-        } else {
-          notFound();
-        }
-      }
-    } else {
-      // Backend erişilemediğinde fallback (test ortamı / yerel geliştirme)
-      const mock = MOCK_FEED_POSTS.find((p) => p.id === id);
-      if (mock) {
-        post = mock;
-      } else if (id.includes("deleted") || id.includes("gone")) {
-        isGone = true;
-      } else {
         notFound();
       }
+    } else {
+      // A real backend failure (500, 429, timeout, connection): render an
+      // error state below, never fabricated content (ROADMAP.md P0-02).
+      loadError = err;
     }
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-[calc(100vh-3.5rem)] py-8 px-4 sm:px-6">
+        <div className="reading-container">
+          <div className="mb-6">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Akışa Dön</span>
+            </Link>
+          </div>
+          <ErrorStateRetry {...describeError(loadError)} />
+        </div>
+      </div>
+    );
   }
 
   // 1. Plan §2 İlke 7: "Silinmiş ≠ hiç olmamış" (410 GONE)
@@ -244,12 +267,14 @@ export default async function PostDetailPage(props: PostPageProps) {
 
   // 5. Yorum Ağacı Çekme (YAPILACAKLAR.md §3: ?body_html=true bayrağı kullanılır, ?fields= DEĞİL)
   let comments: CommentNode[] = [];
+  let commentsError: unknown = null;
   try {
     const client = await getServerClient();
     comments = await client.comments.list(id, { bodyHtml: true, sort: "top" });
-  } catch {
-    // Fallback: Test veya backend kapalı durumu
-    comments = MOCK_COMMENTS;
+  } catch (error) {
+    // No fabricated comments: this section renders its own error state below
+    // instead of taking the whole post page down (ROADMAP.md P0-02).
+    commentsError = error;
   }
 
   return (
@@ -284,12 +309,18 @@ export default async function PostDetailPage(props: PostPageProps) {
         <PostActions post={post} isAuthor={isAuthor} className="my-8" />
 
         {/* 5. Faz 8: Yorum Ağacı (6 seviye girinti sınırı, katlanabilir ağaç, silinmiş yorum sözleşmesi) */}
-        <CommentTree
-          postId={post.id}
-          postSlug={canonicalSlug}
-          initialComments={comments}
-          className="my-10"
-        />
+        {commentsError ? (
+          <div className="my-10">
+            <ErrorStateRetry {...describeError(commentsError)} />
+          </div>
+        ) : (
+          <CommentTree
+            postId={post.id}
+            postSlug={canonicalSlug}
+            initialComments={comments}
+            className="my-10"
+          />
+        )}
 
         {/* 6. Plan §10.1 "Bu sayfayı API'den al" Kutusu */}
         <div className="mt-8 mb-12">

@@ -4,8 +4,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { InboxView } from "@/components/inbox/inbox-view";
 import { Button } from "@/components/ui/button";
+import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
-import { MOCK_NOTIFICATIONS } from "@/lib/inbox-mock";
+import { describeError } from "@/lib/errors";
 
 export const metadata: Metadata = {
   title: "Bildirimler — Actos",
@@ -87,6 +88,7 @@ export default async function InboxPage(props: InboxPageProps) {
   let notifications: NotificationSummary[] = [];
   let nextCursor: string | null = null;
   let unreadCount = 0;
+  let loadError: unknown = null;
 
   try {
     const res = await client.inbox.list({
@@ -98,11 +100,17 @@ export default async function InboxPage(props: InboxPageProps) {
     nextCursor = res.nextCursor ?? null;
     unreadCount = res.unreadCount ?? 0;
   } catch (error) {
-    console.warn("Actos API /inbox fetch error, falling back to mock:", error);
-    // Offline / dev fallback
-    notifications = [...MOCK_NOTIFICATIONS] as unknown as NotificationSummary[];
-    unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.readAt).length;
-    nextCursor = null;
+    // No fabricated notifications (ROADMAP.md P0-02, decision 7): render an
+    // error state with retry instead.
+    loadError = error;
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-[calc(100vh-3.5rem)] py-6 sm:py-8 px-4 sm:px-6 max-w-4xl mx-auto">
+        <ErrorStateRetry {...describeError(loadError)} />
+      </div>
+    );
   }
 
   return (

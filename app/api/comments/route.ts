@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
-import { MOCK_COMMENTS } from "@/lib/comments-mock";
 import { apiErrorResponse } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
@@ -24,36 +23,23 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    try {
-      const client = await getServerClient();
-      // YAPILACAKLAR.md §3: bodyHtml: true sends ?body_html=true (not ?fields=)
-      const comments = await client.comments.list(postId, {
-        sort: sort as "new" | "top",
-        parent,
-        bodyHtml: true,
-      });
+    const client = await getServerClient();
+    // YAPILACAKLAR.md §3: bodyHtml: true sends ?body_html=true (not ?fields=)
+    const comments = await client.comments.list(postId, {
+      sort: sort as "new" | "top",
+      parent,
+      bodyHtml: true,
+    });
 
-      return NextResponse.json(
-        { ok: true, data: comments },
-        {
-          status: 200,
-          headers: {
-            "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          },
+    return NextResponse.json(
+      { ok: true, data: comments },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
         },
-      );
-    } catch {
-      // Offline/Test fallback
-      return NextResponse.json(
-        { ok: true, data: MOCK_COMMENTS },
-        {
-          status: 200,
-          headers: {
-            "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          },
-        },
-      );
-    }
+      },
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

@@ -59,16 +59,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
       expect(rules.userAgent).toBe("*");
 
       // İzin verilen public yollar
-      const allowedPaths = [
-        "/",
-        "/posts/*",
-        "/u/*",
-        "/t/*",
-        "/tags",
-        "/search",
-        "/about",
-        "/themes",
-      ];
+      const allowedPaths = ["/", "/posts/*", "/u/*", "/t/*", "/tags", "/search", "/about"];
       expect(rules.allow).toEqual(allowedPaths);
 
       // Engellenen yollar
@@ -145,10 +136,6 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
       expect(tags).toBeDefined();
       expect(tags?.priority).toBe(0.8);
 
-      const themes = items.find((i) => i.url === "https://actos.com.tr/themes");
-      expect(themes).toBeDefined();
-      expect(themes?.priority).toBe(0.5);
-
       // Dinamik etiket rotaları
       const rustTag = items.find((i) => i.url === "https://actos.com.tr/t/rust");
       expect(rustTag).toBeDefined();
@@ -163,13 +150,16 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
       expect(postItem?.url).toBe("https://actos.com.tr/posts/p_101/postgres-ltree-yorum-agaclari");
     });
 
-    it("API çağrısı başarısız olduğunda sitemap mock verilerle güvenli fallback sağlamalıdır", async () => {
+    it("API çağrısı başarısız olduğunda sitemap yalnızca statik rotaları döndürür, sahte etiket veya gönderi üretmez (ROADMAP.md P0-02)", async () => {
       vi.spyOn(actosLib, "getServerClient").mockRejectedValue(new Error("Backend offline"));
 
       const items = await sitemap();
-      expect(items.length).toBeGreaterThan(4);
       expect(items.some((i) => i.url === "https://actos.com.tr/")).toBe(true);
-      expect(items.some((i) => i.url.includes("/posts/"))).toBe(true);
+      expect(items.some((i) => i.url === "https://actos.com.tr/about")).toBe(true);
+      expect(items.some((i) => i.url === "https://actos.com.tr/tags")).toBe(true);
+      // No fabricated dynamic routes when the backend is unreachable.
+      expect(items.some((i) => i.url.startsWith("https://actos.com.tr/t/"))).toBe(false);
+      expect(items.some((i) => i.url.includes("/posts/"))).toBe(false);
     });
   });
 

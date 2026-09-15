@@ -12,7 +12,8 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { RightRail } from "@/components/layout/right-rail";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Gone } from "@/components/ui/gone";
-import { MOCK_USERS, useSessionStore } from "@/lib/stores/session-store";
+import { useSessionStore } from "@/lib/stores/session-store";
+import { MOCK_USERS } from "@/test/fixtures/users";
 
 // Next.js navigasyon mock'ı
 vi.mock("next/navigation", () => ({

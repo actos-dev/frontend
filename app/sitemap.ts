@@ -1,7 +1,6 @@
 import type { Post, Tag } from "actos";
 import type { MetadataRoute } from "next";
 import { getServerClient } from "@/lib/actos";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 import { getSiteUrl } from "@/lib/seo";
 import { slugify } from "@/lib/utils";
 
@@ -35,12 +34,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.8,
     },
-    {
-      url: `${siteUrl}/themes`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
   ];
 
   // 2. Popüler Etiketler
@@ -49,14 +42,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const client = await getServerClient();
     const tagsPage = await client.tags.popular({ limit: 50 });
     tags = tagsPage.items;
-  } catch {
-    // Mock etiket fallback
-    const allMockTags = Array.from(new Set(MOCK_FEED_POSTS.flatMap((p) => p.tags || [])));
-    tags = allMockTags.map((name) => ({
-      name,
-      postCount: 1,
-      createdAt: now.toISOString(),
-    }));
+  } catch (error) {
+    // No fabricated tag routes: the sitemap just omits them until the next
+    // successful build (ROADMAP.md P0-02, decision 7).
+    console.warn("Actos API /tags fetch failed while building sitemap:", error);
   }
 
   const tagRoutes: MetadataRoute.Sitemap = tags.map((tag) => ({
@@ -72,8 +61,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const client = await getServerClient();
     const feedPage = await client.feed.list({ limit: 50 });
     posts = feedPage.items as unknown as Post[];
-  } catch {
-    posts = MOCK_FEED_POSTS;
+  } catch (error) {
+    // No fabricated post routes: the sitemap just omits them until the next
+    // successful build (ROADMAP.md P0-02, decision 7).
+    console.warn("Actos API /feed fetch failed while building sitemap:", error);
   }
 
   const postRoutes: MetadataRoute.Sitemap = posts

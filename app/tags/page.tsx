@@ -1,8 +1,9 @@
 import type { Tag } from "actos";
 import type { Metadata } from "next";
 import { TagsDirectory } from "@/components/tags/tags-directory";
+import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
-import { FALLBACK_TAGS } from "@/lib/tags";
+import { describeError } from "@/lib/errors";
 
 export const metadata: Metadata = {
   title: "Etiketler | Actos",
@@ -13,18 +14,16 @@ export const dynamic = "force-dynamic";
 
 export default async function TagsPage() {
   let popularTags: Tag[] = [];
+  let loadError: unknown = null;
 
   try {
     const client = await getServerClient();
     const page = await client.tags.popular({ limit: 100 });
     popularTags = page.items;
-  } catch (_err) {
-    // Graceful offline fallback
-    popularTags = FALLBACK_TAGS.map((t) => ({
-      name: t.name,
-      postCount: t.postCount,
-      createdAt: new Date().toISOString(),
-    }));
+  } catch (error) {
+    // No fabricated tags (ROADMAP.md P0-02, decision 7): render an error
+    // state with retry instead.
+    loadError = error;
   }
 
   return (
@@ -39,7 +38,11 @@ export default async function TagsPage() {
 
       {/* Etiketler Dizini Bileşeni */}
       <div className="px-4 sm:px-6 py-6">
-        <TagsDirectory initialTags={popularTags} />
+        {loadError ? (
+          <ErrorStateRetry {...describeError(loadError)} />
+        ) : (
+          <TagsDirectory initialTags={popularTags} />
+        )}
       </div>
     </div>
   );

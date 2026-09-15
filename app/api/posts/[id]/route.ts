@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 
 export const dynamic = "force-dynamic";
 
@@ -18,35 +17,18 @@ interface RouteParams {
 export async function GET(_req: NextRequest, props: RouteParams) {
   try {
     const { id } = await props.params;
+    const client = await getServerClient();
+    const post = await client.posts.get(id);
 
-    try {
-      const client = await getServerClient();
-      const post = await client.posts.get(id);
-
-      return NextResponse.json(
-        { ok: true, data: post },
-        {
-          status: 200,
-          headers: {
-            "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          },
+    return NextResponse.json(
+      { ok: true, data: post },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
         },
-      );
-    } catch (err: unknown) {
-      const mockPost = MOCK_FEED_POSTS.find((p) => p.id === id);
-      if (mockPost) {
-        return NextResponse.json(
-          { ok: true, data: mockPost },
-          {
-            status: 200,
-            headers: {
-              "Cache-Control": "private, no-cache, no-store, must-revalidate",
-            },
-          },
-        );
-      }
-      return apiErrorResponse(err);
-    }
+      },
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }
@@ -73,56 +55,21 @@ export async function PATCH(req: NextRequest, props: RouteParams) {
       });
     }
 
-    try {
-      const client = await getServerClient();
-      const updatedPost = await client.posts.update(id, {
-        title,
-        body,
-      });
+    const client = await getServerClient();
+    const updatedPost = await client.posts.update(id, {
+      title,
+      body,
+    });
 
-      return NextResponse.json(
-        { ok: true, data: updatedPost },
-        {
-          status: 200,
-          headers: {
-            "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          },
+    return NextResponse.json(
+      { ok: true, data: updatedPost },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
         },
-      );
-    } catch (err: unknown) {
-      const isConnectionError =
-        (err as { code?: string })?.code === "ECONNREFUSED" ||
-        (err as { name?: string })?.name === "APIConnectionError";
-
-      if (isConnectionError) {
-        const mockPost = MOCK_FEED_POSTS.find((p) => p.id === id) || {
-          id,
-          title: title || "Gönderi",
-          body: body || "",
-          createdAt: new Date().toISOString(),
-        };
-
-        return NextResponse.json(
-          {
-            ok: true,
-            data: {
-              ...mockPost,
-              title: title ?? mockPost.title,
-              body: body ?? mockPost.body,
-              editedAt: new Date().toISOString(),
-            },
-          },
-          {
-            status: 200,
-            headers: {
-              "Cache-Control": "private, no-cache, no-store, must-revalidate",
-            },
-          },
-        );
-      }
-
-      return apiErrorResponse(err);
-    }
+      },
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

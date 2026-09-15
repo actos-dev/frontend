@@ -2,7 +2,6 @@ import type { PostSort } from "actos";
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +21,11 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       .toLowerCase();
 
     if (!tagName) {
-      return NextResponse.json(
-        { ok: false, title: "Etiket adı geçersiz", detail: "Etiket adı boş olamaz" },
-        { status: 400 },
-      );
+      return apiErrorResponse({
+        status: 400,
+        code: "VALIDATION_FAILED",
+        detail: "Tag name cannot be empty",
+      });
     }
 
     const { searchParams } = new URL(req.url);
@@ -34,38 +34,24 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const limit = Number.parseInt(searchParams.get("limit") || "25", 10);
 
     const client = await getServerClient();
+    const page = await client.tags.posts(tagName, {
+      sort,
+      cursor,
+      limit,
+    });
 
-    try {
-      const page = await client.tags.posts(tagName, {
-        sort,
-        cursor,
-        limit,
-      });
-
-      return NextResponse.json(
-        {
-          ok: true,
-          items: page.items,
-          nextCursor: page.nextCursor,
-        },
-        {
-          headers: {
-            "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
-          },
-        },
-      );
-    } catch (_clientErr) {
-      // Offline fallback: filter mock posts by tag
-      const matched = MOCK_FEED_POSTS.filter((p) =>
-        p.tags?.some((t) => t.toLowerCase() === tagName),
-      );
-
-      return NextResponse.json({
+    return NextResponse.json(
+      {
         ok: true,
-        items: cursor ? [] : matched,
-        nextCursor: null,
-      });
-    }
+        items: page.items,
+        nextCursor: page.nextCursor,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+        },
+      },
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

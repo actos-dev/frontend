@@ -9,7 +9,6 @@ import { FeedNav } from "@/components/feed/feed-nav";
 import { PostCard } from "@/components/feed/post-card";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import * as actosLib from "@/lib/actos";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -369,13 +368,34 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
         ),
       ).toBeDefined();
     });
+
+    it("backend hata verdiğinde boş durum yerine hata ekranı render etmelidir (ROADMAP.md P0-02)", async () => {
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        auth: {
+          whoami: vi.fn().mockResolvedValue({
+            actor: { id: "usr_1", username: "efe" },
+            roles: ["user"],
+          }),
+        },
+        feed: {
+          following: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")),
+        },
+      } as unknown as Awaited<ReturnType<typeof actosLib.getServerClient>>);
+
+      const page = await FollowingPage({ searchParams: Promise.resolve({}) });
+      render(page);
+
+      // A failed fetch is not the same thing as "you follow no one".
+      expect(screen.queryByText("Henüz kimseyi takip etmiyorsun")).toBeNull();
+      expect(screen.getByRole("alert")).toBeDefined();
+    });
   });
 
   // ==========================================================================
   // 4. Ana Akış Sayfası (app/page.tsx) ve Fallback Dayanıklılığı
   // ==========================================================================
   describe("4. Ana Akış Sayfası (app/page.tsx)", () => {
-    it("backend kapalıyken zarif fallback verilerini render etmelidir", async () => {
+    it("backend kapalıyken sahte gönderi göstermez, hata ekranı render eder (ROADMAP.md P0-02)", async () => {
       vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
         auth: {
           whoami: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")),
@@ -388,8 +408,9 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       const page = await HomePage({ searchParams: Promise.resolve({}) });
       render(<TooltipProvider>{page}</TooltipProvider>);
 
-      // Fallback gönderilerden en az biri ekranda olmalıdır
-      expect(screen.getByText(MOCK_FEED_POSTS[0].title || "Rust'ta ltree")).toBeDefined();
+      // No fabricated posts: an error state with retry instead.
+      expect(screen.getByRole("alert")).toBeDefined();
+      expect(screen.queryByText(/Rust'ta ltree/)).toBeNull();
     });
 
     it("client.feed.list çağrısına asla 'fields' argümanı geçmemelidir (P0-01)", async () => {

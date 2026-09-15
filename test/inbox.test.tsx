@@ -1,16 +1,21 @@
 // @vitest-environment happy-dom
 
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { GoneError } from "actos";
+import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as readRoute from "@/app/api/inbox/[id]/read/route";
 import PostDetailPage from "@/app/posts/[id]/[[...slug]]/page";
 import { InboxView } from "@/components/inbox/inbox-view";
+import type { NotificationRow } from "@/components/inbox/notification-card";
 import { NotificationCard } from "@/components/inbox/notification-card";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Sidebar } from "@/components/layout/sidebar";
 import { toast } from "@/components/ui/toast";
+import * as actosLib from "@/lib/actos";
 import { useInboxPoll } from "@/lib/hooks/use-inbox-poll";
-import type { MockNotificationSummary } from "@/lib/inbox-mock";
-import { MOCK_USERS, useSessionStore } from "@/lib/stores/session-store";
+import { useSessionStore } from "@/lib/stores/session-store";
+import { MOCK_USERS } from "@/test/fixtures/users";
 
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
@@ -70,7 +75,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
      ========================================================================== */
   describe("1. Bildirim Türlerinin Doğru Render Edilmesi", () => {
     it("reply / comment_on_post türünü aktör bilgisi, ikon ve eylem metniyle render etmelidir", () => {
-      const replyNotif: MockNotificationSummary = {
+      const replyNotif: NotificationRow = {
         id: "n_reply_test",
         kind: "comment_on_post",
         actor: {
@@ -98,7 +103,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
     });
 
     it("reply_to_comment türünü 'yorumunuza yanıt verdi' metniyle render etmelidir", () => {
-      const replyToCommentNotif: MockNotificationSummary = {
+      const replyToCommentNotif: NotificationRow = {
         id: "n_reply_comment_test",
         kind: "reply_to_comment",
         actor: {
@@ -123,7 +128,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
     });
 
     it("mention türünü 'sizden bahsetti' metniyle ve @alıntıyla render etmelidir", () => {
-      const mentionNotif: MockNotificationSummary = {
+      const mentionNotif: NotificationRow = {
         id: "n_mention_test",
         kind: "mention",
         actor: {
@@ -147,7 +152,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
     });
 
     it("vote türünü 'gönderinizi beğendi' metniyle render etmelidir", () => {
-      const voteNotif: MockNotificationSummary = {
+      const voteNotif: NotificationRow = {
         id: "n_vote_test",
         kind: "vote",
         actor: {
@@ -170,7 +175,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
     });
 
     it("follow / new_follower türünü 'sizi takip etmeye başladı' ve profil bağlantısıyla render etmelidir", () => {
-      const followNotif: MockNotificationSummary = {
+      const followNotif: NotificationRow = {
         id: "n_follow_test",
         kind: "new_follower",
         actor: {
@@ -195,7 +200,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
     });
 
     it("system / moderation_action türünü 'Sistem' başlığı ve açıklamayla render etmelidir", () => {
-      const sysNotif: MockNotificationSummary = {
+      const sysNotif: NotificationRow = {
         id: "n_system_test",
         kind: "moderation_action",
         actor: null,
@@ -219,7 +224,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
      ========================================================================== */
   describe("2. Okunmamış Bildirim Vurgusu ve Rozetler", () => {
     it("okunmamış kartta vurgulu stil, indicator ve data-read='false' bulunmalıdır", () => {
-      const unreadNotif: MockNotificationSummary = {
+      const unreadNotif: NotificationRow = {
         id: "n_unread_1",
         kind: "comment_on_post",
         actor: { id: "1", username: "efe", actorType: "human" },
@@ -272,7 +277,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
 
       useSessionStore.setState({ unreadCount: 3 });
 
-      const notif: MockNotificationSummary = {
+      const notif: NotificationRow = {
         id: "n_to_read_1",
         kind: "comment_on_post",
         actor: { id: "1", username: "efe", actorType: "human" },
@@ -306,6 +311,65 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       // Session store sayacı 3'ten 2'ye inmeli
       expect(useSessionStore.getState().unreadCount).toBe(2);
       expect(handleRead).toHaveBeenCalledWith("n_to_read_1");
+    });
+
+    it("PATCH başarısız (non-2xx) döndüğünde iyimser okundu durumunu ve sayacı geri almalı, hata tostu göstermelidir (ROADMAP.md P0-02)", async () => {
+      const mockFetch = vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ code: "INTERNAL" }), {
+          status: 500,
+        }),
+      );
+      global.fetch = mockFetch;
+
+      useSessionStore.setState({ unreadCount: 3 });
+
+      const notif: NotificationRow = {
+        id: "n_fail_read_1",
+        kind: "comment_on_post",
+        actor: { id: "1", username: "efe", actorType: "human" },
+        targetType: "content",
+        targetId: "c_1",
+        payload: {},
+        createdAt: new Date().toISOString(),
+        readAt: null,
+      };
+
+      const handleRead = vi.fn();
+      render(<NotificationCard notification={notif} onRead={handleRead} />);
+
+      const markBtn = screen.getByTestId("mark-read-button");
+
+      await act(async () => {
+        fireEvent.click(markBtn);
+      });
+
+      // The write did not actually happen: the card must revert to unread
+      // instead of pretending it succeeded.
+      const card = screen.getByTestId("notification-card");
+      expect(card.getAttribute("data-read")).toBe("false");
+      expect(screen.getByTestId("mark-read-button")).toBeDefined();
+      expect(useSessionStore.getState().unreadCount).toBe(3);
+      expect(handleRead).not.toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalled();
+    });
+  });
+
+  describe("3b. PATCH /api/inbox/[id]/read Route Handler", () => {
+    it("backend çağrısı başarısız olduğunda sahte 204 yerine haritalanmış hatayı döndürmelidir (ROADMAP.md P0-02)", async () => {
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        inbox: {
+          read: vi.fn().mockRejectedValue({ status: 503, code: "NETWORK_ERROR" }),
+        },
+      } as unknown as actosLib.Actos);
+
+      const req = new NextRequest("http://localhost:3000/api/inbox/n_1/read", {
+        method: "PATCH",
+      });
+      const res = await readRoute.PATCH(req, { params: Promise.resolve({ id: "n_1" }) });
+
+      expect(res.status).toBe(503);
+      const body = await res.json();
+      expect(body.code).toBe("NETWORK_ERROR");
     });
   });
 
@@ -500,7 +564,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
      ========================================================================== */
   describe("6. Hedefi Silinmiş Bildirim Sözleşmesi", () => {
     it("hedefi silinmiş bildirim tıklandığında hedef linki post sayfasına yönlendirir", () => {
-      const deletedTargetNotif: MockNotificationSummary = {
+      const deletedTargetNotif: NotificationRow = {
         id: "n_deleted_post_target",
         kind: "comment_on_post",
         actor: { id: "1", username: "taylan_mod", actorType: "human" },
@@ -521,6 +585,15 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
     });
 
     it("silinmiş post hedefi açıldığında PostDetailPage 410 Gone ekranını render etmelidir", async () => {
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        posts: {
+          get: vi.fn().mockRejectedValue(new GoneError({ status: 410 })),
+        },
+        auth: {
+          whoami: vi.fn().mockRejectedValue(new Error("Anon")),
+        },
+      } as unknown as actosLib.Actos);
+
       const pageResult = await PostDetailPage({
         params: Promise.resolve({ id: "c_deleted_post_99" }),
       });
@@ -550,7 +623,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
     });
 
     it("Yanıtlar sekmesi seçildiğinde sadece yanıt bildirimleri filtrelenmelidir", async () => {
-      const mockItems: MockNotificationSummary[] = [
+      const mockItems: NotificationRow[] = [
         {
           id: "n_rep_1",
           kind: "comment_on_post",

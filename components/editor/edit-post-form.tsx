@@ -48,13 +48,19 @@ export function EditPostForm({ post }: EditPostFormProps) {
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => null);
-        throw new Error(errJson?.detail || "Gönderi güncellenemedi.");
+        console.error("Failed to save post changes:", errJson);
+        // The edited text stays in the form: it is never cleared on a
+        // failed save (ROADMAP.md P0-03).
+        toast.error(t("states.saveFailed"));
+        setIsSubmitting(false);
+        return;
       }
 
       toast.success(t("editor.success_updated") || "Gönderi güncellendi!");
       router.push(`/posts/${post.id}`);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Güncelleme sırasında bir hata oluştu.");
+      console.error("Failed to save post changes:", err);
+      toast.error(t("states.saveFailed"));
       setIsSubmitting(false);
     }
   };

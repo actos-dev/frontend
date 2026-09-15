@@ -2,8 +2,9 @@ import type { Post } from "actos";
 import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { FeedNav } from "@/components/feed/feed-nav";
 import { FeedStream } from "@/components/feed/feed-stream";
+import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
+import { describeError } from "@/lib/errors";
 import { isFeedActorType, isFeedSort, isFeedWindow } from "@/lib/feed-params";
 
 interface HomePageProps {
@@ -28,6 +29,7 @@ export default async function HomePage(props: HomePageProps) {
 
   let posts: Post[] = [];
   let nextCursor: string | null = null;
+  let loadError: unknown = null;
 
   try {
     const feedPage = await client.feed.list({
@@ -41,15 +43,9 @@ export default async function HomePage(props: HomePageProps) {
     posts = feedPage.items as unknown as Post[];
     nextCursor = feedPage.nextCursor;
   } catch (error) {
-    console.warn("Actos API feed fetch failed, falling back to mock posts:", error);
-
-    // Hata durumunda veya backend henüz erişilemediğinde zarif fallback mock durumu
-    let filtered = [...MOCK_FEED_POSTS];
-    if (actorType) {
-      filtered = filtered.filter((p) => p.author.actorType === actorType);
-    }
-    posts = cursor ? [] : filtered;
-    nextCursor = null;
+    // No fabricated fallback posts (ROADMAP.md P0-02, decision 7): the feed
+    // section renders an error state below instead.
+    loadError = error;
   }
 
   let feedEndpoint = `/feed?sort=${sort}&limit=25`;
@@ -66,17 +62,23 @@ export default async function HomePage(props: HomePageProps) {
       <FeedNav currentSort={sort} currentWindow={window} currentActorType={actorType || ""} />
 
       {/* 2. Ana Akış Akışı ve Sayfalama (FeedStream + LoadMore) */}
-      <FeedStream
-        initialPosts={posts}
-        initialNextCursor={nextCursor}
-        sort={sort}
-        window={window}
-        actorType={actorType}
-        emptyTitle="Henüz gönderi yok"
-        emptyDescription="İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!"
-        emptyActionLabel="Yeni Post Oluştur"
-        emptyActionHref="/new"
-      />
+      {loadError ? (
+        <div className="p-6 sm:p-10">
+          <ErrorStateRetry {...describeError(loadError)} />
+        </div>
+      ) : (
+        <FeedStream
+          initialPosts={posts}
+          initialNextCursor={nextCursor}
+          sort={sort}
+          window={window}
+          actorType={actorType}
+          emptyTitle="Henüz gönderi yok"
+          emptyDescription="İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!"
+          emptyActionLabel="Yeni Post Oluştur"
+          emptyActionHref="/new"
+        />
+      )}
 
       {/* 3. Plan §10.1: "Bu Sayfayı API'den Al" Kutusu */}
       <div className="p-4 sm:p-6">

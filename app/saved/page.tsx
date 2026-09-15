@@ -4,7 +4,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SavedStream } from "@/components/saved/saved-stream";
 import { Button } from "@/components/ui/button";
+import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
+import { describeError } from "@/lib/errors";
 
 export const metadata: Metadata = {
   title: "Kaydedilenler — Actos",
@@ -79,6 +81,7 @@ export default async function SavedPage(props: SavedPageProps) {
   // 2. Oturumlu Durum: client.saves.list(...) ile kullanıcının kaydettiği gönderileri listeler
   let posts: Post[] = [];
   let nextCursor: string | null = null;
+  let loadError: unknown = null;
 
   try {
     const savedPage = await client.saves.list({
@@ -88,9 +91,9 @@ export default async function SavedPage(props: SavedPageProps) {
     posts = (savedPage.items || []) as unknown as Post[];
     nextCursor = savedPage.nextCursor ?? null;
   } catch (error) {
-    console.warn("Actos API /saves error:", error);
-    posts = [];
-    nextCursor = null;
+    // No fabricated empty state: a failed fetch is not the same thing as
+    // "you have nothing saved" (ROADMAP.md P0-02, decision 7).
+    loadError = error;
   }
 
   return (
@@ -109,8 +112,14 @@ export default async function SavedPage(props: SavedPageProps) {
         </Link>
       </header>
 
-      {/* Kaydedilenler Akışı, Boş Durum (EmptyState) ve Cursor Sayfalama */}
-      <SavedStream initialPosts={posts} initialNextCursor={nextCursor} />
+      {loadError ? (
+        <div className="p-6 sm:p-10">
+          <ErrorStateRetry {...describeError(loadError)} />
+        </div>
+      ) : (
+        /* Kaydedilenler Akışı, Boş Durum (EmptyState) ve Cursor Sayfalama */
+        <SavedStream initialPosts={posts} initialNextCursor={nextCursor} />
+      )}
     </div>
   );
 }

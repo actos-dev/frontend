@@ -84,71 +84,33 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    try {
-      const client = await getServerClient();
-      const post = await client.posts.create({
-        title,
-        body,
-        tags,
-        files,
-        idempotencyKey,
-      });
+    const client = await getServerClient();
+    const post = await client.posts.create({
+      title,
+      body,
+      tags,
+      files,
+      idempotencyKey,
+    });
 
-      const postSlug =
-        (post as unknown as { slug?: string })?.slug || slugify(post.title || "post");
+    const postSlug = (post as unknown as { slug?: string })?.slug || slugify(post.title || "post");
 
-      return NextResponse.json(
-        {
-          ok: true,
-          data: {
-            id: post.id,
-            slug: postSlug,
-            post,
-          },
+    return NextResponse.json(
+      {
+        ok: true,
+        data: {
+          id: post.id,
+          slug: postSlug,
+          post,
         },
-        {
-          status: 201,
-          headers: {
-            "Cache-Control": "private, no-cache, no-store, must-revalidate",
-          },
+      },
+      {
+        status: 201,
+        headers: {
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
         },
-      );
-    } catch (err: unknown) {
-      // Offline/Dev fallback for resilience
-      const isConnectionError =
-        (err as { code?: string })?.code === "ECONNREFUSED" ||
-        (err as { name?: string })?.name === "APIConnectionError";
-
-      if (isConnectionError) {
-        const fallbackId = `c_post_${Date.now()}`;
-        const fallbackSlug = slugify(title);
-        return NextResponse.json(
-          {
-            ok: true,
-            data: {
-              id: fallbackId,
-              slug: fallbackSlug,
-              post: {
-                id: fallbackId,
-                slug: fallbackSlug,
-                title,
-                body,
-                tags,
-                createdAt: new Date().toISOString(),
-              },
-            },
-          },
-          {
-            status: 201,
-            headers: {
-              "Cache-Control": "private, no-cache, no-store, must-revalidate",
-            },
-          },
-        );
-      }
-
-      return apiErrorResponse(err);
-    }
+      },
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

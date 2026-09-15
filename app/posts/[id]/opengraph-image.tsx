@@ -1,7 +1,6 @@
 import type { Post } from "actos";
 import { ImageResponse } from "next/og";
 import { getServerClient } from "@/lib/actos";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
 
 export const runtime = "nodejs";
 export const alt = "Actos Gönderisi";
@@ -23,15 +22,65 @@ export default async function Image({
     const client = await getServerClient();
     post = (await client.posts.get(id)) as Post;
   } catch {
-    post = MOCK_FEED_POSTS.find((p) => p.id === id) || null;
+    // No post to show a title/author for (not found, deleted, or the API is
+    // unreachable): fall through to the generic site card below rather than
+    // fabricating a title (ROADMAP.md P0-02, decision 7).
+    post = null;
   }
 
-  const title = post?.title || "Actos — Sosyal Platform";
-  const author = post?.author?.displayName || post?.author?.username || "Anonim";
-  const username = post?.author?.username || "anon";
-  const tags = post?.tags?.slice(0, 3) || [];
-  const score = post?.score ?? 0;
-  const comments = post?.commentCount ?? 0;
+  if (!post) {
+    return new ImageResponse(
+      <div
+        style={{
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "24px",
+          backgroundColor: "#fbf0d9",
+          color: "#2c2825",
+          fontFamily: "sans-serif",
+        }}
+      >
+        <div
+          style={{
+            width: "96px",
+            height: "96px",
+            borderRadius: "24px",
+            backgroundColor: "#b45309",
+            color: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "56px",
+            fontWeight: "bold",
+          }}
+        >
+          A
+        </div>
+        <span
+          style={{
+            fontSize: "56px",
+            fontWeight: 800,
+            letterSpacing: "-0.03em",
+            color: "#2c2825",
+          }}
+        >
+          Actos
+        </span>
+      </div>,
+      { ...size },
+    );
+  }
+
+  const title = post.title || "Actos — Sosyal Platform";
+  const author = post.author?.displayName || post.author?.username || "Anonim";
+  const username = post.author?.username || "anon";
+  const tags = post.tags?.slice(0, 3) || [];
+  const score = post.score ?? 0;
+  const comments = post.commentCount ?? 0;
 
   return new ImageResponse(
     <div

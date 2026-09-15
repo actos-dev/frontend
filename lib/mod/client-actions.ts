@@ -1,18 +1,7 @@
 import type { Actos, AdminAction, Ban, Page, Report } from "actos";
-import { MOCK_ADMIN_ACTIONS, MOCK_BANS, MOCK_REPORTS } from "@/lib/mod-mock";
 
 // In-memory runtime tracking for bans and local actions if backend has partial endpoints
 const runtimeBans = new Map<string, Ban>();
-let initializedBans = false;
-
-function ensureInitialBans() {
-  if (!initializedBans) {
-    for (const b of MOCK_BANS) {
-      runtimeBans.set(b.username.toLowerCase(), b);
-    }
-    initializedBans = true;
-  }
-}
 
 /**
  * Lists reports with status filter and pagination.
@@ -21,29 +10,17 @@ export async function listReports(
   client: Actos,
   params?: { status?: string; cursor?: string; limit?: number },
 ): Promise<Page<Report>> {
-  try {
-    const admin = client.admin as unknown as Record<string, unknown>;
-    if (typeof admin?.reports === "function") {
-      return (
-        (await (admin.reports as (p?: unknown) => Promise<Page<Report>>)(params)) ?? {
-          items: [],
-          nextCursor: null,
-        }
-      );
-    }
-    if (client.admin?.reports?.list) {
-      return await client.admin.reports.list(params);
-    }
-  } catch (error) {
-    // If backend is unreachable, fallback to mock data
-    if ((error as { code?: string })?.code === "ECONNREFUSED") {
-      let filtered = [...MOCK_REPORTS];
-      if (params?.status) {
-        filtered = filtered.filter((r) => r.status === params.status);
+  const admin = client.admin as unknown as Record<string, unknown>;
+  if (typeof admin?.reports === "function") {
+    return (
+      (await (admin.reports as (p?: unknown) => Promise<Page<Report>>)(params)) ?? {
+        items: [],
+        nextCursor: null,
       }
-      return { items: filtered, nextCursor: null };
-    }
-    throw error;
+    );
+  }
+  if (client.admin?.reports?.list) {
+    return await client.admin.reports.list(params);
   }
   return { items: [], nextCursor: null };
 }
@@ -117,8 +94,6 @@ export async function banActor(
     throw new Error("Ban gerekçesi zorunludur.");
   }
 
-  ensureInitialBans();
-
   const admin = client.admin as unknown as Record<string, unknown>;
   let ban: Ban | undefined;
 
@@ -149,8 +124,6 @@ export async function unbanActor(client: Actos, username: string): Promise<void>
     throw new Error("Kullanıcı adı zorunludur.");
   }
 
-  ensureInitialBans();
-
   const admin = client.admin as unknown as Record<string, unknown>;
   if (typeof admin?.unbanActor === "function") {
     await (admin.unbanActor as (u: string) => Promise<void>)(username);
@@ -166,8 +139,6 @@ export async function unbanActor(client: Actos, username: string): Promise<void>
  * Inspects client.admin.bans() or bans.list(), or actions audit log / runtime tracking.
  */
 export async function listBans(client: Actos): Promise<Ban[]> {
-  ensureInitialBans();
-
   const admin = client.admin as unknown as Record<string, unknown>;
   if (typeof admin?.bans === "function") {
     const result = await (admin.bans as () => Promise<Ban[] | { items: Ban[] }>)();
@@ -224,24 +195,17 @@ export async function listAuditLogs(
   client: Actos,
   params?: { cursor?: string; limit?: number },
 ): Promise<Page<AdminAction>> {
-  try {
-    const admin = client.admin as unknown as Record<string, unknown>;
-    if (typeof admin?.auditLogs === "function") {
-      return (
-        (await (admin.auditLogs as (p?: unknown) => Promise<Page<AdminAction>>)(params)) ?? {
-          items: [],
-          nextCursor: null,
-        }
-      );
-    }
-    if (client.admin?.actions?.list) {
-      return await client.admin.actions.list(params);
-    }
-  } catch (error) {
-    if ((error as { code?: string })?.code === "ECONNREFUSED") {
-      return { items: MOCK_ADMIN_ACTIONS, nextCursor: null };
-    }
-    throw error;
+  const admin = client.admin as unknown as Record<string, unknown>;
+  if (typeof admin?.auditLogs === "function") {
+    return (
+      (await (admin.auditLogs as (p?: unknown) => Promise<Page<AdminAction>>)(params)) ?? {
+        items: [],
+        nextCursor: null,
+      }
+    );
+  }
+  if (client.admin?.actions?.list) {
+    return await client.admin.actions.list(params);
   }
   return { items: [], nextCursor: null };
 }

@@ -14,8 +14,13 @@ import { cn, formatAccountAge } from "@/lib/utils";
 export interface ProfileHeaderProps {
   actor: Actor;
   stats: ActorStats;
-  followerCount?: number;
-  followingCount?: number;
+  /**
+   * The exact count, or `"50+"` when the backend page we fetched had more
+   * items than we asked for. `ActorStats` has no follower/following totals
+   * yet (ROADMAP.md P0-10), so this must never be an invented number.
+   */
+  followerCount?: number | string;
+  followingCount?: number | string;
   className?: string;
 }
 

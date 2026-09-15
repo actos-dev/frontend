@@ -2,7 +2,9 @@
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { Post } from "actos";
+import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as savedRoute from "@/app/api/saved/route";
 import SavedPage from "@/app/saved/page";
 import { FollowButton } from "@/components/actor/follow-button";
 import { PostCard } from "@/components/feed/post-card";
@@ -410,6 +412,40 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       expect(screen.getByTestId("saved-empty-state")).toBeDefined();
       expect(screen.getByText("Henüz kaydedilmiş bir gönderi yok")).toBeDefined();
       expect(screen.getByRole("link", { name: /Akışa Dön/i })).toBeDefined();
+    });
+
+    it("/saved sayfası backend hata verdiğinde boş durum yerine hata ekranı render etmelidir (ROADMAP.md P0-02)", async () => {
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        auth: {
+          whoami: vi.fn().mockResolvedValue({ actor: { id: "usr_me" } }),
+        },
+        saves: {
+          list: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")),
+        },
+      } as unknown as actosLib.Actos);
+
+      const pageJSX = await SavedPage({});
+      render(pageJSX);
+
+      // A failed fetch is not the same thing as "you saved nothing".
+      expect(screen.queryByTestId("saved-empty-state")).toBeNull();
+      expect(screen.getByRole("alert")).toBeDefined();
+    });
+
+    it("GET /api/saved returns a mapped error instead of a fake empty page when the backend call fails (ROADMAP.md P0-02)", async () => {
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        saves: {
+          list: vi.fn().mockRejectedValue({ status: 503, code: "NETWORK_ERROR" }),
+        },
+      } as unknown as actosLib.Actos);
+
+      const req = new NextRequest("http://localhost:3000/api/saved");
+      const res = await savedRoute.GET(req);
+
+      expect(res.status).toBe(503);
+      const body = await res.json();
+      expect(body.code).toBe("NETWORK_ERROR");
+      expect(body.items).toBeUndefined();
     });
   });
 

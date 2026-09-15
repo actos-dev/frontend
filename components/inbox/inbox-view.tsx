@@ -1,21 +1,20 @@
 "use client";
 
-import type { NotificationSummary } from "actos";
 import { CheckCheck, Inbox, Loader2 } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
-import { NotificationCard } from "@/components/inbox/notification-card";
+import { NotificationCard, type NotificationRow } from "@/components/inbox/notification-card";
 import { LoadMore } from "@/components/pagination/load-more";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
-import type { MockNotificationSummary } from "@/lib/inbox-mock";
+import { useTranslation } from "@/lib/i18n";
 import { useSessionStore } from "@/lib/stores/session-store";
 
 export type InboxFilterTab = "all" | "unread" | "replies" | "mentions";
 
 export interface InboxViewProps {
-  initialNotifications: Array<MockNotificationSummary | NotificationSummary>;
+  initialNotifications: NotificationRow[];
   initialNextCursor?: string | null;
   initialUnreadCount?: number;
 }
@@ -25,6 +24,7 @@ export function InboxView({
   initialNextCursor = null,
   initialUnreadCount = 0,
 }: InboxViewProps) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<InboxFilterTab>("all");
   const [notifications, setNotifications] = useState(initialNotifications);
   const [nextCursor, setNextCursor] = useState(initialNextCursor);
@@ -62,9 +62,13 @@ export function InboxView({
           if (typeof data.unreadCount === "number") {
             setUnreadCount(data.unreadCount);
           }
+        } else {
+          // Keep showing the previously loaded notifications rather than
+          // substituting fabricated data (ROADMAP.md decision 7).
+          toast.error(t("states.inboxLoadFailed"));
         }
       } catch {
-        // keep current state on error
+        toast.error(t("states.inboxLoadFailed"));
       }
     });
   };
@@ -75,6 +79,7 @@ export function InboxView({
 
     setIsMarkingAll(true);
     const prevNotifications = [...notifications];
+    const prevUnreadCount = unreadCount;
 
     // Optimistically mark all loaded notifications as read
     const nowIso = new Date().toISOString();
@@ -94,11 +99,16 @@ export function InboxView({
       if (res.ok) {
         toast.success("Tüm bildirimler okundu olarak işaretlendi.");
       } else {
-        toast.success("Tüm bildirimler okundu olarak işaretlendi.");
+        // The write did not actually happen: undo the optimistic update
+        // instead of reporting success (ROADMAP.md decision 7).
+        setNotifications(prevNotifications);
+        setUnreadCount(prevUnreadCount);
+        toast.error("Bildirimler okundu olarak işaretlenemedi.");
       }
     } catch {
       // Revert on serious network failure
       setNotifications(prevNotifications);
+      setUnreadCount(prevUnreadCount);
       toast.error("Bildirimler okundu olarak işaretlenemedi.");
     } finally {
       setIsMarkingAll(false);
@@ -124,14 +134,18 @@ export function InboxView({
         const newItems = data.notifications || [];
         setNotifications((prev) => {
           const existingIds = new Set(prev.map((n) => n.id));
-          const freshItems = newItems.filter((n: NotificationSummary) => !existingIds.has(n.id));
+          const freshItems = newItems.filter((n: NotificationRow) => !existingIds.has(n.id));
           return [...prev, ...freshItems];
         });
         setNextCursor(data.nextCursor ?? null);
         if (typeof data.unreadCount === "number") {
           setUnreadCount(data.unreadCount);
         }
+      } else {
+        toast.error(t("states.inboxLoadFailed"));
       }
+    } catch {
+      toast.error(t("states.inboxLoadFailed"));
     } finally {
       setIsLoadingMore(false);
     }

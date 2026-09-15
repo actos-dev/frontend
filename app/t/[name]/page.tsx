@@ -4,8 +4,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { TagStream } from "@/components/tags/tag-stream";
+import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
-import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
+import { describeError } from "@/lib/errors";
 import { getSiteUrl } from "@/lib/seo";
 
 interface TagPageProps {
@@ -61,6 +62,7 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
   let posts: Post[] = [];
   let nextCursor: string | null = null;
   let totalCount: number = 0;
+  let loadError: unknown = null;
 
   try {
     const client = await getServerClient();
@@ -84,14 +86,29 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
     } catch {
       // Ignore count fetch error
     }
-  } catch (_err) {
-    // Offline fallback: filter mock posts by tag
-    const matched = MOCK_FEED_POSTS.filter((p) =>
-      p.tags?.some((t) => t.toLowerCase() === decodedName),
+  } catch (error) {
+    // No fabricated posts (ROADMAP.md P0-02, decision 7): render an error
+    // state with retry instead.
+    loadError = error;
+  }
+
+  if (loadError) {
+    return (
+      <div className="space-y-6">
+        <div className="border-b border-border/60 pb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-surface-2 border border-border flex items-center justify-center shadow-xs text-primary">
+              <Hash className="w-6 h-6" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold font-serif text-foreground tracking-tight flex items-center gap-1">
+              <span className="text-primary font-bold">#</span>
+              <span>{decodedName}</span>
+            </h1>
+          </div>
+        </div>
+        <ErrorStateRetry {...describeError(loadError)} />
+      </div>
     );
-    posts = cursor ? [] : matched;
-    totalCount = matched.length;
-    nextCursor = null;
   }
 
   return (

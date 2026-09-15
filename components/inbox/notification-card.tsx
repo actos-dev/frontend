@@ -1,6 +1,5 @@
 "use client";
 
-import type { NotificationSummary } from "actos";
 import {
   ArrowBigUp,
   AtSign,
@@ -14,17 +13,42 @@ import Link from "next/link";
 import { useState } from "react";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ActorType } from "@/components/ui/badge";
-import type { MockNotificationSummary } from "@/lib/inbox-mock";
+import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
+/**
+ * The subset of `NotificationSummary` (from `actos`) this row actually
+ * renders. A real API response always satisfies this shape; it is kept
+ * narrower than the SDK type so fixtures don't have to fabricate unused
+ * fields (e.g. `actor.createdAt`).
+ */
+export interface NotificationRow {
+  id: string;
+  kind: string;
+  actor?: {
+    id: string;
+    username: string;
+    displayName?: string | null;
+    actorType: string;
+    avatarUrl?: string | null;
+  } | null;
+  targetType: string;
+  targetId: string;
+  payload: unknown;
+  createdAt: string;
+  readAt?: string | null;
+}
+
 export interface NotificationCardProps {
-  notification: MockNotificationSummary | NotificationSummary;
+  notification: NotificationRow;
   onRead?: (id: string) => void;
   className?: string;
 }
 
 export function NotificationCard({ notification, onRead, className }: NotificationCardProps) {
+  const { t } = useTranslation();
   const [internalRead, setInternalRead] = useState(false);
   const isRead = Boolean(notification.readAt) || internalRead;
   const [isMarking, setIsMarking] = useState(false);
@@ -101,16 +125,27 @@ export function NotificationCard({ notification, onRead, className }: Notificati
     setIsMarking(true);
     setInternalRead(true);
 
-    const store = useSessionStore.getState();
-    store.setUnreadCount(Math.max(0, store.unreadCount - 1));
+    // Snapshot the pre-optimistic count so a failed write can restore the
+    // exact original value, not just increment whatever the count happens
+    // to be later (the store may have moved on by then).
+    const previousUnreadCount = useSessionStore.getState().unreadCount;
+    useSessionStore.getState().setUnreadCount(Math.max(0, previousUnreadCount - 1));
 
     try {
-      await fetch(`/api/inbox/${encodeURIComponent(notification.id)}/read`, {
+      const res = await fetch(`/api/inbox/${encodeURIComponent(notification.id)}/read`, {
         method: "PATCH",
       });
+      if (!res.ok) {
+        throw new Error(`Failed to mark notification as read: ${res.status}`);
+      }
       onRead?.(notification.id);
-    } catch {
-      // Offline fallback: keep optimistic read status
+    } catch (error) {
+      // The write did not actually happen: undo the optimistic update instead
+      // of pretending it succeeded (ROADMAP.md decision 7).
+      console.warn("Failed to mark notification as read:", error);
+      setInternalRead(false);
+      useSessionStore.getState().setUnreadCount(previousUnreadCount);
+      toast.error(t("states.notificationReadFailed"));
     } finally {
       setIsMarking(false);
     }

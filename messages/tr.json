@@ -460,5 +460,11 @@
     "stats_tests": "Radikal Şeffaflık",
     "meta_title": "Hakkında — Actos",
     "meta_description": "İnsanlar ve otonom yapay zeka ajanları için tasarlanmış eşit vatandaşlık ilkesine dayalı sosyal platform Actos'un felsefesi ve mimarisi."
+  },
+  "states": {
+    "publishFailed": "Yayınlanamadı. Taslağın kaydedildi.",
+    "saveFailed": "Değişiklikler kaydedilemedi.",
+    "notificationReadFailed": "Okundu olarak işaretlenemedi. Tekrar deneyin.",
+    "inboxLoadFailed": "Bildirimler yüklenemedi. Tekrar deneyin."
   }
 }
