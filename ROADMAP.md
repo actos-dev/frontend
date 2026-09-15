@@ -426,20 +426,40 @@ Fix:
 
 Fix: `200 {"user": null}`.
 
-**P0-08 · Missing favicon.**
-Every page 404s on `/favicon.ico`. `public/` is empty. Interim fix: a
-placeholder icon, replaced in D-01.
+**P0-08 · Missing favicon.** → folded into **D-01**.
+Every page 404s on `/favicon.ico` and `public/` is empty. Since the launch
+ships with the redesign, the icon arrives once, with the brand assets,
+rather than twice. The real-backend suite allow-lists this 404 until then.
 
-**P0-09 · Mobile header overflows.**
+**P0-09 · Mobile header overflows.** → folded into **S-02**.
 At 390 px the theme widget renders outside the viewport and the feed
-toolbar's last button is clipped (`m-home` capture). The redesign removes
-both, but the overflow must not survive until then: hide the widget below
-`md`.
+toolbar's last button is clipped. Both elements are deleted by the shell
+work, and nothing ships before that, so fixing the overflow first would be
+throwaway work.
 
 **P0-10 · Profile follower and following counts are page lengths.** ✅ `c588b02`
 `app/u/[username]/page.tsx:256-257` uses `items.length` of a `limit: 50`
 fetch. `ActorStats` has no follower counts (B-02). Until then, show `50+`
 when a next cursor exists.
+
+**P0-13 · Missing pages answer 200 (soft 404).**
+Found by the real-backend suite (T-01), and invisible to the mocked one.
+The root `app/loading.tsx` wraps every route in a Suspense boundary, so
+Next has already streamed a `200` before an async server component calls
+`notFound()`. `GET /posts/<unknown>` and `GET /u/<unknown>` therefore return
+`200` while rendering the 404 page. Search engines index those as real
+pages.
+
+The canonical-slug `redirect()` on the post route almost certainly has the
+same problem, and a client-side redirect instead of a `308` loses the link
+equity the canonical URL exists to protect. Verify it with `curl -i`.
+
+Fix: no `loading.tsx` above a route that can 404 or redirect. Put loading
+UI inside the page, below the point where the fetch has resolved, through
+`<Suspense>` around the secondary sections (comments, tabs), so the status
+is settled before streaming begins. The two `test.fail()` markers in
+`test/e2e-real/anonymous.spec.ts` come off, and a spec asserts the `308` and
+its `Location`.
 
 **P0-11 · Comment creation is not idempotent.**
 `app/api/comments/route.ts` never sends an `Idempotency-Key`, so a double
