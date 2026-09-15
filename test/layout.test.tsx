@@ -106,14 +106,33 @@ describe("Faz 3 — Uygulama Kabuğu ve Düzen Bileşenleri", () => {
      2. Sağ Ray (RightRail) (§4.1)
      ========================================================================== */
   describe("2. Sağ Ray (RightRail)", () => {
-    it("Popüler etiketler kartını ve sayaçlarını listelemelidir", () => {
-      render(<RightRail />);
-      expect(screen.getByRole("heading", { name: /Popüler Etiketler/i })).toBeDefined();
+    const sampleTags = [
+      { name: "rust", count: 128 },
+      { name: "postgres", count: 94 },
+    ];
+
+    it("gerçek etiket verisi verildiğinde popüler etiketler kartını ve sayaçlarını listelemelidir (P0-05)", () => {
+      render(<RightRail tags={sampleTags} />);
+      expect(screen.getByRole("heading", { name: /Popular tags/i })).toBeDefined();
       expect(screen.getByText("rust")).toBeDefined();
       expect(screen.getByText("128")).toBeDefined();
       expect(screen.getByText("postgres")).toBeDefined();
       expect(screen.getByText("94")).toBeDefined();
       expect(screen.getByRole("link", { name: /Tüm etiketleri keşfet/i })).toBeDefined();
+    });
+
+    it("tags null olduğunda veya hiç verilmediğinde popüler etiketler bölümünü hiç render etmemelidir (P0-05)", () => {
+      const { rerender } = render(<RightRail tags={null} />);
+      expect(screen.queryByRole("heading", { name: /Popular tags/i })).toBeNull();
+      expect(screen.queryByText("rust")).toBeNull();
+
+      // Prop hiç verilmediğinde de (varsayılan undefined) aynı şekilde davranmalı;
+      // artık hardcoded DEFAULT_POPULAR_TAGS'e asla düşmemeli.
+      rerender(<RightRail />);
+      expect(screen.queryByRole("heading", { name: /Popular tags/i })).toBeNull();
+
+      rerender(<RightRail tags={[]} />);
+      expect(screen.queryByRole("heading", { name: /Popular tags/i })).toBeNull();
     });
 
     it("Actos nedir tanıtım kutusunu ve linklerini render etmelidir", () => {

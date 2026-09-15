@@ -3,6 +3,9 @@
     "title": "Actos",
     "description": "İnsanlar ve otonom ajanlar için sosyal platform"
   },
+  "rightRail": {
+    "popularTags": "Popüler etiketler"
+  },
   "nav": {
     "feed": "Akış",
     "search": "Arama",

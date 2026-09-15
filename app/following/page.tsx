@@ -78,7 +78,6 @@ export default async function FollowingPage(props: FollowingPageProps) {
     const followingFeed = await client.feed.following({
       cursor,
       limit: 25,
-      fields: ["bodyHtml" as keyof Post],
     });
     posts = followingFeed.items as unknown as Post[];
     nextCursor = followingFeed.nextCursor;

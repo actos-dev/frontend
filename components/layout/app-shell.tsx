@@ -9,6 +9,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { RightRail } from "@/components/layout/right-rail";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useKeyboardShortcuts } from "@/lib/hooks/use-keyboard-shortcuts";
+import type { PopularTag } from "@/lib/tags";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -16,6 +17,8 @@ interface AppShellProps {
   rightRail?: React.ReactNode;
   hideRightRail?: boolean;
   wide?: boolean;
+  /** Real popular-tags data fetched server-side (P0-05); null when unavailable. */
+  popularTags?: PopularTag[] | null;
 }
 
 export function AppShell({
@@ -23,6 +26,7 @@ export function AppShell({
   rightRail,
   hideRightRail = false,
   wide = false,
+  popularTags,
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const pathname = usePathname();
@@ -72,7 +76,7 @@ export function AppShell({
         */}
         {!shouldHideRightRail && (
           <div className="hidden xl:block w-[320px] shrink-0 sticky top-0 h-screen overflow-y-auto z-10">
-            {rightRail || <RightRail />}
+            {rightRail || <RightRail tags={popularTags} />}
           </div>
         )}
       </div>

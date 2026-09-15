@@ -73,6 +73,9 @@ export const useSessionStore = create<SessionState>((set) => ({
         cache: "no-store",
       });
 
+      // GET /api/session always answers 200 with `{ ok: true, user }`, where
+      // `user` is null for a signed-out visitor (P0-07). That is not an
+      // error state, just the normal signed-out shape.
       if (res.ok) {
         const data = await res.json();
         if (data.ok && data.user) {

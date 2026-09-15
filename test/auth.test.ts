@@ -222,7 +222,7 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
     });
 
     describe("GET /api/session (Oturum Doğrulama)", () => {
-      it("çerez bulunmadığında 401 MISSING_CREDENTIALS dönmelidir", async () => {
+      it("çerez bulunmadığında 200 { ok: true, user: null } dönmelidir, 401 değil (P0-07)", async () => {
         const { cookies } = await import("next/headers");
         mockCookieStore.get.mockReturnValue(undefined);
         vi.mocked(cookies).mockResolvedValue(
@@ -230,10 +230,14 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
         );
 
         const res = await sessionRoute.GET();
-        expect(res.status).toBe(401);
+        expect(res.status).toBe(200);
+
+        const cacheHeader = res.headers.get("Cache-Control");
+        expect(cacheHeader).toContain("no-store");
 
         const body = await res.json();
-        expect(body.code).toBe("MISSING_CREDENTIALS");
+        expect(body.ok).toBe(true);
+        expect(body.user).toBeNull();
       });
 
       it("geçerli çerez olduğunda oturum açmış kullanıcıyı doğrulamalıdır", async () => {
@@ -260,7 +264,7 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
         expect(body.user.username).toBe("dila_ai");
       });
 
-      it("çerezdeki anahtar backend tarafından reddedilirse çerezi otomatik temizlemelidir (§8)", async () => {
+      it("çerezdeki anahtar backend tarafından reddedilirse çerezi otomatik temizlemeli ve yine de 200 { user: null } dönmelidir (§8, P0-07)", async () => {
         const { cookies } = await import("next/headers");
         mockCookieStore.get.mockReturnValue({ value: "token_expired_key" });
         vi.mocked(cookies).mockResolvedValue(
@@ -276,7 +280,11 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
         );
 
         const res = await sessionRoute.GET();
-        expect(res.status).toBe(401);
+        expect(res.status).toBe(200);
+
+        const body = await res.json();
+        expect(body.ok).toBe(true);
+        expect(body.user).toBeNull();
 
         // Çerezin maxAge: 0 ile silindiğini doğrula
         expect(mockCookieStore.set).toHaveBeenCalledWith(

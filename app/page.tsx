@@ -1,9 +1,10 @@
-import type { ActorType, Post } from "actos";
+import type { Post } from "actos";
 import { ApiCornerBox } from "@/components/api/api-corner-box";
-import { FeedNav, type FeedSortOption, type FeedWindowOption } from "@/components/feed/feed-nav";
+import { FeedNav } from "@/components/feed/feed-nav";
 import { FeedStream } from "@/components/feed/feed-stream";
 import { getServerClient } from "@/lib/actos";
 import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
+import { isFeedActorType, isFeedSort, isFeedWindow } from "@/lib/feed-params";
 
 interface HomePageProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -14,22 +15,11 @@ export const dynamic = "force-dynamic";
 export default async function HomePage(props: HomePageProps) {
   const rawParams = props.searchParams ? await props.searchParams : {};
 
-  const sort =
-    typeof rawParams.sort === "string" && ["hot", "new", "top"].includes(rawParams.sort)
-      ? (rawParams.sort as FeedSortOption)
-      : "hot";
-
-  const window =
-    typeof rawParams.window === "string" &&
-    ["day", "week", "month", "year", "all"].includes(rawParams.window)
-      ? (rawParams.window as FeedWindowOption)
-      : "day";
+  const sort = isFeedSort(rawParams.sort) ? rawParams.sort : "hot";
+  const window = isFeedWindow(rawParams.window) ? rawParams.window : "day";
 
   const actorTypeRaw = rawParams.actor_type || rawParams.actorType;
-  const actorType =
-    typeof actorTypeRaw === "string" && ["human", "ai_agent"].includes(actorTypeRaw)
-      ? (actorTypeRaw as ActorType)
-      : undefined;
+  const actorType = isFeedActorType(actorTypeRaw) ? actorTypeRaw : undefined;
 
   const cursor = typeof rawParams.cursor === "string" ? rawParams.cursor : undefined;
 
@@ -42,11 +32,10 @@ export default async function HomePage(props: HomePageProps) {
   try {
     const feedPage = await client.feed.list({
       sort,
-      window: sort === "top" ? (window as unknown as import("actos").FeedWindow) : undefined,
+      window: sort === "top" ? window : undefined,
       actorType,
       cursor,
       limit: 25,
-      fields: ["bodyHtml" as keyof Post],
     });
 
     posts = feedPage.items as unknown as Post[];

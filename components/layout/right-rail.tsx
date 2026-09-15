@@ -1,24 +1,14 @@
 import { ArrowRight, BookOpen, ExternalLink, Hash, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n";
+import type { PopularTag } from "@/lib/tags";
 import { cn } from "@/lib/utils";
 
-export interface PopularTag {
-  name: string;
-  count: number;
-}
-
-const DEFAULT_POPULAR_TAGS: PopularTag[] = [
-  { name: "rust", count: 128 },
-  { name: "postgres", count: 94 },
-  { name: "ai", count: 71 },
-  { name: "minio", count: 53 },
-  { name: "agents", count: 42 },
-  { name: "typescript", count: 38 },
-];
+export type { PopularTag };
 
 interface RightRailProps {
   className?: string;
-  tags?: PopularTag[];
+  tags?: PopularTag[] | null;
 }
 
 function GithubIcon({ className }: { className?: string }) {
@@ -35,57 +25,60 @@ function GithubIcon({ className }: { className?: string }) {
   );
 }
 
-export function RightRail({ className, tags = DEFAULT_POPULAR_TAGS }: RightRailProps) {
+export function RightRail({ className, tags }: RightRailProps) {
+  const { t } = useTranslation();
+
   return (
     <aside
       aria-label="Sağ Bilgi Paneli"
       className={cn("flex flex-col gap-5 py-5 px-4 h-full select-none", className)}
     >
-      {/* 1. Popüler Etiketler Kartı */}
-      <section
-        aria-labelledby="popular-tags-heading"
-        className="rounded-2xl bg-card border border-border/80 p-4 shadow-xs space-y-3"
-      >
-        <div className="flex items-center justify-between">
-          <h2
-            id="popular-tags-heading"
-            className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"
-          >
-            <TrendingUp className="w-3.5 h-3.5 text-primary" />
-            Popüler Etiketler
-          </h2>
-          <span className="text-[11px] text-muted-foreground">Haftalık</span>
-        </div>
+      {/* 1. Popüler Etiketler Kartı — gerçek veri yoksa hiç render edilmez (P0-05) */}
+      {tags && tags.length > 0 && (
+        <section
+          aria-labelledby="popular-tags-heading"
+          className="rounded-2xl bg-card border border-border/80 p-4 shadow-xs space-y-3"
+        >
+          <div className="flex items-center justify-between">
+            <h2
+              id="popular-tags-heading"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"
+            >
+              <TrendingUp className="w-3.5 h-3.5 text-primary" />
+              {t("rightRail.popularTags")}
+            </h2>
+          </div>
 
-        <ul className="space-y-1">
-          {tags.map((tag) => (
-            <li key={tag.name}>
-              <Link
-                href={`/t/${tag.name}`}
-                className="flex items-center justify-between py-1.5 px-2.5 rounded-lg text-xs font-medium text-foreground hover:bg-surface-2 transition-colors group cursor-pointer"
-              >
-                <span className="flex items-center gap-1.5 text-muted-foreground group-hover:text-foreground">
-                  <Hash className="w-3 h-3 text-muted-foreground/70 group-hover:text-primary transition-colors" />
-                  <span className="font-mono">{tag.name}</span>
-                </span>
-                <span className="text-[11px] font-mono text-muted-foreground group-hover:text-foreground">
-                  {tag.count}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+          <ul className="space-y-1">
+            {tags.map((tag) => (
+              <li key={tag.name}>
+                <Link
+                  href={`/t/${tag.name}`}
+                  className="flex items-center justify-between py-1.5 px-2.5 rounded-lg text-xs font-medium text-foreground hover:bg-surface-2 transition-colors group cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5 text-muted-foreground group-hover:text-foreground">
+                    <Hash className="w-3 h-3 text-muted-foreground/70 group-hover:text-primary transition-colors" />
+                    <span className="font-mono">{tag.name}</span>
+                  </span>
+                  <span className="text-[11px] font-mono text-muted-foreground group-hover:text-foreground">
+                    {tag.count}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
 
-        <div className="pt-1 border-t border-border/60">
-          <Link
-            href="/tags"
-            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline group pt-1"
-          >
-            <span>Tüm etiketleri keşfet</span>
-            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
-      </section>
+          <div className="pt-1 border-t border-border/60">
+            <Link
+              href="/tags"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline group pt-1"
+            >
+              <span>Tüm etiketleri keşfet</span>
+              <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* 2. Platform Tanıtım Kutusu (Actos nedir?) */}
       <section

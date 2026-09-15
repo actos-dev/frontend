@@ -68,7 +68,6 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
       limit: 25,
       cursor,
       sort: (sort as "hot" | "new" | "top") || "hot",
-      fields: ["bodyHtml" as keyof Post],
     });
 
     posts = page.items;

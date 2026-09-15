@@ -119,7 +119,6 @@ export async function GET(req: NextRequest) {
         const page = await client.search.comments(q, {
           cursor,
           limit,
-          fields: ["bodyHtml" as keyof Post],
         });
         return NextResponse.json({
           ok: true,
@@ -144,7 +143,6 @@ export async function GET(req: NextRequest) {
       const page = await client.search.posts(q, {
         cursor,
         limit,
-        fields: ["bodyHtml" as keyof Post],
       });
       return NextResponse.json({
         ok: true,

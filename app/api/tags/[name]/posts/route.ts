@@ -1,4 +1,4 @@
-import type { Post, PostSort } from "actos";
+import type { PostSort } from "actos";
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
@@ -40,7 +40,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         sort,
         cursor,
         limit,
-        fields: ["bodyHtml" as keyof Post],
       });
 
       return NextResponse.json(

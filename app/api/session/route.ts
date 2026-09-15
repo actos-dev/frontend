@@ -113,17 +113,23 @@ export async function POST(req: NextRequest) {
 /**
  * GET /api/session
  * Verifies current session by calling whoami using the cookie token.
+ *
+ * A signed-out visitor (no cookie, or a cookie the backend rejects) is not
+ * an error: it returns 200 with `{ ok: true, user: null }` so the browser
+ * never logs a console error on every anonymous page load (P0-07). An
+ * invalid or revoked token still clears the cookies, as before.
  */
 export async function GET() {
+  const noStoreHeaders = {
+    "Cache-Control": "private, no-cache, no-store, must-revalidate",
+  };
+
   const cookieStore = await cookies();
   const token =
     cookieStore.get(ACTOS_TOKEN_COOKIE)?.value || cookieStore.get(SESSION_TOKEN_COOKIE)?.value;
 
   if (!token) {
-    return apiErrorResponse(
-      { code: "MISSING_CREDENTIALS", status: 401 },
-      { status: 401, fallbackMessage: "Oturum açılmamış." },
-    );
+    return NextResponse.json({ ok: true, user: null }, { headers: noStoreHeaders });
   }
 
   try {
@@ -131,15 +137,8 @@ export async function GET() {
     const whoami = await client.auth.whoami();
     const user = mapWhoamiToSessionUser(whoami);
 
-    return NextResponse.json(
-      { ok: true, user },
-      {
-        headers: {
-          "Cache-Control": "private, no-cache, no-store, must-revalidate",
-        },
-      },
-    );
-  } catch (error) {
+    return NextResponse.json({ ok: true, user }, { headers: noStoreHeaders });
+  } catch {
     // If the token is rejected by the backend, clear invalid cookies immediately (§8)
     cookieStore.set(ACTOS_TOKEN_COOKIE, "", {
       httpOnly: true,
@@ -156,10 +155,7 @@ export async function GET() {
       maxAge: 0,
     });
 
-    return apiErrorResponse(error, {
-      status: 401,
-      fallbackMessage: "Oturum süresi dolmuş veya geçersiz.",
-    });
+    return NextResponse.json({ ok: true, user: null }, { headers: noStoreHeaders });
   }
 }
 

@@ -1,4 +1,3 @@
-import type { Post } from "actos";
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
@@ -17,7 +16,6 @@ export async function GET(req: NextRequest) {
       const page = await client.saves.list({
         cursor,
         limit,
-        fields: ["bodyHtml" as keyof Post],
       });
 
       return NextResponse.json(

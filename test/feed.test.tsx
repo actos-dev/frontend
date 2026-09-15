@@ -391,5 +391,32 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       // Fallback gönderilerden en az biri ekranda olmalıdır
       expect(screen.getByText(MOCK_FEED_POSTS[0].title || "Rust'ta ltree")).toBeDefined();
     });
+
+    it("client.feed.list çağrısına asla 'fields' argümanı geçmemelidir (P0-01)", async () => {
+      const feedListMock = vi.fn().mockResolvedValue({ items: [samplePost], nextCursor: null });
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        feed: { list: feedListMock },
+      } as unknown as Awaited<ReturnType<typeof actosLib.getServerClient>>);
+
+      await HomePage({ searchParams: Promise.resolve({}) });
+
+      expect(feedListMock).toHaveBeenCalledTimes(1);
+      expect(feedListMock.mock.calls[0][0]).not.toHaveProperty("fields");
+    });
+
+    it("geçersiz bir window değeri verildiğinde varsayılan 'day' değerine düşmelidir (P0-04)", async () => {
+      const feedListMock = vi.fn().mockResolvedValue({ items: [], nextCursor: null });
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        feed: { list: feedListMock },
+      } as unknown as Awaited<ReturnType<typeof actosLib.getServerClient>>);
+
+      await HomePage({
+        searchParams: Promise.resolve({ sort: "top", window: "year" }),
+      });
+
+      // "year" artık geçerli bir değer değil; sayfa sessizce "day"e düşer ve
+      // backend'e asla geçersiz bir window göndermez.
+      expect(feedListMock).toHaveBeenCalledWith(expect.objectContaining({ window: "day" }));
+    });
   });
 });

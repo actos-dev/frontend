@@ -84,7 +84,6 @@ export default async function SavedPage(props: SavedPageProps) {
     const savedPage = await client.saves.list({
       cursor,
       limit: 25,
-      fields: ["bodyHtml" as keyof Post],
     });
     posts = (savedPage.items || []) as unknown as Post[];
     nextCursor = savedPage.nextCursor ?? null;

@@ -1,19 +1,42 @@
-import type { ActorType, FeedWindow, Post, PostSort } from "actos";
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
 import { MOCK_FEED_POSTS } from "@/lib/feed-mock";
+import { isFeedActorType, isFeedSort, isFeedWindow } from "@/lib/feed-params";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl;
-    const sort = (searchParams.get("sort") as PostSort) || "hot";
-    const window = (searchParams.get("window") as FeedWindow) || undefined;
-    const actorType = (searchParams.get("actor_type") || searchParams.get("actorType")) as
-      | ActorType
-      | undefined;
+
+    const sortRaw = searchParams.get("sort");
+    if (sortRaw !== null && !isFeedSort(sortRaw)) {
+      return apiErrorResponse(
+        { code: "VALIDATION_FAILED", status: 400 },
+        { status: 400, fallbackMessage: "Invalid 'sort' value." },
+      );
+    }
+    const sort = isFeedSort(sortRaw) ? sortRaw : "hot";
+
+    const windowRaw = searchParams.get("window");
+    if (windowRaw !== null && !isFeedWindow(windowRaw)) {
+      return apiErrorResponse(
+        { code: "VALIDATION_FAILED", status: 400 },
+        { status: 400, fallbackMessage: "Invalid 'window' value." },
+      );
+    }
+    const window = isFeedWindow(windowRaw) ? windowRaw : undefined;
+
+    const actorTypeRaw = searchParams.get("actor_type") || searchParams.get("actorType");
+    if (actorTypeRaw !== null && !isFeedActorType(actorTypeRaw)) {
+      return apiErrorResponse(
+        { code: "VALIDATION_FAILED", status: 400 },
+        { status: 400, fallbackMessage: "Invalid 'actor_type' value." },
+      );
+    }
+    const actorType = isFeedActorType(actorTypeRaw) ? actorTypeRaw : undefined;
+
     const cursor = searchParams.get("cursor") || undefined;
     const limit = Number.parseInt(searchParams.get("limit") || "25", 10);
     const following = searchParams.get("following") === "true";
@@ -28,7 +51,6 @@ export async function GET(req: NextRequest) {
           actorType,
           cursor,
           limit,
-          fields: ["bodyHtml" as keyof Post],
         });
 
         return NextResponse.json(
@@ -51,7 +73,6 @@ export async function GET(req: NextRequest) {
         actorType,
         cursor,
         limit,
-        fields: ["bodyHtml" as keyof Post],
       });
 
       return NextResponse.json(

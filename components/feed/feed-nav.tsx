@@ -1,5 +1,6 @@
 "use client";
 
+import type { FeedWindow } from "actos";
 import {
   Calendar,
   Check,
@@ -18,7 +19,9 @@ import { toast } from "@/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export type FeedSortOption = "hot" | "new" | "top";
-export type FeedWindowOption = "day" | "week" | "month" | "year" | "all";
+// Derived from the SDK's FeedWindow type, so the UI never offers a window
+// value the backend does not accept (it returns 400 for anything else).
+export type FeedWindowOption = FeedWindow;
 export type FeedActorTypeOption = "" | "human" | "ai_agent" | (string & {});
 
 export interface FeedNavProps {
@@ -32,7 +35,6 @@ const TIME_WINDOWS: Array<{ value: FeedWindowOption; label: string }> = [
   { value: "day", label: "24 Saat" },
   { value: "week", label: "1 Hafta" },
   { value: "month", label: "1 Ay" },
-  { value: "year", label: "1 Yıl" },
   { value: "all", label: "Tüm Zamanlar" },
 ];
 
