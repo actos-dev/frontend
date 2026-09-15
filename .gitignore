@@ -31,3 +31,8 @@ pnpm-debug.log*
 
 # vitest
 vitest.config.ts.timestamp-*
+
+# real-backend e2e suite (test/e2e-real): local API keys and screenshots
+.e2e-real/
+/test-results/
+/playwright-report/

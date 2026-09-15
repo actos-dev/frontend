@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
-    exclude: [...configDefaults.exclude, "**/test/e2e/**", "**/.next/**"],
+    exclude: [...configDefaults.exclude, "**/test/e2e/**", "**/test/e2e-real/**", "**/.next/**"],
   },
   resolve: {
     alias: {
