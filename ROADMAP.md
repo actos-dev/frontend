@@ -328,7 +328,7 @@ backend ships them.
 This phase is correctness only, on the current visuals. Everything here is a
 real user-facing bug confirmed against the running backend.
 
-**P0-01 · Sparse fieldset bug empties every list (critical).**
+**P0-01 · Sparse fieldset bug empties every list (critical).** ✅ `a9b0c5d`
 `fields: ["bodyHtml"]` is sent as `?fields=body_html`. The backend treats
 `fields` as a sparse fieldset and returns only that key. `id`, `title`,
 `author` and `score` never arrive. It was verified by hand with curl, and the
@@ -390,7 +390,7 @@ exist, and their text is gone.
 Fix: return 503. The composer keeps the draft and shows "Couldn't publish.
 Your draft is saved."
 
-**P0-04 · `window=year` is not a backend value.**
+**P0-04 · `window=year` is not a backend value.** ✅ `a9b0c5d`
 The backend returns 400 for it, and the home page then falls into the mock
 path.
 
@@ -401,7 +401,7 @@ path.
 Fix: `day | week | month | all` only, with the SDK type used directly and an
 allow-list in the route handler.
 
-**P0-05 · Fake popular tags on every page.**
+**P0-05 · Fake popular tags on every page.** ✅ `a9b0c5d`
 `components/layout/right-rail.tsx:10-17` hardcodes `DEFAULT_POPULAR_TAGS`,
 and `app-shell.tsx:75` never passes real data.
 
@@ -421,7 +421,7 @@ Fix:
 - Saved state: `/saved` items are saved by definition. Elsewhere, see
   backend ask B-03.
 
-**P0-07 · Anonymous session probe logs a console error on every page.**
+**P0-07 · Anonymous session probe logs a console error on every page.** ✅ `a9b0c5d`
 `GET /api/session` returns 401 for signed-out visitors.
 
 Fix: `200 {"user": null}`.
@@ -509,7 +509,7 @@ Server components still render the first page, hydrated into the cache.
 This replaces the per-component `fetch` plus `useState` in `post-card.tsx`,
 `post-actions.tsx`, `comment-node.tsx` and `load-more.tsx`.
 
-**F-04 · Next 16.**
+**F-04 · Next 16.** ✅ `c06fdb8`
 Upgrade before the visual rewrite, not after it. Every file gets touched in
 Phases 2–6 anyway, and a new product should not launch on the previous major.
 
