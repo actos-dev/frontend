@@ -11,15 +11,21 @@
     "dark": "Koyu"
   },
   "rightRail": {
-    "popularTags": "Popüler etiketler"
+    "popularTags": "Popüler etiketler",
+    "newOnActos": "Actos'ta yeni",
+    "author": "Yazar",
+    "moreFrom": "@{username} kişisinden daha fazla",
+    "aboutTag": "#{tag} hakkında",
+    "postCount": "gönderi"
   },
   "nav": {
-    "feed": "Akış",
+    "feed": "Ana sayfa",
     "search": "Arama",
     "explore": "Keşfet",
     "tags": "Etiketler",
     "saved": "Kaydedilenler",
     "notifications": "Bildirimler",
+    "notificationsUnread": "Bildirimler ({count} okunmamış)",
     "profile": "Profil",
     "moderation": "Moderasyon",
     "newPost": "Yeni Post",
@@ -28,7 +34,80 @@
     "logout": "Çıkış yap",
     "settings": "Ayarlar",
     "themes": "Temalar",
-    "about": "Hakkında"
+    "about": "Hakkında",
+    "mainLabel": "Ana gezinme",
+    "mobileTabBarLabel": "Mobil sekme çubuğu",
+    "unreadBadge": "{count} okunmamış",
+    "communities": "Topluluklar",
+    "browseCommunities": "Keşfet",
+    "createCommunity": "Oluştur"
+  },
+  "accountMenu": {
+    "label": "Hesap menüsü",
+    "language": "Dil"
+  },
+  "shortcuts": {
+    "title": "Klavye kısayolları",
+    "description": "Farenize dokunmadan Actos'ta gezinin.",
+    "sectionNavigation": "Gezinme",
+    "sectionActions": "Eylemler",
+    "next": "Sonraki gönderiyi seç",
+    "prev": "Önceki gönderiyi seç",
+    "open": "Seçili gönderiyi aç",
+    "search": "Aramaya odaklan",
+    "escape": "Kapat veya seçimi kaldır",
+    "compose": "Yeni gönderi oluştur",
+    "upvote": "Seçili gönderiye oy ver",
+    "save": "Seçili gönderiyi kaydet",
+    "toggleHelp": "Bu yardımı aç/kapat",
+    "or": "veya"
+  },
+  "footer": {
+    "label": "Alt bilgi",
+    "about": "Hakkında",
+    "developers": "Geliştiriciler",
+    "rules": "Kurallar",
+    "terms": "Koşullar",
+    "privacy": "Gizlilik",
+    "copyright": "© 2026 Actos"
+  },
+  "stub": {
+    "comingSoon": "Bu sayfa yakında yayında.",
+    "developers": {
+      "title": "Geliştiriciler"
+    },
+    "rules": {
+      "title": "Kurallar"
+    },
+    "terms": {
+      "title": "Koşullar"
+    },
+    "privacy": {
+      "title": "Gizlilik"
+    }
+  },
+  "errorPages": {
+    "notFoundTitle": "Bu sayfa mevcut değil",
+    "notFoundDescription": "Bağlantı bozuk olabilir veya sayfa taşınmış olabilir. Okumaya devam etmek için akışa dönebilirsiniz.",
+    "backToFeed": "Akışa dön",
+    "errorBadge": "Bir sorun oluştu",
+    "errorTitle": "Bir şeyler ters gitti",
+    "errorDescription": "Beklenmedik bir hata bu sayfayı kesintiye uğrattı. Tekrar deneyebilirsiniz.",
+    "retry": "Tekrar dene",
+    "globalErrorTitle": "Actos'ta bir aksaklık oluştu",
+    "globalErrorDescription": "Uygulama yüklenirken bir sorun oluştu. Birazdan tekrar deneyin."
+  },
+  "commandPalette": {
+    "title": "Komut paleti",
+    "description": "Gönderilerde arama yapın, bir kişiye veya etikete atlayın ya da yeni bir gönderi başlatın.",
+    "placeholder": "Gönderi, @kişi veya #etiket ara…",
+    "newPost": "Yeni gönderi",
+    "noResults": "Henüz eşleşme yok. Yazmaya devam edin.",
+    "groupActions": "Eylemler",
+    "groupTags": "Etiketler",
+    "groupActors": "Kişiler",
+    "groupPosts": "Gönderiler",
+    "untitledPost": "Başlıksız gönderi"
   },
   "common": {
     "loading": "Yükleniyor...",

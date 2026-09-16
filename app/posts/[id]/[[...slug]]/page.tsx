@@ -6,14 +6,13 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { CommentTree } from "@/components/comments/comment-tree";
 import { PostActions } from "@/components/post/post-actions";
-import { PostApiBox } from "@/components/post/post-api-box";
 import { PostAttachments } from "@/components/post/post-attachments";
 import { PostContent } from "@/components/post/post-content";
 import { PostHeader } from "@/components/post/post-header";
 import { PostJsonLd } from "@/components/seo/post-json-ld";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
-import { getActosApiUrl, getServerClient } from "@/lib/actos";
+import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
 import { renderCommentTree } from "@/lib/render/comment-tree";
 import { excerpt } from "@/lib/render/excerpt";
@@ -343,11 +342,6 @@ export default async function PostDetailPage(props: PostPageProps) {
             className="my-10"
           />
         )}
-
-        {/* 6. Plan §10.1 "Bu sayfayı API'den al" Kutusu */}
-        <div className="mt-8 mb-12">
-          <PostApiBox postId={post.id} apiUrl={getActosApiUrl()} />
-        </div>
       </div>
     </div>
   );

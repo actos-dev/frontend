@@ -34,3 +34,30 @@ export async function getPopularTags(): Promise<PopularTag[] | null> {
     return null;
   }
 }
+
+/**
+ * The exact post count for one tag, for the tag page's right rail
+ * (ROADMAP.md S-03). There is no `GET /tags/{name}` endpoint, so this looks
+ * the tag up in the popular list first; a tag that doesn't crack the top
+ * 100 there falls back to the size of its own (live) posts page, which is
+ * an honest floor rather than an invented total.
+ *
+ * Returns `null` only on a real fetch failure — never fabricated (P0-02).
+ */
+export async function getTagPostCount(name: string): Promise<number | null> {
+  const client = getAnonymousClient();
+
+  try {
+    const popular = await client.tags.popular({ limit: 100 });
+    const match = popular.items.find((tag) => tag.name.toLowerCase() === name.toLowerCase());
+    if (match) {
+      return match.postCount;
+    }
+
+    const posts = await client.tags.posts(name, { limit: 25 });
+    return posts.items.length;
+  } catch (error) {
+    console.warn("Actos API tag post-count fetch failed:", error);
+    return null;
+  }
+}

@@ -3,22 +3,22 @@
 import {
   Bell,
   Bookmark,
-  Hash,
   Home,
   LogIn,
-  LogOut,
   PenSquare,
   Search,
+  Settings as SettingsIcon,
   Shield,
   UserPlus,
+  UserRound,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LocaleSwitcher } from "@/components/locale-switcher";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { Avatar, AvatarActorBadge, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import type { ComponentType } from "react";
+import { AccountMenu } from "@/components/layout/account-menu";
+import { ActorAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { FEATURE_COMMUNITIES } from "@/lib/features";
 import { useTranslation } from "@/lib/i18n";
 import { type SessionUser, useSessionStore } from "@/lib/stores/session-store";
 import { cn } from "@/lib/utils";
@@ -28,27 +28,34 @@ interface SidebarProps {
   user?: SessionUser | null;
   unreadCount?: number;
   onNavigate?: () => void;
+  onOpenShortcuts?: () => void;
 }
 
 interface NavItem {
   label: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   badge?: number | string | null;
   conditional?: "authenticated" | "moderator";
 }
 
+/**
+ * Desktop left nav (ROADMAP.md S-01). 240px with labels at >=1280px, a 72px
+ * icon rail from 768px up to that. Below 768px it isn't rendered at all —
+ * the mobile top bar and tab bar (mobile-header.tsx, mobile-nav.tsx) take
+ * over instead.
+ */
 export function Sidebar({
   className,
   user: propUser,
   unreadCount: propUnreadCount,
   onNavigate,
+  onOpenShortcuts = () => {},
 }: SidebarProps) {
   const { t } = useTranslation();
   const pathname = usePathname();
   const storeUser = useSessionStore((state) => state.user);
   const storeUnreadCount = useSessionStore((state) => state.unreadCount);
-  const logout = useSessionStore((state) => state.logout);
 
   const currentUser = propUser !== undefined ? propUser : storeUser;
   const currentUnread = propUnreadCount !== undefined ? propUnreadCount : storeUnreadCount;
@@ -56,20 +63,21 @@ export function Sidebar({
   const isAuth = !!currentUser;
   const isModOrAdmin = currentUser?.role === "admin" || currentUser?.role === "moderator";
 
-  const handleLogout = () => {
-    logout();
-  };
-
   const navItems: NavItem[] = [
     { label: t("nav.feed"), href: "/", icon: Home },
     { label: t("nav.search"), href: "/search", icon: Search },
-    { label: t("nav.tags"), href: "/tags", icon: Hash },
-    { label: t("nav.saved"), href: "/saved", icon: Bookmark },
     {
       label: t("nav.notifications"),
       href: "/inbox",
       icon: Bell,
       badge: currentUnread > 0 ? (currentUnread > 99 ? "99+" : currentUnread) : null,
+      conditional: "authenticated",
+    },
+    { label: t("nav.saved"), href: "/saved", icon: Bookmark },
+    {
+      label: t("nav.profile"),
+      href: currentUser?.username ? `/u/${currentUser.username}` : "/me",
+      icon: UserRound,
       conditional: "authenticated",
     },
     {
@@ -78,52 +86,56 @@ export function Sidebar({
       icon: Shield,
       conditional: "moderator",
     },
+    {
+      label: t("nav.settings"),
+      href: "/settings",
+      icon: SettingsIcon,
+      conditional: "authenticated",
+    },
   ];
 
-  // Filtrelenmiş menü öğeleri
   const visibleItems = navItems.filter((item) => {
     if (item.conditional === "authenticated") return isAuth;
     if (item.conditional === "moderator") return isModOrAdmin;
     return true;
   });
 
+  const accountLabel = currentUser
+    ? `${currentUser.displayName || currentUser.username} · @${currentUser.username}`
+    : "";
+
   return (
     <aside
-      aria-label="Sol Navigasyon"
       className={cn(
-        "flex flex-col justify-between h-full py-4 px-3 bg-background border-border select-none",
+        "flex h-full flex-col justify-between py-4 px-2.5 xl:px-4 bg-bg select-none",
         className,
       )}
     >
-      {/* Üst Kısım: Marka ve Navigasyon Menüsü */}
-      <div className="space-y-6">
-        {/* Marka / Logo */}
-        <div className="px-2">
+      <div className="space-y-5 min-w-0">
+        {/* Wordmark — no ✦ glyph, no v0.1 badge (ROADMAP K-07) */}
+        <div className="px-1 xl:px-2 flex justify-center xl:justify-start">
           <Link
             href="/"
             onClick={onNavigate}
-            className="group inline-flex items-center gap-2.5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-xl p-1"
+            aria-label={t("app.title")}
+            className="inline-flex items-baseline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ring-offset-bg rounded-md"
           >
-            <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-black text-lg shadow-xs group-hover:scale-105 transition-transform">
-              <span className="font-serif">✦</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xl font-bold tracking-tight text-foreground font-serif">
-                Actos
-              </span>
-              <Badge
-                variant="outline"
-                size="sm"
-                className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground border-border/80"
-              >
-                v0.1
-              </Badge>
-            </div>
+            <span
+              aria-hidden="true"
+              className="hidden xl:inline text-[22px] font-semibold tracking-tight text-fg"
+            >
+              {t("app.title")}
+            </span>
+            <span
+              aria-hidden="true"
+              className="xl:hidden text-[22px] font-semibold tracking-tight text-fg"
+            >
+              {t("app.title").slice(0, 1).toLowerCase()}
+            </span>
           </Link>
         </div>
 
-        {/* Menü Linkleri */}
-        <nav className="space-y-1" aria-label="Ana Menü">
+        <nav className="space-y-0.5" aria-label={t("nav.mainLabel")}>
           {visibleItems.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -137,134 +149,146 @@ export function Sidebar({
                 href={item.href}
                 onClick={onNavigate}
                 aria-current={isActive ? "page" : undefined}
+                aria-label={item.label}
                 className={cn(
-                  "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group cursor-pointer",
+                  "relative flex items-center gap-3 rounded-md px-2.5 xl:px-3 py-2 text-[15px] justify-center xl:justify-start transition-colors",
                   isActive
-                    ? "bg-surface-2 text-foreground font-semibold shadow-xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-2/60",
+                    ? "text-fg font-semibold"
+                    : "text-fg-muted hover:text-fg hover:bg-bg-subtle",
                 )}
               >
-                <div className="flex items-center gap-3">
-                  <Icon
-                    className={cn(
-                      "w-4 h-4 transition-colors",
-                      isActive
-                        ? "text-primary"
-                        : "text-muted-foreground group-hover:text-foreground",
-                    )}
+                {isActive && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent"
                   />
-                  <span>{item.label}</span>
-                </div>
+                )}
+                <Icon className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                <span aria-hidden="true" className="hidden xl:inline truncate">
+                  {item.label}
+                </span>
 
                 {item.badge != null && (
                   <span
                     role="status"
                     data-testid="inbox-badge"
-                    aria-label={`${item.badge} okunmamış bildirim`}
-                    className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold rounded-full bg-primary text-primary-foreground shadow-xs animate-in zoom-in-50"
+                    aria-label={t("nav.unreadBadge", { count: String(item.badge) })}
+                    className="hidden xl:inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 ml-auto text-[11px] font-semibold font-mono rounded-full bg-accent text-on-accent"
                   >
                     {item.badge}
                   </span>
+                )}
+                {item.badge != null && (
+                  <span
+                    aria-hidden="true"
+                    className="xl:hidden absolute top-1 right-2 h-2 w-2 rounded-full bg-accent"
+                  />
                 )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Belirgin "Yeni Post" Butonu */}
-        <div className="pt-2 px-1">
-          <Button
-            asChild
-            size="lg"
-            className="w-full justify-center gap-2 rounded-xl h-11 font-semibold text-sm shadow-xs hover:opacity-95 cursor-pointer"
-          >
-            <Link href="/new" onClick={onNavigate}>
-              <PenSquare className="w-4 h-4" />
-              <span>{t("nav.newPost")}</span>
+        {/* Primary "New post" button */}
+        <div className="pt-1 px-0.5">
+          <Button asChild size="md" className="w-full justify-center xl:justify-start gap-2">
+            <Link href="/new" onClick={onNavigate} aria-label={t("nav.newPost")}>
+              <PenSquare className="w-4 h-4" aria-hidden="true" />
+              <span aria-hidden="true" className="hidden xl:inline">
+                {t("nav.newPost")}
+              </span>
             </Link>
           </Button>
         </div>
+
+        {/* Communities section (ROADMAP §3): hidden behind FEATURE_COMMUNITIES
+            until the Phase 7 API lands. Only shown at the full nav width —
+            the icon rail has no room for a labeled section. */}
+        {FEATURE_COMMUNITIES && (
+          <div className="hidden xl:block pt-2">
+            <div className="flex items-center justify-between px-2.5 pb-1">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-fg-subtle">
+                {t("nav.communities")}
+              </span>
+            </div>
+            <Link
+              href="/communities"
+              onClick={onNavigate}
+              className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-fg-muted hover:text-fg hover:bg-bg-subtle transition-colors"
+            >
+              {t("nav.browseCommunities")}
+            </Link>
+            <Link
+              href="/communities/new"
+              onClick={onNavigate}
+              className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-fg-muted hover:text-fg hover:bg-bg-subtle transition-colors"
+            >
+              {t("nav.createCommunity")}
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* Alt Kısım: Tema Seçici ve Oturum / Profil Alanı */}
-      <div className="space-y-4 pt-4 border-t border-border/70 px-1">
-        {/* Tema ve Dil Seçici Bileşenleri */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Görünüm
-            </span>
-            <LocaleSwitcher showIcon={false} />
-          </div>
-          <ThemeSwitcher showLabels={false} className="w-full justify-between" />
-        </div>
-
-        {/* Profil / Oturum Durumu */}
+      {/* Account block: theme, language and log out live in the menu now
+          (ROADMAP S-01) — the old sidebar "Görünüm" box is gone (K-06), and
+          so is the signed-out "Fikrini paylaş" box (K-09). */}
+      <div className="pt-3 border-t border-border px-0.5">
         {currentUser ? (
-          <div className="flex items-center justify-between p-2 rounded-xl bg-surface-2/70 border border-border">
-            <Link
-              href={currentUser.username ? `/u/${currentUser.username}` : "/me"}
-              onClick={onNavigate}
-              className="flex items-center gap-2.5 min-w-0 flex-1 group focus-visible:outline-hidden"
-            >
-              <div className="relative shrink-0">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="text-xs">
-                    {currentUser.username.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <AvatarActorBadge actorType={currentUser.actorType} size="sm" />
-              </div>
-              <div className="min-w-0 flex-1 text-left">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold text-foreground truncate group-hover:underline">
-                    {currentUser.displayName || currentUser.username}
-                  </span>
-                  {currentUser.role !== "user" && (
-                    <Badge
-                      variant="outline"
-                      size="sm"
-                      className="text-[9px] px-1 py-0 border-border text-primary"
-                    >
-                      {currentUser.role === "admin" ? "Admin" : "Mod"}
-                    </Badge>
-                  )}
-                </div>
-                <span className="text-[11px] text-muted-foreground truncate block">
-                  @{currentUser.username}
-                </span>
-              </div>
-            </Link>
-
+          <AccountMenu
+            user={currentUser}
+            isModerator={isModOrAdmin}
+            onOpenShortcuts={onOpenShortcuts}
+            side="top"
+            align="start"
+          >
             <button
               type="button"
-              onClick={handleLogout}
-              title={t("nav.logout")}
-              aria-label={t("nav.logout")}
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+              aria-label={accountLabel}
+              className="flex w-full items-center gap-2.5 rounded-md p-1.5 xl:p-2 hover:bg-bg-subtle transition-colors cursor-pointer justify-center xl:justify-start"
             >
-              <LogOut className="w-4 h-4" />
+              <ActorAvatar
+                actorType={currentUser.actorType}
+                username={currentUser.username}
+                displayName={currentUser.displayName || undefined}
+                src={currentUser.avatarUrl}
+                size={28}
+              />
+              <span
+                aria-hidden="true"
+                className="hidden xl:flex min-w-0 flex-1 flex-col items-start text-left"
+              >
+                <span className="text-sm font-semibold text-fg truncate w-full">
+                  {currentUser.displayName || currentUser.username}
+                </span>
+                <span className="text-xs font-mono text-fg-subtle truncate w-full">
+                  @{currentUser.username}
+                </span>
+              </span>
             </button>
-          </div>
+          </AccountMenu>
         ) : (
-          <div className="space-y-2 p-2.5 rounded-xl bg-surface-2/40 border border-border">
-            <div className="text-xs text-muted-foreground text-center">
-              Fikrini paylaş, tartışmaya katıl
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button asChild variant="outline" size="sm" className="w-full text-xs">
-                <Link href="/login" onClick={onNavigate}>
-                  <LogIn className="w-3.5 h-3.5" />
-                  <span>{t("nav.login")}</span>
-                </Link>
-              </Button>
-              <Button asChild size="sm" className="w-full text-xs">
-                <Link href="/register" onClick={onNavigate}>
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>{t("nav.register")}</span>
-                </Link>
-              </Button>
-            </div>
+          <div className="flex flex-col gap-2">
+            <Button
+              asChild
+              variant="secondary"
+              size="sm"
+              className="w-full justify-center xl:justify-start gap-2"
+            >
+              <Link href="/login" onClick={onNavigate} aria-label={t("nav.login")}>
+                <LogIn className="w-3.5 h-3.5" aria-hidden="true" />
+                <span aria-hidden="true" className="hidden xl:inline">
+                  {t("nav.login")}
+                </span>
+              </Link>
+            </Button>
+            <Button asChild size="sm" className="w-full justify-center xl:justify-start gap-2">
+              <Link href="/register" onClick={onNavigate} aria-label={t("nav.register")}>
+                <UserPlus className="w-3.5 h-3.5" aria-hidden="true" />
+                <span aria-hidden="true" className="hidden xl:inline">
+                  {t("nav.register")}
+                </span>
+              </Link>
+            </Button>
           </div>
         )}
       </div>

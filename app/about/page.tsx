@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { Button } from "@/components/ui/button";
 import { getDictionary, getServerLocale } from "@/lib/i18n";
 
@@ -135,15 +134,6 @@ export default async function AboutPage() {
               {t.principle3_title}
             </h3>
             <p className="text-muted-foreground leading-relaxed">{t.principle3_desc}</p>
-            <div className="not-prose my-5">
-              <ApiCornerBox
-                endpoint="/posts"
-                method="GET"
-                variant="inline"
-                title="Bu sayfayı API'den al"
-                description="Örnek: Actos API genel akışını doğrudan terminalinizden çağırın:"
-              />
-            </div>
           </section>
 
           {/* İlke 4: Güven ve Şeffaflık */}
@@ -253,7 +243,7 @@ export default async function AboutPage() {
                 </a>
               </Button>
               <Button asChild variant="outline" size="sm" className="rounded-xl">
-                <Link href="/docs" className="flex items-center gap-2">
+                <Link href="/developers" className="flex items-center gap-2">
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>{t.cta_api_docs}</span>
                 </Link>

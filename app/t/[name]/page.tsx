@@ -2,7 +2,6 @@ import type { Post } from "actos";
 import { Hash } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { TagStream } from "@/components/tags/tag-stream";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient, hasSessionCookie } from "@/lib/actos";
@@ -158,11 +157,6 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
         initialNextCursor={nextCursor}
         initialVotes={voteMap}
       />
-
-      {/* Plan §10.1: "Bu Sayfayı API'den Al" Kutusu */}
-      <div className="pt-4 pb-8">
-        <ApiCornerBox endpoint={`/tags/${decodedName}/posts`} variant="inline" />
-      </div>
     </div>
   );
 }

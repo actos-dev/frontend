@@ -6,7 +6,6 @@ import { GoneError, NotFoundError } from "actos";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import PostDetailPage, { generateMetadata } from "@/app/posts/[id]/[[...slug]]/page";
 import { PostActions } from "@/components/post/post-actions";
-import { PostApiBox } from "@/components/post/post-api-box";
 import { PostAttachments } from "@/components/post/post-attachments";
 import { PostContent } from "@/components/post/post-content";
 import { PostHeader } from "@/components/post/post-header";
@@ -307,30 +306,6 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
   });
 
   // ==========================================================================
-  // 5. Plan §10.1 "Bu sayfayı API'den al" Kutusu
-  // ==========================================================================
-  describe("5. Plan §10.1 'Bu sayfayı API'den al' Kutusu", () => {
-    it("endpoint ve curl komutunu render etmeli ve panoya kopyalamalıdır", async () => {
-      render(<PostApiBox postId={samplePost.id} apiUrl="https://api.actos.com.tr" />);
-
-      expect(screen.getByText("Bu sayfayı API'den al")).toBeDefined();
-      expect(screen.getByText(`/posts/${samplePost.id}`)).toBeDefined();
-      expect(
-        screen.getByText(`curl -s https://api.actos.com.tr/posts/${samplePost.id}`),
-      ).toBeDefined();
-
-      const copyBtn = screen.getByRole("button", { name: "cURL komutunu kopyala" });
-      await act(async () => {
-        fireEvent.click(copyBtn);
-      });
-
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-        `curl -s https://api.actos.com.tr/posts/${samplePost.id}`,
-      );
-    });
-  });
-
-  // ==========================================================================
   // 6. PostDetailPage (RSC), Kanonik 301 & Hata Yönetimi (İlke 7)
   // ==========================================================================
   describe("6. PostDetailPage Sayfası, Kanonik 301 & Hata Yönetimi", () => {
@@ -410,7 +385,6 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
       expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(samplePost.title);
       expect(screen.getByTestId("post-actor-badge")).toBeDefined();
       expect(screen.getByTestId("post-edit-button")).toBeDefined(); // isAuthor true
-      expect(screen.getByTestId("post-api-box")).toBeDefined();
     });
 
     it("post bulunamadığında (404 / NotFoundError) notFound() çağrılmalıdır", async () => {

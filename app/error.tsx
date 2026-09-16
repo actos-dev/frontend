@@ -1,10 +1,15 @@
 "use client";
 
-import { AlertTriangle, Home, RotateCw, Terminal } from "lucide-react";
-import Link from "next/link";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 
+/**
+ * Route-segment error boundary (ROADMAP.md S-06): text-first, no icon
+ * circle, one action ("Try again"), fully localized. `error.tsx` must be a
+ * Client Component in Next.js, but it still renders inside the root
+ * layout's providers, so `useTranslation()` works here.
+ */
 export default function ErrorPage({
   error,
   reset,
@@ -12,71 +17,38 @@ export default function ErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useTranslation();
+
   useEffect(() => {
-    // Hatayı konsola logla
-    console.error("Actos Uygulama Hatası:", error);
+    console.error("Actos application error:", error);
   }, [error]);
 
   return (
     <div
       role="alert"
       aria-labelledby="error-heading"
-      className="flex flex-col items-center justify-center text-center p-8 sm:p-12 my-8 sm:my-16 max-w-lg mx-auto min-h-[50vh]"
+      className="flex flex-col items-center justify-center text-center px-6 py-20 sm:py-28 max-w-md mx-auto min-h-[50vh]"
     >
-      {/* 500 Rozeti */}
-      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-destructive/10 text-destructive border border-destructive/20 text-xs font-semibold mb-6">
-        <AlertTriangle className="w-3.5 h-3.5" />
-        <span>Sistem Hatası</span>
-      </div>
-
-      {/* İkon */}
-      <div className="w-16 h-16 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive shadow-xs mb-5">
-        <AlertTriangle className="w-8 h-8" />
-      </div>
-
-      {/* Başlık ve Açıklama (Plan §8: Sunucu detayları gizlenir, anlaşılır mesaj verilir) */}
+      <p className="font-mono text-xs uppercase tracking-wider text-danger mb-3">
+        {t("errorPages.errorBadge")}
+      </p>
       <h1
         id="error-heading"
-        className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-serif mb-3"
+        className="text-2xl sm:text-3xl font-semibold font-serif text-fg tracking-tight mb-3"
       >
-        Bir şeyler ters gitti
+        {t("errorPages.errorTitle")}
       </h1>
-
-      <p className="text-sm text-muted-foreground leading-relaxed max-w-md mb-6">
-        Sayfa yüklenirken beklenmedik bir durum oluştu. Sorunu çözmek için tekrar deneyebilir veya
-        ana akışa dönebilirsiniz.
+      <p className="text-sm text-fg-muted leading-relaxed mb-6">
+        {t("errorPages.errorDescription")}
       </p>
 
-      {/* Hata Referans Kodu (Plan §8: request_id / digest desteğe iletmek için basılır) */}
       {error.digest && (
-        <div className="w-full p-3 rounded-xl bg-surface-2 border border-border flex items-center justify-between text-xs font-mono text-muted-foreground mb-8">
-          <div className="flex items-center gap-2">
-            <Terminal className="w-3.5 h-3.5 text-primary" />
-            <span>Hata Referansı:</span>
-          </div>
-          <span className="font-semibold text-foreground select-all">{error.digest}</span>
-        </div>
+        <p className="font-mono text-xs text-fg-subtle mb-8 select-all">{error.digest}</p>
       )}
 
-      {/* Aksiyon Butonları */}
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <Button
-          type="button"
-          onClick={() => reset()}
-          variant="default"
-          size="default"
-          className="gap-2 rounded-xl"
-        >
-          <RotateCw className="w-4 h-4" />
-          <span>Tekrar Dene</span>
-        </Button>
-        <Button asChild variant="outline" size="default" className="gap-2 rounded-xl">
-          <Link href="/">
-            <Home className="w-4 h-4" />
-            <span>Akışa Dön</span>
-          </Link>
-        </Button>
-      </div>
+      <Button type="button" onClick={() => reset()} size="md">
+        {t("errorPages.retry")}
+      </Button>
     </div>
   );
 }

@@ -19,16 +19,6 @@ interface CapturedIssue {
  * it's here and when it can be removed — an empty list is the goal.
  */
 const ALLOW_LIST: Array<(issue: CapturedIssue) => boolean> = [
-  // TODO(K-05): remove when the dead /docs link is deleted.
-  // The right rail and the about page still link to /docs, which 404s
-  // (ROADMAP K-05). Next.js's hover/viewport link prefetch fires a
-  // background GET for it that surfaces here as a >=400 response.
-  (issue) =>
-    issue.kind === "response" &&
-    issue.status === 404 &&
-    !!issue.url &&
-    new URL(issue.url).pathname === "/docs",
-
   // TODO(P0-08): remove when a real favicon is added to public/.
   // public/ has no favicon, so every page 404s on the browser's implicit
   // `/favicon.ico` probe (ROADMAP P0-08). There's no <link rel="icon"> in

@@ -19,9 +19,9 @@ export interface UseKeyboardShortcutsResult {
 }
 
 /**
- * Plan §10.3 Kritik Kural:
- * Kullanıcı bir <input>, <textarea>, <select>, contenteditable veya form alanına
- * odaklanmışken klavye kısayolları KESİNLİKLE devre dışı olmalıdır!
+ * Critical rule (ROADMAP.md S-05): while focus is inside an `<input>`,
+ * `<textarea>`, `<select>` or a contenteditable element, every single-key
+ * shortcut below must stay disabled.
  */
 export function isEditableElement(target: EventTarget | null): boolean {
   if (!target || !(target instanceof HTMLElement)) {
@@ -80,19 +80,20 @@ export function clearCardHighlights(): void {
 }
 
 /**
- * useKeyboardShortcuts (Plan §10.3)
+ * useKeyboardShortcuts (ROADMAP.md S-05)
  *
  * Implements developer-first keyboard navigation:
  * - j / k: Select next / previous post
  * - o / Enter: Open selected post
  * - u: Upvote selected post
  * - s: Save / bookmark selected post
+ * - c: Compose a new post
  * - /: Focus search input
- * - g h: Go to home / feed
- * - g s: Go to saved posts
- * - g n: Go to new post
  * - ?: Toggle shortcuts dialog
  * - Esc: Close dialog or deselect post
+ *
+ * The `g`-chord navigation (`g h`, `g s`, `g n`) is gone (ROADMAP K-11): the
+ * left nav already reaches every one of those destinations in one click.
  */
 export function useKeyboardShortcuts(
   options: UseKeyboardShortcutsOptions = {},
@@ -105,7 +106,6 @@ export function useKeyboardShortcuts(
   const [shortcutsDialogOpen, setShortcutsDialogOpen] = useState<boolean>(false);
 
   const selectedIndexRef = useRef<number>(-1);
-  const pendingChordRef = useRef<{ key: string; timer: NodeJS.Timeout } | null>(null);
 
   const navigate = useCallback(
     (href: string) => {
@@ -210,37 +210,10 @@ export function useKeyboardShortcuts(
         return;
       }
 
-      // 5. Chord sequences (e.g. 'g h', 'g s', 'g n')
-      if (pendingChordRef.current?.key === "g") {
-        clearTimeout(pendingChordRef.current.timer);
-        pendingChordRef.current = null;
-
-        const lowerKey = key.toLowerCase();
-        if (lowerKey === "h") {
-          event.preventDefault();
-          navigate("/");
-          return;
-        }
-        if (lowerKey === "s") {
-          event.preventDefault();
-          navigate("/saved");
-          return;
-        }
-        if (lowerKey === "n") {
-          event.preventDefault();
-          navigate("/new");
-          return;
-        }
-        // If not a chord extension, continue to check if this key itself is a shortcut
-      } else if (key.toLowerCase() === "g") {
+      // 5. Compose 'c'
+      if (key.toLowerCase() === "c") {
         event.preventDefault();
-        if (pendingChordRef.current?.timer) {
-          clearTimeout(pendingChordRef.current.timer);
-        }
-        const timer = setTimeout(() => {
-          pendingChordRef.current = null;
-        }, 1000);
-        pendingChordRef.current = { key: "g", timer };
+        navigate("/new");
         return;
       }
 
@@ -320,9 +293,6 @@ export function useKeyboardShortcuts(
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      if (pendingChordRef.current?.timer) {
-        clearTimeout(pendingChordRef.current.timer);
-      }
     };
   }, [enabled, shortcutsDialogOpen, navigate, selectNext, selectPrev, clearSelection]);
 

@@ -1,21 +1,11 @@
 "use client";
 
 import type { FeedWindow } from "actos";
-import {
-  Calendar,
-  Check,
-  Code2,
-  Filter,
-  Flame,
-  HelpCircle,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { Calendar, Check, Filter, Flame, HelpCircle, Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { toast } from "@/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export type FeedSortOption = "hot" | "new" | "top";
@@ -105,25 +95,6 @@ export function FeedNav({
   const handleWindowSelect = (win: FeedWindowOption) => {
     setWindowOpen(false);
     router.push(buildUrl({ window: win }));
-  };
-
-  // Plan §10.1 "Bu sayfayı API'den al" curl komutu
-  const activeSort = currentSort;
-  const activeWindow = activeSort === "top" ? currentWindow : "";
-  const curlEndpoint = `/feed?sort=${activeSort}${activeWindow ? `&window=${activeWindow}` : ""}${
-    currentActorType ? `&actor_type=${currentActorType}` : ""
-  }&limit=25`;
-  const curlCommand = `curl -s "https://api.actos.com.tr${curlEndpoint}"`;
-
-  const copyCurl = async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(curlCommand);
-      }
-      toast.success("cURL komutu panoya kopyalandı!");
-    } catch {
-      toast.info(curlCommand);
-    }
   };
 
   return (
@@ -284,27 +255,6 @@ export function FeedNav({
             </div>
           </PopoverContent>
         </Popover>
-
-        {/* Plan §10.1 "Bu sayfayı API'den al" Butonu */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={copyCurl}
-              aria-label="Sayfanın cURL API komutunu kopyala"
-              className="inline-flex items-center gap-1 text-[11px] font-mono text-muted-foreground hover:text-foreground py-1.5 px-2 rounded-lg hover:bg-surface-2 transition-colors cursor-pointer border border-transparent hover:border-border/60"
-            >
-              <Code2 className="w-3.5 h-3.5 text-primary" />
-              <span className="hidden sm:inline">cURL</span>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs font-mono max-w-sm">
-            <span>GET {curlEndpoint}</span>
-            <span className="block text-[10px] text-muted-foreground font-sans mt-0.5">
-              Kopyalamak için tıklayın (Plan §10.1)
-            </span>
-          </TooltipContent>
-        </Tooltip>
       </div>
     </nav>
   );

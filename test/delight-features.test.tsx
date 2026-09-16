@@ -1,11 +1,9 @@
 // @vitest-environment happy-dom
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { ShortcutsDialog } from "@/components/keyboard/shortcuts-dialog";
-import { PostApiBox } from "@/components/post/post-api-box";
 import { isEditableElement, useKeyboardShortcuts } from "@/lib/hooks/use-keyboard-shortcuts";
 
 // Mock next/navigation
@@ -19,17 +17,6 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
-// Mock sonner toast
-vi.mock("sonner", () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-}));
-
-import { toast } from "sonner";
-
 describe("Faz 15 — Özgün Dokunuşlar (Delight Features)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,102 +28,7 @@ describe("Faz 15 — Özgün Dokunuşlar (Delight Features)", () => {
   });
 
   /* ==========================================================================
-     1. "Bu Sayfayı API'den Al" Bileşeni (Plan §10.1)
-     ========================================================================== */
-  describe("1. Bu Sayfayı API'den Al Bileşeni (ApiCornerBox & PostApiBox)", () => {
-    it("Ana akış, post detay, etiket ve profil uç noktalarını doğru cURL komutuna dönüştürmelidir", () => {
-      const endpoints = [
-        {
-          ep: "/feed?sort=hot&limit=25",
-          expected: "curl -s https://api.actos.com.tr/feed?sort=hot&limit=25",
-        },
-        { ep: "/posts/c_post_42", expected: "curl -s https://api.actos.com.tr/posts/c_post_42" },
-        { ep: "/tags/rust/posts", expected: "curl -s https://api.actos.com.tr/tags/rust/posts" },
-        { ep: "/actors/dila", expected: "curl -s https://api.actos.com.tr/actors/dila" },
-      ];
-
-      for (const { ep, expected } of endpoints) {
-        const { unmount } = render(<ApiCornerBox endpoint={ep} defaultOpen={true} />);
-
-        expect(screen.getByTestId("api-curl-code").textContent).toBe(expected);
-        expect(screen.getByTestId("api-endpoint-badge").textContent).toContain(ep);
-        unmount();
-      }
-    });
-
-    it("özel apiUrl verildiğinde doğru şekilde birleştirmelidir", () => {
-      render(
-        <ApiCornerBox
-          endpoint="/feed?sort=new"
-          apiUrl="https://custom.actos.network"
-          defaultOpen={true}
-        />,
-      );
-
-      expect(screen.getByTestId("api-curl-code").textContent).toBe(
-        "curl -s https://custom.actos.network/feed?sort=new",
-      );
-    });
-
-    it("kopyala butonuna tıklandığında panoya kopyalamalı ve toast.success çağırmalıdır", async () => {
-      const writeTextMock = vi.fn().mockResolvedValue(undefined);
-      Object.defineProperty(navigator, "clipboard", {
-        value: { writeText: writeTextMock },
-        configurable: true,
-        writable: true,
-      });
-
-      render(
-        <ApiCornerBox
-          endpoint="/posts/c_test_99"
-          apiUrl="https://api.actos.com.tr"
-          defaultOpen={true}
-        />,
-      );
-
-      const copyBtn = screen.getByTestId("api-copy-btn");
-      await act(async () => {
-        fireEvent.click(copyBtn);
-      });
-
-      expect(writeTextMock).toHaveBeenCalledWith(
-        "curl -s https://api.actos.com.tr/posts/c_test_99",
-      );
-      expect(toast.success).toHaveBeenCalledWith("cURL komutu panoya kopyalandı!");
-      expect(screen.getByText("Kopyalandı")).toBeDefined();
-    });
-
-    it("katlanabilir (collapsible) yapıda açma ve kapama butonları çalışmalıdır", () => {
-      render(<ApiCornerBox endpoint="/feed?sort=hot" defaultOpen={false} variant="inline" />);
-
-      // Başlangıçta kapalı olmalı, tetikleyici butonu görünmeli
-      const toggleOpenBtn = screen.getByTestId("api-box-toggle");
-      expect(screen.queryByTestId("api-curl-code")).toBeNull();
-
-      // Tıklandığında genişlemeli
-      fireEvent.click(toggleOpenBtn);
-      expect(screen.getByTestId("api-curl-code")).toBeDefined();
-
-      // Daraltma butonuna tıklandığında tekrar kapanmalı
-      const collapseBtn = screen.getByLabelText("API kutusunu daralt");
-      fireEvent.click(collapseBtn);
-      expect(screen.queryByTestId("api-curl-code")).toBeNull();
-    });
-
-    it("PostApiBox sarmalayıcısı data-testid='post-api-box' ile geriye dönük uyumlu çalışmalıdır", () => {
-      render(
-        <PostApiBox postId="c_retro_123" apiUrl="https://api.actos.com.tr" defaultOpen={true} />,
-      );
-
-      expect(screen.getByTestId("post-api-box")).toBeDefined();
-      expect(screen.getByTestId("api-curl-code").textContent).toBe(
-        "curl -s https://api.actos.com.tr/posts/c_retro_123",
-      );
-    });
-  });
-
-  /* ==========================================================================
-     2. Klavye-Öncelikli Gezinme ve ? Kısayol Paneli (Plan §10.3)
+     2. Klavye-Öncelikli Gezinme ve ? Kısayol Paneli (ROADMAP.md S-05)
      ========================================================================== */
   describe("2. Klavye-Öncelikli Gezinme ve ? Kısayol Paneli", () => {
     // Test Harness bileşeni
@@ -313,7 +205,7 @@ describe("Faz 15 — Özgün Dokunuşlar (Delight Features)", () => {
       // '?' basıldığında açılmalı
       fireEvent.keyDown(window, { key: "?" });
       expect(screen.getByTestId("shortcuts-dialog")).toBeDefined();
-      expect(screen.getByText("Klavye Kısayolları")).toBeDefined();
+      expect(screen.getByText(/(Keyboard shortcuts|Klavye kısayolları)/i)).toBeDefined();
 
       // Tekrar '?' basıldığında kapanmalı
       fireEvent.keyDown(window, { key: "?" });
@@ -342,24 +234,21 @@ describe("Faz 15 — Özgün Dokunuşlar (Delight Features)", () => {
       expect(cards[0].getAttribute("data-keyboard-selected")).toBeNull();
     });
 
-    it("'g h', 'g s', 'g n' kombinasyonları doğru rotalara yönlendirmelidir", () => {
+    it("'c' tuşuna basıldığında gönderi oluşturma sayfasına yönlendirmelidir (ROADMAP K-11: g-chord'lar kaldırıldı)", () => {
       const navigateMock = vi.fn();
       render(<TestFeedHarness onNavigate={navigateMock} />);
 
-      // 'g' ardından 'h' -> /
+      fireEvent.keyDown(window, { key: "c" });
+      expect(navigateMock).toHaveBeenCalledWith("/new");
+    });
+
+    it("'g' tek başına artık hiçbir kısayolu tetiklememelidir (g-chord navigasyonu kaldırıldı)", () => {
+      const navigateMock = vi.fn();
+      render(<TestFeedHarness onNavigate={navigateMock} />);
+
       fireEvent.keyDown(window, { key: "g" });
       fireEvent.keyDown(window, { key: "h" });
-      expect(navigateMock).toHaveBeenCalledWith("/");
-
-      // 'g' ardından 's' -> /saved
-      fireEvent.keyDown(window, { key: "g" });
-      fireEvent.keyDown(window, { key: "s" });
-      expect(navigateMock).toHaveBeenCalledWith("/saved");
-
-      // 'g' ardından 'n' -> /new
-      fireEvent.keyDown(window, { key: "g" });
-      fireEvent.keyDown(window, { key: "n" });
-      expect(navigateMock).toHaveBeenCalledWith("/new");
+      expect(navigateMock).not.toHaveBeenCalled();
     });
   });
 

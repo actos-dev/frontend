@@ -383,6 +383,23 @@
     font-size: inherit;
   }
 
+  /* P0-09 / ROADMAP S-02: a long inline-code token (no spaces) pushed the
+     whole page wider than the 390px viewport instead of wrapping. Scoped to
+     inline code only (`:not(pre) > code`) so fenced code blocks keep their
+     own horizontal scroll (X-09) instead of wrapping mid-line. */
+  .reading-prose :not(pre) > code {
+    overflow-wrap: anywhere;
+  }
+
+  /* P0-09 / ROADMAP S-02: a fenced code block's `<pre>` has no width limit
+     of its own, so a long line (a SQL statement, a URL) widened the entire
+     page at 390px instead of scrolling within the block. This is the
+     missing scroll container (X-09), not a workaround. */
+  .reading-prose pre {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
   /* Feed Akışı (Hızlı tarama, kompakt bilgi hiyerarşisi) */
   .feed-title {
     font-size: 1rem;

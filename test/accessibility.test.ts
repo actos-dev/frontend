@@ -296,10 +296,10 @@ describe("Faz 17 — Erişilebilirlik ve Tema Denetimi (WCAG 2.1 AA)", () => {
     it("Modallarda DialogTitle ve DialogDescription ARIA desteği eksiksiz bulunmalıdır", () => {
       render(React.createElement(ShortcutsDialog, { open: true, onOpenChange: () => {} }));
 
-      const title = screen.getByText("Klavye Kısayolları");
+      const title = screen.getByText(/(Keyboard shortcuts|Klavye kısayolları)/i);
       expect(title).toBeDefined();
 
-      const desc = screen.getByText(/Actos'ta fareye dokunmadan/i);
+      const desc = screen.getByText(/(without touching the mouse|farenize dokunmadan)/i);
       expect(desc).toBeDefined();
     });
 

@@ -1,5 +1,4 @@
 import type { Post } from "actos";
-import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { FeedNav } from "@/components/feed/feed-nav";
 import { FeedStream } from "@/components/feed/feed-stream";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
@@ -60,14 +59,6 @@ export default async function HomePage(props: HomePageProps) {
     );
   }
 
-  let feedEndpoint = `/feed?sort=${sort}&limit=25`;
-  if (sort === "top" && window) {
-    feedEndpoint += `&window=${window}`;
-  }
-  if (actorType) {
-    feedEndpoint += `&actor_type=${actorType}`;
-  }
-
   return (
     <div className="min-h-[calc(100vh-3.5rem)] divide-y divide-border/60">
       {/* 1. Akış Sekmeleri ve actor_type Filtresi (Plan §4.1, §6.1) */}
@@ -92,11 +83,6 @@ export default async function HomePage(props: HomePageProps) {
           emptyActionHref="/new"
         />
       )}
-
-      {/* 3. Plan §10.1: "Bu Sayfayı API'den Al" Kutusu */}
-      <div className="p-4 sm:p-6">
-        <ApiCornerBox endpoint={feedEndpoint} variant="inline" />
-      </div>
     </div>
   );
 }

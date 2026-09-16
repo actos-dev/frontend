@@ -7,6 +7,17 @@ import { describe, expect, it, vi } from "vitest";
 import AboutPage, { generateMetadata } from "@/app/about/page";
 import { RightRail } from "@/components/layout/right-rail";
 import { Sidebar } from "@/components/layout/sidebar";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { getDictionary } from "@/lib/i18n";
+
+const enDict = getDictionary("en");
+const t = (key: string) => {
+  const parts = key.split(".");
+  // biome-ignore lint/suspicious/noExplicitAny: test-only dictionary walk
+  let current: any = enDict;
+  for (const part of parts) current = current?.[part];
+  return typeof current === "string" ? current : key;
+};
 
 // Next.js mock
 vi.mock("next/navigation", () => ({
@@ -104,17 +115,9 @@ describe("Faz 20 — Dokümantasyon, /about Sayfası ve i18n Eşitlemesi", () =>
       const docsLink = screen.getByRole("link", {
         name: /(API Documentation|API Dokümantasyonu)/i,
       });
-      expect(docsLink.getAttribute("href")).toBe("/docs");
-    });
-
-    it("inline 'Bu sayfayı API'den al' (ApiCornerBox) cURL kutusunu render etmelidir", async () => {
-      const pageUi = await AboutPage();
-      render(pageUi);
-
-      const apiBox = screen.getByTestId("api-corner-box");
-      expect(apiBox).toBeDefined();
-      expect(screen.getByText(/curl -s/i)).toBeDefined();
-      expect(screen.getAllByText(/\/posts/i).length).toBeGreaterThan(0);
+      // ROADMAP K-05: the dead /docs link now points at the real /developers
+      // stub page instead of a route that never existed.
+      expect(docsLink.getAttribute("href")).toBe("/developers");
     });
 
     it("editoryal okuma sınıflarını (reading-container ve prose) içermelidir", async () => {
@@ -139,12 +142,19 @@ describe("Faz 20 — Dokümantasyon, /about Sayfası ve i18n Eşitlemesi", () =>
       expect((meta.twitter as { card?: string })?.card).toBe("summary_large_image");
     });
 
-    it("sağ panelde (RightRail) /about linki yer almalı, sol menü sadeleşmiş olmalıdır", () => {
+    it("footer'da (her sayfada) /about linki yer almalı, sol menü sadeleşmiş olmalıdır", () => {
       render(<Sidebar />);
       expect(screen.queryByRole("link", { name: /^(Hakkında|About)$/i })).toBeNull();
 
-      render(<RightRail />);
-      const aboutLink = screen.getByRole("link", { name: /Felsefemiz & Hakkında/i });
+      // ROADMAP K-03: the "Actos Nedir?" pitch box is gone from the right
+      // rail entirely — /about is now reachable only via the footer that
+      // appears on every page.
+      render(
+        <RightRail>
+          <SiteFooter t={t} />
+        </RightRail>,
+      );
+      const aboutLink = screen.getByRole("link", { name: /^About$/i });
       expect(aboutLink).toBeDefined();
       expect(aboutLink.getAttribute("href")).toBe("/about");
     });

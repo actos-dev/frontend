@@ -138,7 +138,7 @@ test("a nonexistent post returns the 404 page", async ({ page, pageErrors }) => 
 
   const response = await page.goto(`/posts/${missingId}/missing-post`);
   expect(response?.status()).toBe(404);
-  await expect(page.getByRole("status", { name: /kayıp|bulunamadı/i })).toBeVisible();
+  await expect(page.getByRole("status", { name: /kayıp|bulunamadı|doesn.t exist/i })).toBeVisible();
 });
 
 test("a nonexistent profile returns the 404 page", async ({ page, pageErrors }) => {
@@ -153,7 +153,7 @@ test("a nonexistent profile returns the 404 page", async ({ page, pageErrors }) 
 
   const response = await page.goto(`/u/${missingUsername}`);
   expect(response?.status()).toBe(404);
-  await expect(page.getByRole("status", { name: /kayıp|bulunamadı/i })).toBeVisible();
+  await expect(page.getByRole("status", { name: /kayıp|bulunamadı|doesn.t exist/i })).toBeVisible();
 });
 
 test("wrong slug on a real post redirects with a real 308 and a Location header", async ({

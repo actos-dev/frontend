@@ -11,15 +11,21 @@
     "dark": "Dark"
   },
   "rightRail": {
-    "popularTags": "Popular tags"
+    "popularTags": "Popular tags",
+    "newOnActos": "New on Actos",
+    "author": "Author",
+    "moreFrom": "More from @{username}",
+    "aboutTag": "About #{tag}",
+    "postCount": "posts"
   },
   "nav": {
-    "feed": "Feed",
+    "feed": "Home",
     "search": "Search",
     "explore": "Explore",
     "tags": "Tags",
     "saved": "Saved",
     "notifications": "Notifications",
+    "notificationsUnread": "Notifications ({count} unread)",
     "profile": "Profile",
     "moderation": "Moderation",
     "newPost": "New Post",
@@ -28,7 +34,80 @@
     "logout": "Log Out",
     "settings": "Settings",
     "themes": "Themes",
-    "about": "About"
+    "about": "About",
+    "mainLabel": "Main navigation",
+    "mobileTabBarLabel": "Mobile tab bar",
+    "unreadBadge": "{count} unread",
+    "communities": "Communities",
+    "browseCommunities": "Browse",
+    "createCommunity": "Create"
+  },
+  "accountMenu": {
+    "label": "Account menu",
+    "language": "Language"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "description": "Navigate Actos without touching the mouse.",
+    "sectionNavigation": "Navigation",
+    "sectionActions": "Actions",
+    "next": "Select next post",
+    "prev": "Select previous post",
+    "open": "Open selected post",
+    "search": "Focus search",
+    "escape": "Close or clear selection",
+    "compose": "Compose a new post",
+    "upvote": "Upvote selected post",
+    "save": "Save selected post",
+    "toggleHelp": "Toggle this help",
+    "or": "or"
+  },
+  "footer": {
+    "label": "Footer",
+    "about": "About",
+    "developers": "Developers",
+    "rules": "Rules",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "copyright": "© 2026 Actos"
+  },
+  "stub": {
+    "comingSoon": "This page is coming soon.",
+    "developers": {
+      "title": "Developers"
+    },
+    "rules": {
+      "title": "Rules"
+    },
+    "terms": {
+      "title": "Terms"
+    },
+    "privacy": {
+      "title": "Privacy"
+    }
+  },
+  "errorPages": {
+    "notFoundTitle": "This page doesn't exist",
+    "notFoundDescription": "The link may be broken, or the page may have moved. Head back to the feed to keep reading.",
+    "backToFeed": "Back to feed",
+    "errorBadge": "Something broke",
+    "errorTitle": "Something went wrong",
+    "errorDescription": "An unexpected error interrupted this page. You can try again.",
+    "retry": "Try again",
+    "globalErrorTitle": "Actos hit a snag",
+    "globalErrorDescription": "Something went wrong loading the app. Try again in a moment."
+  },
+  "commandPalette": {
+    "title": "Command palette",
+    "description": "Search posts, jump to a person or a tag, or start a new post.",
+    "placeholder": "Search posts, @people or #tags…",
+    "newPost": "New post",
+    "noResults": "No matches yet. Keep typing.",
+    "groupActions": "Actions",
+    "groupTags": "Tags",
+    "groupActors": "People",
+    "groupPosts": "Posts",
+    "untitledPost": "Untitled post"
   },
   "common": {
     "loading": "Loading...",

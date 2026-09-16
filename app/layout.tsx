@@ -7,7 +7,6 @@ import { SessionProvider } from "@/components/session-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DEFAULT_LOCALE, I18nProvider, isLocale, LOCALE_COOKIE, type Locale } from "@/lib/i18n";
-import { getPopularTags } from "@/lib/tags";
 import { DEFAULT_THEME, isValidTheme, type ThemeName, themeAttribute } from "@/lib/themes";
 import "./globals.css";
 
@@ -66,8 +65,12 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  rightrail,
 }: Readonly<{
   children: React.ReactNode;
+  /** The `app/@rightrail` parallel-route slot (ROADMAP.md S-03) — real,
+   * per-page contextual content resolved alongside `children`. */
+  rightrail: React.ReactNode;
 }>) {
   const cookieStore = await cookies();
   const themeCookie = cookieStore.get("theme")?.value;
@@ -75,10 +78,6 @@ export default async function RootLayout({
 
   const localeCookie = cookieStore.get(LOCALE_COOKIE)?.value || cookieStore.get("locale")?.value;
   const locale: Locale = localeCookie && isLocale(localeCookie) ? localeCookie : DEFAULT_LOCALE;
-
-  // Real popular-tags data for the right rail (P0-05); null on any fetch error,
-  // never invented data. Cached 5 minutes via unstable_cache in lib/tags.ts.
-  const popularTags = await getPopularTags();
 
   return (
     <html
@@ -92,7 +91,7 @@ export default async function RootLayout({
         <TooltipProvider delayDuration={200}>
           <I18nProvider initialLocale={locale}>
             <SessionProvider>
-              <AppShell popularTags={popularTags}>{children}</AppShell>
+              <AppShell rightRail={rightrail}>{children}</AppShell>
             </SessionProvider>
             <Toaster />
           </I18nProvider>

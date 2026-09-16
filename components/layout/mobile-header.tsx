@@ -1,49 +1,85 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { LogIn, Search } from "lucide-react";
 import Link from "next/link";
-import { LocaleSwitcher } from "@/components/locale-switcher";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { AccountMenu } from "@/components/layout/account-menu";
+import { ActorAvatar } from "@/components/ui/avatar";
+import { useTranslation } from "@/lib/i18n";
+import { useSessionStore } from "@/lib/stores/session-store";
 import { cn } from "@/lib/utils";
 
 interface MobileHeaderProps {
   className?: string;
-  onOpenMenu: () => void;
+  onOpenShortcuts?: () => void;
 }
 
-export function MobileHeader({ className, onOpenMenu }: MobileHeaderProps) {
+/**
+ * Mobile top bar (ROADMAP.md S-02, below 768px): wordmark, search, avatar.
+ * The hamburger menu and its drawer are gone — the bottom tab bar
+ * (mobile-nav.tsx) replaces the drawer's navigation.
+ */
+export function MobileHeader({ className, onOpenShortcuts = () => {} }: MobileHeaderProps) {
+  const { t } = useTranslation();
+  const user = useSessionStore((state) => state.user);
+  const isModOrAdmin = user?.role === "admin" || user?.role === "moderator";
+
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex items-center justify-between h-14 px-4 bg-background/90 backdrop-blur-md border-b border-border/80 md:hidden",
+        "sticky top-0 z-30 flex items-center justify-between h-14 px-4 pt-[env(safe-area-inset-top)] bg-bg/95 backdrop-blur-md border-b border-border md:hidden",
         className,
       )}
     >
-      {/* Sol: Menü Açıcı Buton */}
-      <button
-        type="button"
-        onClick={onOpenMenu}
-        aria-label="Menüyü aç"
-        className="p-2 -ml-2 rounded-xl text-foreground hover:bg-surface-2 transition-colors cursor-pointer"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
-
-      {/* Orta: Actos Marka Logosu */}
       <Link
         href="/"
-        className="flex items-center gap-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-lg px-2 py-1"
+        aria-label={t("app.title")}
+        className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ring-offset-bg rounded-md"
       >
-        <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-serif font-black text-sm shadow-xs">
-          ✦
-        </div>
-        <span className="text-lg font-bold tracking-tight text-foreground font-serif">Actos</span>
+        <span aria-hidden="true" className="text-[21px] font-semibold tracking-tight text-fg">
+          {t("app.title")}
+        </span>
       </Link>
 
-      {/* Sağ: Dil ve Tema Seçici (Kompakt) */}
-      <div className="flex items-center gap-1.5 -mr-1">
-        <LocaleSwitcher showIcon={false} className="scale-90 origin-right" />
-        <ThemeSwitcher showLabels={false} className="scale-90 origin-right" />
+      <div className="flex items-center gap-1">
+        <Link
+          href="/search"
+          aria-label={t("nav.search")}
+          className="flex items-center justify-center h-11 w-11 -mr-1 rounded-full text-fg hover:bg-bg-subtle transition-colors"
+        >
+          <Search className="w-5 h-5" aria-hidden="true" />
+        </Link>
+
+        {user ? (
+          <AccountMenu
+            user={user}
+            isModerator={isModOrAdmin}
+            onOpenShortcuts={onOpenShortcuts}
+            side="bottom"
+            align="end"
+          >
+            <button
+              type="button"
+              aria-label={`${user.displayName || user.username} · @${user.username}`}
+              className="flex items-center justify-center h-11 w-11 rounded-full hover:bg-bg-subtle transition-colors cursor-pointer"
+            >
+              <ActorAvatar
+                actorType={user.actorType}
+                username={user.username}
+                displayName={user.displayName || undefined}
+                src={user.avatarUrl}
+                size={28}
+              />
+            </button>
+          </AccountMenu>
+        ) : (
+          <Link
+            href="/login"
+            aria-label={t("nav.login")}
+            className="flex items-center justify-center h-11 w-11 rounded-full text-fg hover:bg-bg-subtle transition-colors"
+          >
+            <LogIn className="w-5 h-5" aria-hidden="true" />
+          </Link>
+        )}
       </div>
     </header>
   );
