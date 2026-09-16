@@ -28,7 +28,12 @@ export function slugify(text?: string | null): string {
   };
 
   const normalized = text
+    // Turkish letters first: ı and İ do not fold to i through NFD.
     .replace(/[çÇğĞıIİöÖşŞüÜ]/g, (match) => trMap[match] || match)
+    // Then every other accented Latin letter, so "hâlâ" becomes "hala"
+    // instead of "hl" once the non-ASCII filter below runs.
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, "")

@@ -472,6 +472,11 @@
     "publishFailed": "Yayınlanamadı. Taslağın kaydedildi.",
     "saveFailed": "Değişiklikler kaydedilemedi.",
     "notificationReadFailed": "Okundu olarak işaretlenemedi. Tekrar deneyin.",
-    "inboxLoadFailed": "Bildirimler yüklenemedi. Tekrar deneyin."
+    "inboxLoadFailed": "Bildirimler yüklenemedi. Tekrar deneyin.",
+    "postDeleteConfirmTitle": "Gönderi silinsin mi?",
+    "postDeleteConfirmDesc": "Bu işlem \"{title}\" başlıklı gönderiyi kalıcı olarak silecek. Bu işlem geri alınamaz.",
+    "postDeleting": "Siliniyor...",
+    "postDeleted": "Gönderi silindi.",
+    "postDeleteFailed": "Gönderi silinemedi."
   }
 }

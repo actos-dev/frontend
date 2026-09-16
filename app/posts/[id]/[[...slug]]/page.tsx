@@ -17,6 +17,7 @@ import { getActosApiUrl, getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
 import { getSiteUrl } from "@/lib/seo";
 import { extractExcerpt, slugify } from "@/lib/utils";
+import { fetchVoteMap, type VoteValue } from "@/lib/votes";
 
 interface PostPageProps {
   params: Promise<{
@@ -253,6 +254,7 @@ export default async function PostDetailPage(props: PostPageProps) {
 
   // 4. Oturum Kontrolü ve Yazar Sahipliği
   let isAuthor = false;
+  let viewerVote: VoteValue = 0;
   try {
     const client = await getServerClient();
     const whoami = await client.auth.whoami();
@@ -260,6 +262,12 @@ export default async function PostDetailPage(props: PostPageProps) {
       isAuthor = true;
     } else if (whoami?.actor?.username && whoami.actor.username === post.author.username) {
       isAuthor = true;
+    }
+    // P0-06: fetch the signed-in viewer's own vote on this post so the
+    // action bar reflects it correctly straight after a reload.
+    if (whoami?.actor?.id) {
+      const voteMap = await fetchVoteMap(client, [post.id]);
+      viewerVote = voteMap[post.id] ?? 0;
     }
   } catch {
     // Anonim ziyaretçi
@@ -269,7 +277,6 @@ export default async function PostDetailPage(props: PostPageProps) {
   let comments: CommentNode[] = [];
   let commentsError: unknown = null;
   try {
-    const client = await getServerClient();
     comments = await client.comments.list(id, { bodyHtml: true, sort: "top" });
   } catch (error) {
     // No fabricated comments: this section renders its own error state below
@@ -306,7 +313,12 @@ export default async function PostDetailPage(props: PostPageProps) {
         )}
 
         {/* 4. Aksiyon Çubuğu (Oy, Kaydet, Paylaş, Rapor, Düzenle) */}
-        <PostActions post={post} isAuthor={isAuthor} className="my-8" />
+        <PostActions
+          post={post}
+          isAuthor={isAuthor}
+          initialUserVote={viewerVote}
+          className="my-8"
+        />
 
         {/* 5. Faz 8: Yorum Ağacı (6 seviye girinti sınırı, katlanabilir ağaç, silinmiş yorum sözleşmesi) */}
         {commentsError ? (

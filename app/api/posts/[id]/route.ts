@@ -74,3 +74,27 @@ export async function PATCH(req: NextRequest, props: RouteParams) {
     return apiErrorResponse(error);
   }
 }
+
+/**
+ * DELETE /api/posts/[id]
+ * Soft-deletes a post. Requires authentication and author ownership.
+ */
+export async function DELETE(_req: NextRequest, props: RouteParams) {
+  try {
+    const { id } = await props.params;
+    const client = await getServerClient();
+    await client.posts.delete(id);
+
+    return NextResponse.json(
+      { ok: true },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
+        },
+      },
+    );
+  } catch (error) {
+    return apiErrorResponse(error);
+  }
+}

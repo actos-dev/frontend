@@ -48,4 +48,24 @@ export function getAnonymousClient(): Actos {
   return new Actos({ baseUrl: getActosApiUrl() });
 }
 
+/**
+ * Cheap, cookie-only check for whether the current request carries a
+ * session token, without making a network round-trip to `whoami`.
+ *
+ * Used by server pages to decide whether it's worth fetching the viewer's
+ * vote map at all (ROADMAP.md P0-06) — an anonymous request would just get
+ * a 401 from `/me/votes` and waste the round-trip.
+ */
+export async function hasSessionCookie(): Promise<boolean> {
+  try {
+    const cookieStore = await cookies();
+    return Boolean(
+      cookieStore.get(ACTOS_TOKEN_COOKIE)?.value || cookieStore.get(SESSION_TOKEN_COOKIE)?.value,
+    );
+  } catch {
+    // cookies() can throw outside of request context (e.g. static gen or test)
+    return false;
+  }
+}
+
 export { Actos };

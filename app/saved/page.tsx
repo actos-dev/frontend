@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
 export const metadata: Metadata = {
   title: "Kaydedilenler — Actos",
@@ -96,6 +97,16 @@ export default async function SavedPage(props: SavedPageProps) {
     loadError = error;
   }
 
+  // P0-06: we already know the viewer is authenticated (isAuthenticated
+  // gate above), so fetch their votes for this page's posts directly.
+  const voteMap: VoteMap =
+    posts.length > 0
+      ? await fetchVoteMap(
+          client,
+          posts.map((p) => p.id),
+        )
+      : {};
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] divide-y divide-border/60">
       <header className="sticky top-14 md:top-0 z-10 bg-background/90 backdrop-blur-md px-4 sm:px-6 py-3 border-b border-border/60 flex items-center justify-between">
@@ -118,7 +129,7 @@ export default async function SavedPage(props: SavedPageProps) {
         </div>
       ) : (
         /* Kaydedilenler Akışı, Boş Durum (EmptyState) ve Cursor Sayfalama */
-        <SavedStream initialPosts={posts} initialNextCursor={nextCursor} />
+        <SavedStream initialPosts={posts} initialNextCursor={nextCursor} initialVotes={voteMap} />
       )}
     </div>
   );

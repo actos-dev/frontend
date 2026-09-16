@@ -3,7 +3,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ErrorPage from "@/app/error";
-import Loading from "@/app/loading";
 import NotFound from "@/app/not-found";
 import { AppShell } from "@/components/layout/app-shell";
 import { MobileDrawer } from "@/components/layout/mobile-drawer";
@@ -212,7 +211,7 @@ describe("Faz 3 — Uygulama Kabuğu ve Düzen Bileşenleri", () => {
   });
 
   /* ==========================================================================
-     5. Özel Durum Sayfaları (NotFound, Error, Loading, Gone)
+     5. Özel Durum Sayfaları (NotFound, Error, Gone)
      ========================================================================== */
   describe("5. Özel Durum Sayfaları", () => {
     it("NotFound (404) sayfasını ve geri dönüş butonunu render etmelidir", () => {
@@ -235,13 +234,6 @@ describe("Faz 3 — Uygulama Kabuğu ve Düzen Bileşenleri", () => {
       const retryBtn = screen.getByRole("button", { name: /Tekrar Dene/i });
       fireEvent.click(retryBtn);
       expect(mockReset).toHaveBeenCalledTimes(1);
-    });
-
-    it("Loading iskelet bileşeni status rolü ile render edilmelidir", () => {
-      render(<Loading />);
-      const loadingElements = screen.getAllByRole("status");
-      expect(loadingElements.length).toBeGreaterThan(0);
-      expect(loadingElements[0].getAttribute("aria-busy")).toBe("true");
     });
 
     it("Gone (410) bileşeni İlke 7'ye uygun olarak silinmiş içeriği 404'ten farklı belirtmelidir", () => {

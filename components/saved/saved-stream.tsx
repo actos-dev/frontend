@@ -10,22 +10,29 @@ import { SkeletonPostCard } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
 import { syncCursorToUrl } from "@/lib/pagination";
+import { useSessionStore } from "@/lib/stores/session-store";
+import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
 
 export interface SavedStreamProps {
   initialPosts: Post[];
   initialNextCursor: string | null;
+  /** The signed-in viewer's votes for `initialPosts`, keyed by post id (ROADMAP.md P0-06). */
+  initialVotes?: VoteMap;
 }
 
-export function SavedStream({ initialPosts, initialNextCursor }: SavedStreamProps) {
+export function SavedStream({ initialPosts, initialNextCursor, initialVotes }: SavedStreamProps) {
   const { t } = useTranslation();
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
+  const [votes, setVotes] = useState<VoteMap>(initialVotes ?? {});
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const authStatus = useSessionStore((state) => state.status);
 
   useEffect(() => {
     setPosts(initialPosts);
     setNextCursor(initialNextCursor);
-  }, [initialPosts, initialNextCursor]);
+    setVotes(initialVotes ?? {});
+  }, [initialPosts, initialNextCursor, initialVotes]);
 
   const handleLoadMore = async (cursor: string) => {
     if (isLoadingMore) return;
@@ -51,6 +58,12 @@ export function SavedStream({ initialPosts, initialNextCursor }: SavedStreamProp
 
       setNextCursor(newNextCursor);
       syncCursorToUrl(newNextCursor, "push");
+
+      // P0-06: fetch the viewer's votes for the newly appended posts.
+      if (authStatus === "authenticated" && newItems.length > 0) {
+        const newVotes = await fetchVoteMapClient(newItems.map((p) => p.id));
+        setVotes((prev) => ({ ...prev, ...newVotes }));
+      }
     } catch {
       toast.error("Bağlantı hatası: Sayfalama gerçekleştirilemedi.");
     } finally {
@@ -88,7 +101,13 @@ export function SavedStream({ initialPosts, initialNextCursor }: SavedStreamProp
     <div className="divide-y divide-border/50" data-testid="saved-stream">
       {/* Kaydedilen Gönderiler Listesi */}
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} initialSaved={true} onSaveSuccess={handleSaveSuccess} />
+        <PostCard
+          key={post.id}
+          post={post}
+          initialSaved={true}
+          initialUserVote={votes[post.id] ?? 0}
+          onSaveSuccess={handleSaveSuccess}
+        />
       ))}
 
       {/* Yükleme Sırasında İskelet Kartlar */}

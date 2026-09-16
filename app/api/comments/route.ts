@@ -4,6 +4,10 @@ import { apiErrorResponse } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 
+// RFC 4122 UUID, any version (crypto.randomUUID() produces v4, but this
+// stays permissive for any caller that supplies its own idempotency key).
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * GET /api/comments?postId=...&sort=top|new&parent=...
  * Retrieves comments thread for a post or specific subtree.
@@ -73,10 +77,26 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // P0-11: forward the client's per-compose-session idempotency key so a
+    // retry on a flaky connection doesn't create a duplicate comment.
+    const idempotencyKeyRaw = json?.idempotencyKey;
+    let idempotencyKey: string | undefined;
+    if (idempotencyKeyRaw !== undefined && idempotencyKeyRaw !== null) {
+      if (typeof idempotencyKeyRaw !== "string" || !UUID_RE.test(idempotencyKeyRaw)) {
+        return apiErrorResponse({
+          status: 400,
+          code: "VALIDATION_FAILED",
+          detail: "idempotencyKey must be a UUID",
+        });
+      }
+      idempotencyKey = idempotencyKeyRaw;
+    }
+
     const client = await getServerClient();
     const comment = await client.comments.create(postId, {
       body: body.trim(),
       parentId: parentId || null,
+      idempotencyKey,
     });
 
     return NextResponse.json(

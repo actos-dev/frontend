@@ -41,6 +41,11 @@ export function CommentForm({
   const [text, setText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // P0-11: one idempotency key per compose session, so a retry on a flaky
+  // connection re-sends the same key instead of posting the comment twice.
+  // A fresh key is only generated after a confirmed successful post.
+  const [idempotencyKey, setIdempotencyKey] = useState<string>(() => crypto.randomUUID());
+
   // İlke 2 Desteği: Taslak Geri Yükleme
   useEffect(() => {
     const urlDraftKey = searchParams.get("draftKey");
@@ -89,6 +94,7 @@ export function CommentForm({
           postId,
           body: trimmed,
           parentId,
+          idempotencyKey,
         }),
       });
 
@@ -98,9 +104,11 @@ export function CommentForm({
         return;
       }
 
-      // Başarılı: taslağı temizle ve formu sıfırla
+      // Başarılı: taslağı temizle, formu sıfırla ve bir sonraki gönderi için
+      // yeni bir idempotency key üret (P0-11).
       clearDraft(draftKey);
       setText("");
+      setIdempotencyKey(crypto.randomUUID());
       toast.success(t("comments.created_success") || "Yorum başarıyla paylaşıldı.");
       onSuccess?.(json.data);
     } catch {

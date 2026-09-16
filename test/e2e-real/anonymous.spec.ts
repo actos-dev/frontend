@@ -126,19 +126,10 @@ test("search for postgres returns a seeded post", async ({ page }) => {
 });
 
 test("a nonexistent post returns the 404 page", async ({ page, pageErrors }) => {
-  // BUG (found via this harness, not yet in ROADMAP): notFound() called from
-  // an async Server Component that renders under the app-wide root
-  // app/loading.tsx Suspense boundary does not set the outer HTTP response
-  // status to 404 — Next.js has already flushed a 200 status for the
-  // streamed shell before the async component resolves and throws the
-  // not-found signal, so the document ships as 200 with the 404 UI inside
-  // it. Confirmed with curl outside this suite: `GET /posts/<fake-id>` and
-  // `GET /u/<fake-username>` both return 200 while rendering the not-found
-  // page; a route that matches no segment at all (Next's own top-level
-  // 404, no async component involved) correctly returns 404. Do not fix
-  // app/loading.tsx or the post page here — out of scope for this unit.
-  test.fail(true, "notFound() under the root Suspense boundary streams as HTTP 200, not 404");
-
+  // ROADMAP.md P0-13: the root app/loading.tsx wrapped every route in a
+  // Suspense boundary, so Next had already streamed a 200 shell before the
+  // async post page could call notFound() and set the real status. Fixed by
+  // removing that root boundary; this test guards against the regression.
   const missingId = "c_doesnotexist00000";
   pageErrors.allow(
     (issue) =>
@@ -148,4 +139,42 @@ test("a nonexistent post returns the 404 page", async ({ page, pageErrors }) => 
   const response = await page.goto(`/posts/${missingId}/missing-post`);
   expect(response?.status()).toBe(404);
   await expect(page.getByRole("status", { name: /kayıp|bulunamadı/i })).toBeVisible();
+});
+
+test("a nonexistent profile returns the 404 page", async ({ page, pageErrors }) => {
+  // Same bug and fix as above (ROADMAP.md P0-13), confirmed independently
+  // for the profile route, which the harness that found this bug also
+  // flagged via a plain curl check.
+  const missingUsername = "nosuchuser000000";
+  pageErrors.allow(
+    (issue) =>
+      issue.kind === "response" && issue.status === 404 && !!issue.url?.includes(missingUsername),
+  );
+
+  const response = await page.goto(`/u/${missingUsername}`);
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("status", { name: /kayıp|bulunamadı/i })).toBeVisible();
+});
+
+test("wrong slug on a real post redirects with a real 308 and a Location header", async ({
+  page,
+}) => {
+  // ROADMAP.md P0-13: the canonical-slug redirect must be a genuine HTTP 308
+  // with a Location header, not a client-side navigation — a streamed
+  // redirect loses the link equity the canonical URL exists to protect.
+  await page.goto("/");
+  await page.getByTestId("post-title-link").first().click();
+  await page.waitForURL(/\/posts\//);
+
+  const canonicalPath = new URL(page.url()).pathname;
+  const match = canonicalPath.match(/^(\/posts\/[^/]+)\//);
+  expect(match, `Could not extract a post id from ${canonicalPath}`).toBeTruthy();
+  const postPrefix = match?.[1] as string;
+
+  const response = await page.request.get(`${postPrefix}/definitely-the-wrong-slug`, {
+    maxRedirects: 0,
+  });
+
+  expect(response.status()).toBe(308);
+  expect(response.headers().location).toBe(canonicalPath);
 });

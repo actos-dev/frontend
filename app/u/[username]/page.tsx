@@ -10,9 +10,10 @@ import { type ProfileTab, ProfileTabs } from "@/components/profile/profile-tabs"
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
-import { getServerClient } from "@/lib/actos";
+import { getServerClient, hasSessionCookie } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
 import { getSiteUrl } from "@/lib/seo";
+import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
 export const dynamic = "force-dynamic";
 
@@ -158,6 +159,7 @@ export default async function ProfilePage(props: ProfilePageProps) {
   let postsPage: Page<Post> = { items: [], nextCursor: null };
   let postsError: unknown = null;
   let commentsPage: Page<Comment> = { items: [], nextCursor: null };
+  let voteMap: VoteMap = {};
 
   if (activeTab === "posts") {
     try {
@@ -166,6 +168,15 @@ export default async function ProfilePage(props: ProfilePageProps) {
       // No fabricated posts: the posts tab renders its own error state below
       // instead (ROADMAP.md P0-02, decision 7).
       postsError = err;
+    }
+
+    // P0-06: the viewer's own votes never live in a shared, cached list
+    // response, so fetch them separately and only when signed in.
+    if (postsPage.items.length > 0 && (await hasSessionCookie())) {
+      voteMap = await fetchVoteMap(
+        client,
+        postsPage.items.map((p) => p.id),
+      );
     }
   } else if (activeTab === "comments") {
     commentsPage = await client.actors
@@ -222,7 +233,7 @@ export default async function ProfilePage(props: ProfilePageProps) {
             ) : (
               <div className="space-y-4" data-testid="profile-posts-list">
                 {postsPage.items.map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard key={post.id} post={post} initialUserVote={voteMap[post.id] ?? 0} />
                 ))}
               </div>
             )}

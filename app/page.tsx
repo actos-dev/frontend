@@ -3,9 +3,10 @@ import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { FeedNav } from "@/components/feed/feed-nav";
 import { FeedStream } from "@/components/feed/feed-stream";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
-import { getServerClient } from "@/lib/actos";
+import { getServerClient, hasSessionCookie } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
 import { isFeedActorType, isFeedSort, isFeedWindow } from "@/lib/feed-params";
+import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
 interface HomePageProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -48,6 +49,17 @@ export default async function HomePage(props: HomePageProps) {
     loadError = error;
   }
 
+  // P0-06: the viewer's own votes never live in the (publicly cached)
+  // /api/feed response, so fetch them separately, straight through the SDK,
+  // and only when a session cookie is actually present.
+  let voteMap: VoteMap = {};
+  if (posts.length > 0 && (await hasSessionCookie())) {
+    voteMap = await fetchVoteMap(
+      client,
+      posts.map((p) => p.id),
+    );
+  }
+
   let feedEndpoint = `/feed?sort=${sort}&limit=25`;
   if (sort === "top" && window) {
     feedEndpoint += `&window=${window}`;
@@ -70,6 +82,7 @@ export default async function HomePage(props: HomePageProps) {
         <FeedStream
           initialPosts={posts}
           initialNextCursor={nextCursor}
+          initialVotes={voteMap}
           sort={sort}
           window={window}
           actorType={actorType}

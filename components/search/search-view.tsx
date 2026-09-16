@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Skeleton, SkeletonPostCard } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
+import { useSessionStore } from "@/lib/stores/session-store";
+import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
 
 export type SearchTabType = "post" | "comment" | "actor";
 
@@ -31,6 +33,7 @@ export function SearchView() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [votes, setVotes] = useState<VoteMap>({});
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -86,9 +89,21 @@ export function SearchView() {
       }
 
       if (!controller.signal.aborted) {
-        setResults(data.items || []);
+        const items: Array<Post | Actor> = data.items || [];
+        setResults(items);
         setNextCursor(data.nextCursor ?? null);
         setSubmittedQuery(trimmed);
+
+        // P0-06: a fresh search replaces the vote map wholesale rather than
+        // merging, since the previous results are gone. Anonymous viewers
+        // never trigger this request.
+        if (tab === "post" && useSessionStore.getState().status === "authenticated") {
+          const ids = (items as Post[]).map((post) => post.id);
+          const newVotes = await fetchVoteMapClient(ids);
+          if (!controller.signal.aborted) setVotes(newVotes);
+        } else if (tab !== "post") {
+          setVotes({});
+        }
       }
     } catch (err: unknown) {
       if ((err as Error).name !== "AbortError") {
@@ -135,6 +150,7 @@ export function SearchView() {
       setSubmittedQuery("");
       setResults([]);
       setNextCursor(null);
+      setVotes({});
       syncUrl("", activeTab);
       return;
     }
@@ -160,6 +176,7 @@ export function SearchView() {
     setSubmittedQuery("");
     setResults([]);
     setNextCursor(null);
+    setVotes({});
     setIsLoading(false);
     syncUrl("", activeTab);
   };
@@ -201,7 +218,7 @@ export function SearchView() {
         return;
       }
 
-      const newItems = data.items || [];
+      const newItems: Array<Post | Actor> = data.items || [];
       const newNextCursor = data.nextCursor ?? null;
 
       setResults((prev) => {
@@ -211,6 +228,12 @@ export function SearchView() {
       });
 
       setNextCursor(newNextCursor);
+
+      // P0-06: fetch the viewer's votes for the newly appended post results.
+      if (activeTab === "post" && useSessionStore.getState().status === "authenticated") {
+        const newVotes = await fetchVoteMapClient((newItems as Post[]).map((post) => post.id));
+        setVotes((prev) => ({ ...prev, ...newVotes }));
+      }
     } catch {
       toast.error("Bağlantı hatası: Sonraki sayfa yüklenemedi.");
     } finally {
@@ -324,6 +347,7 @@ export function SearchView() {
                   <PostCard
                     key={post.id}
                     post={post}
+                    initialUserVote={votes[post.id] ?? 0}
                     highlightQuery={submittedQuery || inputQuery}
                   />
                 ))}

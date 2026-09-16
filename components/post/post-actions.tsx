@@ -1,13 +1,23 @@
 "use client";
 
 import type { Post } from "actos";
-import { ArrowBigDown, ArrowBigUp, Bookmark, Flag, Pencil, Share2 } from "lucide-react";
+import { ArrowBigDown, ArrowBigUp, Bookmark, Flag, Pencil, Share2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ReportDialog } from "@/components/post/report-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { cn, slugify } from "@/lib/utils";
 
@@ -29,6 +39,7 @@ export function PostActions({
   saveAriaLabel,
 }: PostActionsProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const user = useSessionStore((state) => state.user);
   const status = useSessionStore((state) => state.status);
 
@@ -40,6 +51,9 @@ export function PostActions({
   const [isSaving, setIsSaving] = useState(false);
 
   const [reportOpen, setReportOpen] = useState(false);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isUserAuthor =
     isAuthor ||
@@ -200,6 +214,28 @@ export function PostActions({
     }
   };
 
+  // Delete Handler (P0-12): author-only, confirmed via dialog, redirects to feed on success.
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/posts/${post.id}`, { method: "DELETE" });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.detail || data?.title || t("states.postDeleteFailed"));
+        return;
+      }
+
+      setDeleteDialogOpen(false);
+      toast.success(t("states.postDeleted"));
+      router.push("/");
+    } catch {
+      toast.error(t("states.postDeleteFailed"));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div
       data-testid="post-actions-bar"
@@ -329,6 +365,22 @@ export function PostActions({
           <Flag className="w-4 h-4" />
           <span className="sr-only">Şikayet Et</span>
         </Button>
+
+        {/* Yazar Sil Butonu (P0-12) */}
+        {isUserAuthor && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setDeleteDialogOpen(true)}
+            aria-label={t("common.delete")}
+            data-testid="post-delete-button"
+            className="rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="text-xs hidden sm:inline">{t("common.delete")}</span>
+          </Button>
+        )}
       </div>
 
       {/* Şikayet Modalı */}
@@ -338,6 +390,34 @@ export function PostActions({
         targetId={post.id}
         targetType="content"
       />
+
+      {/* Silme Onay Diyalogu (P0-12): comment delete flow'un aynısı — kopya ve onay deseni */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("states.postDeleteConfirmTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("states.postDeleteConfirmDesc", { title: post.title || "" })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-2">
+            <DialogClose asChild>
+              <Button type="button" variant="outline" disabled={isDeleting}>
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
+            <Button
+              type="button"
+              variant="destructive"
+              data-testid="confirm-delete-post-button"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? t("states.postDeleting") : t("common.delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

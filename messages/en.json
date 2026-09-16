@@ -472,6 +472,11 @@
     "publishFailed": "Couldn't publish. Your draft is saved.",
     "saveFailed": "Couldn't save your changes.",
     "notificationReadFailed": "Couldn't mark as read. Try again.",
-    "inboxLoadFailed": "Couldn't load notifications. Try again."
+    "inboxLoadFailed": "Couldn't load notifications. Try again.",
+    "postDeleteConfirmTitle": "Delete post?",
+    "postDeleteConfirmDesc": "This will permanently delete \"{title}\". This can't be undone.",
+    "postDeleting": "Deleting...",
+    "postDeleted": "Post deleted.",
+    "postDeleteFailed": "Couldn't delete the post."
   }
 }

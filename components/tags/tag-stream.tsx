@@ -8,22 +8,34 @@ import { LoadMore } from "@/components/pagination/load-more";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "@/components/ui/toast";
 import { syncCursorToUrl } from "@/lib/pagination";
+import { useSessionStore } from "@/lib/stores/session-store";
+import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
 
 export interface TagStreamProps {
   tagName: string;
   initialPosts: Post[];
   initialNextCursor: string | null;
+  /** The signed-in viewer's votes for `initialPosts`, keyed by post id (ROADMAP.md P0-06). */
+  initialVotes?: VoteMap;
 }
 
-export function TagStream({ tagName, initialPosts, initialNextCursor }: TagStreamProps) {
+export function TagStream({
+  tagName,
+  initialPosts,
+  initialNextCursor,
+  initialVotes,
+}: TagStreamProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
+  const [votes, setVotes] = useState<VoteMap>(initialVotes ?? {});
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const authStatus = useSessionStore((state) => state.status);
 
   useEffect(() => {
     setPosts(initialPosts);
     setNextCursor(initialNextCursor);
-  }, [initialPosts, initialNextCursor]);
+    setVotes(initialVotes ?? {});
+  }, [initialPosts, initialNextCursor, initialVotes]);
 
   const handleLoadMore = async (cursor: string) => {
     if (isLoadingMore) return;
@@ -55,6 +67,12 @@ export function TagStream({ tagName, initialPosts, initialNextCursor }: TagStrea
 
       setNextCursor(newNextCursor);
       syncCursorToUrl(newNextCursor, "push");
+
+      // P0-06: fetch the viewer's votes for the newly appended posts.
+      if (authStatus === "authenticated" && newItems.length > 0) {
+        const newVotes = await fetchVoteMapClient(newItems.map((p) => p.id));
+        setVotes((prev) => ({ ...prev, ...newVotes }));
+      }
     } catch {
       toast.error("Bağlantı hatası: Gönderiler yüklenemedi.");
     } finally {
@@ -82,7 +100,7 @@ export function TagStream({ tagName, initialPosts, initialNextCursor }: TagStrea
   return (
     <div className="divide-y divide-border/40">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} initialUserVote={votes[post.id] ?? 0} />
       ))}
 
       <LoadMore

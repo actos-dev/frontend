@@ -5,9 +5,10 @@ import Link from "next/link";
 import { ApiCornerBox } from "@/components/api/api-corner-box";
 import { TagStream } from "@/components/tags/tag-stream";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
-import { getServerClient } from "@/lib/actos";
+import { getServerClient, hasSessionCookie } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
 import { getSiteUrl } from "@/lib/seo";
+import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
 interface TagPageProps {
   params: Promise<{ name: string }>;
@@ -63,6 +64,7 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
   let nextCursor: string | null = null;
   let totalCount: number = 0;
   let loadError: unknown = null;
+  let voteMap: VoteMap = {};
 
   try {
     const client = await getServerClient();
@@ -85,6 +87,15 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
       }
     } catch {
       // Ignore count fetch error
+    }
+
+    // P0-06: the viewer's own votes never live in a cached, shared list
+    // response, so fetch them separately and only when signed in.
+    if (posts.length > 0 && (await hasSessionCookie())) {
+      voteMap = await fetchVoteMap(
+        client,
+        posts.map((p) => p.id),
+      );
     }
   } catch (error) {
     // No fabricated posts (ROADMAP.md P0-02, decision 7): render an error
@@ -141,7 +152,12 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
       </div>
 
       {/* Gönderi Akışı */}
-      <TagStream tagName={decodedName} initialPosts={posts} initialNextCursor={nextCursor} />
+      <TagStream
+        tagName={decodedName}
+        initialPosts={posts}
+        initialNextCursor={nextCursor}
+        initialVotes={voteMap}
+      />
 
       {/* Plan §10.1: "Bu Sayfayı API'den Al" Kutusu */}
       <div className="pt-4 pb-8">
