@@ -39,7 +39,7 @@ running backend, not only by its tests):
 | F-06, K-04, K-08, K-15 — primitives on the tokens | `dc56866` |
 | F-02, X-09, X-10 — one markdown pipeline | `5f1d2d2` |
 | K-19 — the repository docs rewritten, the superseded ones deleted | `1b726e4` |
-| S-01…S-06, P0-09, K-01, K-02, K-03, K-05, K-07, K-09, K-11 — the shell | `9c3a1ea` |
+| S-01…S-06, P0-09, K-01, K-02, K-03, K-05, K-07, K-09, K-11 — the shell | `3fa3bfa` |
 
 Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
 (488), `pnpm check:contrast` (3/3), `pnpm build`, and `pnpm test:e2e:real`
