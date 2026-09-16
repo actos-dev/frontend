@@ -17,6 +17,93 @@
 
 ---
 
+## 0.0 State of play — read this first
+
+*Updated 2026-09-16. Keep this section current: it is the handover between
+sessions.*
+
+**Branch:** all work lands on `overhaul` in this repository. `main` still
+holds the pre-refactor app, and nothing has been pushed yet.
+
+**Merged and verified** (every one of these was checked by hand against a
+running backend, not only by its tests):
+
+| Unit | Commit |
+|---|---|
+| P0-01, P0-04, P0-05, P0-07 — real data in every list | `a9b0c5d` |
+| F-04 — Next 16, React 19.3, advisories cleared | `c06fdb8` |
+| P0-02, P0-03, P0-10 — no invented content, no faked writes | `c588b02` |
+| F-05 — tokens, three themes, the real type stack | `af599ba` |
+| T-01 — real-backend e2e harness and seed script | `858528c` |
+| P0-06, P0-11 (client half), P0-12, P0-13 — votes, delete, 404 and 308 | `a7b4f66` |
+| F-06, K-04, K-08, K-15 — primitives on the tokens | `dc56866` |
+| F-02, X-09, X-10 — one markdown pipeline | `5f1d2d2` |
+
+Gate status at that point: `pnpm typecheck`, `pnpm lint`, `pnpm test` (492),
+`pnpm check:contrast` (3/3), `pnpm build`, and `pnpm test:e2e:real` (40 on
+desktop and mobile) all pass.
+
+**In flight:** Phase 2 (S-01 … S-06 plus K-01, K-02, K-03, K-05, K-07,
+K-09, K-11) in the worktree `../frontend-s01` on branch `overhaul-s01`. If
+that branch holds a `wip:` commit, it is unfinished work parked deliberately;
+read its commit message before continuing it.
+
+**Next after Phase 2:** F-03 (client data layer), F-07, F-08, then Phase 3.
+F-01 is blocked, see below.
+
+### Running the thing locally
+
+```bash
+# 1. Infrastructure (Postgres, Redis, MinIO)
+cd ~/Documents/actos/actos-backend && docker compose up -d
+
+# 2. The API, with rate limits raised so seeding and e2e do not hit 429
+RATE_LIMIT_REGISTER_IP_CAPACITY=500 RATE_LIMIT_WRITE_IP_CAPACITY=5000 RATE_LIMIT_POST_CAPACITY=1000 RATE_LIMIT_COMMENT_CAPACITY=5000 RATE_LIMIT_READ_IP_CAPACITY=100000 RATE_LIMIT_READ_CAPACITY=100000 RATE_LIMIT_SEARCH_IP_CAPACITY=10000 RATE_LIMIT_SEARCH_CAPACITY=10000 RATE_LIMIT_INBOX_CAPACITY=10000 RATE_LIMIT_INBOX_IP_CAPACITY=10000 RATE_LIMIT_VOTE_CAPACITY=10000 ./target/debug/actos-api
+
+# 3. Content (idempotent; keys land in .e2e-real/keys.json, gitignored)
+cd ~/Documents/actos/frontend && pnpm seed:dev
+
+# 4. Gates
+pnpm typecheck && pnpm lint && pnpm test && pnpm check:contrast && pnpm build
+ACTOS_API_URL=http://127.0.0.1:3100 pnpm test:e2e:real
+```
+
+The seeded account `deniz` is an admin, so `/mod` is reachable by setting
+the `actos_token` cookie to its key from `.e2e-real/keys.json`.
+`test-results/screens/` holds the screenshots from the last e2e run.
+
+### Waiting on the owner
+
+- **F-01 / B-10.** `@actos-dev/actos@0.2.0` is committed and versioned
+  locally in `../node` (`1a0676d`, on `main`) but not pushed or published.
+  npm still serves `0.1.0`, which is pre-refactor. Until this ships, the
+  frontend depends on `link:../node` and **neither CI nor the Docker build
+  can install**. The publish is one command from the repository root:
+  `git push origin main && gh workflow run publish.yml -f dry_run=false`.
+  This session could not run it: pushing is blocked by the sandbox, and the
+  owner runs it.
+- **D-07.** The legal texts themselves.
+- **D-12.** The staging hostname and how it is protected.
+
+### Things that cost time, so they are written down
+
+- **The mocked test suite cannot see the bugs that matter.** 401 tests passed
+  while every list rendered "anonim". Every unit ends with a real-backend run
+  and a look at screenshots, and that is not optional.
+- **Always run `pnpm build` before calling a unit done.** A client component
+  that imports server-only code type-checks and passes tests, then fails the
+  build. It happened twice: `lib/errors.ts` pulling the SDK (and with it
+  `node:fs`) into the browser, and the Shiki highlighter.
+- **`?fields=` is a sparse fieldset, not "include this too".** Asking for
+  `body_html` returned only `body_html`, with no `id` and no `author`.
+- **Streaming decides the HTTP status.** A `loading.tsx` above a route means
+  `notFound()` and `redirect()` answer 200, because the shell already
+  streamed.
+- **Tailwind's preflight removes list markers**, so a `.prose` system has to
+  put `list-style-type` back.
+
+---
+
 ## 0. Where things actually stand
 
 The code is feature-complete against the 0.2.0 API surface and cleanly
