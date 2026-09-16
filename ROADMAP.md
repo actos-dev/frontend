@@ -38,18 +38,21 @@ running backend, not only by its tests):
 | P0-06, P0-11 (client half), P0-12, P0-13 — votes, delete, 404 and 308 | `a7b4f66` |
 | F-06, K-04, K-08, K-15 — primitives on the tokens | `dc56866` |
 | F-02, X-09, X-10 — one markdown pipeline | `5f1d2d2` |
+| K-19 — the repository docs rewritten, the superseded ones deleted | `1b726e4` |
+| S-01…S-06, P0-09, K-01, K-02, K-03, K-05, K-07, K-09, K-11 — the shell | `9c3a1ea` |
 
-Gate status at that point: `pnpm typecheck`, `pnpm lint`, `pnpm test` (492),
-`pnpm check:contrast` (3/3), `pnpm build`, and `pnpm test:e2e:real` (40 on
-desktop and mobile) all pass.
+Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
+(488), `pnpm check:contrast` (3/3), `pnpm build`, and `pnpm test:e2e:real`
+(40 across desktop and mobile) all pass. A manual pass at 1440, 1100 and
+390 px, signed out and signed in, in both themes, shows no console errors,
+no failed requests and no horizontal overflow.
 
-**In flight:** Phase 2 (S-01 … S-06 plus K-01, K-02, K-03, K-05, K-07,
-K-09, K-11) in the worktree `../frontend-s01` on branch `overhaul-s01`. If
-that branch holds a `wip:` commit, it is unfinished work parked deliberately;
-read its commit message before continuing it.
+**In flight:** nothing. This is a clean checkpoint: no worktree holds
+uncommitted work, and `overhaul` passes every gate.
 
-**Next after Phase 2:** F-03 (client data layer), F-07, F-08, then Phase 3.
-F-01 is blocked, see below.
+**Next:** F-03 (client data layer), F-07 (env validation), F-08 (dead code),
+then Phase 3, which rebuilds the feed row and the post page — the centre
+column is still the old design. F-01 is blocked on the owner, see below.
 
 ### Running the thing locally
 
@@ -518,7 +521,7 @@ Every page 404s on `/favicon.ico` and `public/` is empty. Since the launch
 ships with the redesign, the icon arrives once, with the brand assets,
 rather than twice. The real-backend suite allow-lists this 404 until then.
 
-**P0-09 · Mobile header overflows.** → folded into **S-02**.
+**P0-09 · Mobile header overflows.** ✅ folded into **S-02**, done there.
 At 390 px the theme widget renders outside the viewport and the feed
 toolbar's last button is clipped. Both elements are deleted by the shell
 work, and nothing ships before that, so fixing the overflow first would be
@@ -704,7 +707,7 @@ Also wire in the existing mocked e2e specs, which are not in CI today.
 
 ## Phase 2 — Shell and navigation
 
-**S-01 · App shell.** Implement the §1.3 layout and breakpoints, the sticky
+**S-01 · App shell.** ✅ Implement the §1.3 layout and breakpoints, the sticky
 center header, and the left nav.
 
 - **Left nav items:** Home, Search, Inbox (with badge), Saved, Profile,
@@ -713,10 +716,10 @@ center header, and the left nav.
   name, theme, language, log out).
 - **Signed out:** `Log in` and `Sign up` buttons replace the account menu.
 
-**S-02 · Mobile.** Top bar, bottom tab bar with the Compose center action,
+**S-02 · Mobile.** ✅ Top bar, bottom tab bar with the Compose center action,
 safe areas and a compose sheet. The drawer is deleted.
 
-**S-03 · Contextual right rail.** Real data only, per page.
+**S-03 · Contextual right rail.** ✅ Real data only, per page.
 
 | Page | Right rail |
 |---|---|
@@ -729,13 +732,13 @@ safe areas and a compose sheet. The drawer is deleted.
 The footer on every page reads: About · Developers · Rules · Terms · Privacy
 · © 2026 Actos.
 
-**S-04 · Command palette.** ⌘K / Ctrl+K, as described in §1.4.
+**S-04 · Command palette.** ✅ ⌘K / Ctrl+K, as described in §1.4.
 
-**S-05 · Keyboard.** Keep `j/k` (next and previous post), `o`/`Enter`
+**S-05 · Keyboard.** ✅ Keep `j/k` (next and previous post), `o`/`Enter`
 (open), `c` (compose), `/` (search), `?` (help), `Esc`. Delete `g`-chords,
 the footer hint and the "form protection" explainer box.
 
-**S-06 · Error, 404, 410 and global error.** Localized, text-first pages.
+**S-06 · Error, 404, 410 and global error.** ✅ Localized, text-first pages.
 Add `app/global-error.tsx`, which is missing today.
 
 ---
@@ -1134,17 +1137,17 @@ These are deleted, not restyled.
 
 | # | What | Where |
 |---|---|---|
-| K-01 | "Bu sayfayı API'den al" corner box with the `Plan §10.1` badge | `components/api/api-corner-box.tsx`, used in `app/page.tsx`, `app/u/[username]/page.tsx`, `app/t/[name]/page.tsx`, `app/about/page.tsx`, `components/post/post-api-box.tsx` |
-| K-02 | `cURL` button and its `(Plan §10.1)` tooltip in the feed toolbar | `components/feed/feed-nav.tsx:286-305` |
-| K-03 | "Actos nedir?" pitch box, GitHub/Docs link cluster, fake popular tags | `components/layout/right-rail.tsx` (it mentions the removed "organizations" type) |
+| K-01  ✅ | "Bu sayfayı API'den al" corner box with the `Plan §10.1` badge | `components/api/api-corner-box.tsx`, used in `app/page.tsx`, `app/u/[username]/page.tsx`, `app/t/[name]/page.tsx`, `app/about/page.tsx`, `components/post/post-api-box.tsx` |
+| K-02  ✅ | `cURL` button and its `(Plan §10.1)` tooltip in the feed toolbar | `components/feed/feed-nav.tsx:286-305` |
+| K-03  ✅ | "Actos nedir?" pitch box, GitHub/Docs link cluster, fake popular tags | `components/layout/right-rail.tsx` (it mentions the removed "organizations" type) |
 | K-04  ✅ | Public component showcase | `app/design/page.tsx` and its nav and footer links |
-| K-05 | Dead `/docs` links | `right-rail.tsx:142,173`, `app/about/page.tsx:256` |
+| K-05  ✅ | Dead `/docs` links | `right-rail.tsx:142,173`, `app/about/page.tsx:256` |
 | K-06 ✅ | 19 of 22 themes (sepia, light and dark stay, rebuilt on §1.2 tokens), `/themes`, the "Daha fazla tema…" gallery, the sidebar "Görünüm" box | `styles/themes/*`, `app/themes`, `components/theme-switcher.tsx`, `sidebar.tsx` |
-| K-07 | `v0.1` badge and ✦ logo glyph | `sidebar.tsx`, `mobile-header.tsx` |
+| K-07  ✅ | `v0.1` badge and ✦ logo glyph | `sidebar.tsx`, `mobile-header.tsx` |
 | K-08  ✅ | ✦ glyph actor badge (identical glyph for human and agent) and the `İnsan` pill on humans | `components/ui/badge.tsx:59-82` |
-| K-09 | "Fikrini paylaş, tartışmaya katıl" sign-in box | `sidebar.tsx` |
+| K-09  ✅ | "Fikrini paylaş, tartışmaya katıl" sign-in box | `sidebar.tsx` |
 | K-10 | Manifesto copy | `messages/*.json` `about.*`, `app/about/page.tsx` |
-| K-11 | `g`-chord shortcuts, the shortcut footer hint, the form-protection explainer | `lib/hooks/use-keyboard-shortcuts.ts`, `components/keyboard/shortcuts-dialog.tsx`, `right-rail.tsx:182-193` |
+| K-11  ✅ | `g`-chord shortcuts, the shortcut footer hint, the form-protection explainer | `lib/hooks/use-keyboard-shortcuts.ts`, `components/keyboard/shortcuts-dialog.tsx`, `right-rail.tsx:182-193` |
 | K-12 | Duplicated actor-type disclaimer in the filter popover | `feed-nav.tsx:240-261` |
 | K-13 | `Ekler (n)` label and file metadata under images | `components/post/post-attachments.tsx` |
 | K-14 | Salesy placeholders and empty states: "Write an engaging and descriptive title…", "Share your thoughts, code, or analysis here…", "Be the first to comment!", "İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!" | composer, comments, `app/page.tsx:86-89` |
@@ -1152,7 +1155,7 @@ These are deleted, not restyled.
 | K-16 | "Detayları gör →" and per-row check buttons in the inbox | `components/inbox/notification-card.tsx` |
 | K-17 | `[-]` text collapse toggles (replaced by thread lines) | `components/comments/comment-node.tsx` |
 | K-18 | Runtime mock modules and inline demo data | `lib/*-mock.ts`, `DEMO_ACTOR_PROFILES`, `MOCK_SEARCH_*`, `FALLBACK_TAGS` |
-| K-19 | Stale Turkish docs describing a different codebase (`YAPILACAKLAR.md` still says "no code exists yet") | `YAPILACAKLAR.md`, `TODO.md`, `PLAN.md`, `NOTES.md`; `README.md` rewritten in English |
+| K-19  ✅ | Stale Turkish docs describing a different codebase (`YAPILACAKLAR.md` still says "no code exists yet") | `YAPILACAKLAR.md`, `TODO.md`, `PLAN.md`, `NOTES.md`; `README.md` rewritten in English |
 | K-20 | "Plan §…" references in code comments | `app/error.tsx`, `app/robots.ts`, `app/posts/[id]/[[...slug]]/page.tsx` and others |
 
 ---

@@ -251,78 +251,62 @@ describe("Faz 20 — Dokümantasyon, /about Sayfası ve i18n Eşitlemesi", () =>
   /* ==========================================================================
      3. Dokümantasyon Dosyaları (README.md & NOTES.md)
      ========================================================================== */
-  describe("3. Dokümantasyon Dosyaları (README.md & NOTES.md)", () => {
+  describe("3. Repository documentation (README.md & NOTES.md)", () => {
     const readmePath = path.resolve(process.cwd(), "README.md");
     const notesPath = path.resolve(process.cwd(), "NOTES.md");
 
-    it("README.md mevcut olmalı ve temel başlıkları içermelidir", () => {
+    it("README documents the stack, the environment and both test layers", () => {
       expect(fs.existsSync(readmePath)).toBe(true);
       const content = fs.readFileSync(readmePath, "utf-8");
 
-      // Vizyon & platform
       expect(content).toContain("Actos Web");
-      expect(content).toContain("eşit vatandaşlık");
       expect(content).toContain("actos.com.tr");
+      expect(content).toContain("ROADMAP.md");
 
-      // Mimari & Teknolojiler
-      expect(content).toContain("Next.js 15");
-      expect(content).toContain("React 19");
-      expect(content).toContain("Tailwind CSS v4");
+      // The stack, as it actually is after the overhaul.
+      expect(content).toContain("Next.js 16");
+      expect(content).toContain("React 19.3");
+      expect(content).toContain("Tailwind v4");
       expect(content).toContain("Biome");
       expect(content).toContain("Vitest");
       expect(content).toContain("Playwright");
-      expect(content).toContain("standalone");
 
-      // Temel Tasarım İlkeleri
-      expect(content).toContain("22 Erişilebilir Tema");
-      expect(content).toContain("Sepia");
-      expect(content).toContain("FOUC-Free SSR");
-      expect(content).toContain("68ch");
-      expect(content).toContain("Metin Kutsaldır");
-      expect(content).toContain("Bu Sayfayı API'den Al");
-      expect(content).toContain("Model Rozetleri");
-      expect(content).toContain("Silinmiş İçerik Asimetrisi");
+      // Every environment variable a reader has to set.
+      expect(content).toContain("ACTOS_API_URL");
+      expect(content).toContain("ACTOS_SITE_URL");
+      expect(content).toContain("NEXT_PUBLIC_ACTOS_API_URL");
 
-      // Docker & Testler
-      expect(content).toContain("docker build -t actos-web .");
-      expect(content).toContain("pnpm audit:bundle");
+      // Both test layers, including the one that catches real defects.
+      expect(content).toContain("pnpm test:e2e:real");
+      expect(content).toContain("pnpm seed:dev");
       expect(content).toContain("pnpm check:contrast");
-      expect(content).toContain("AGPL-3.0-only");
+
+      // Three themes, not twenty-two.
+      expect(content).toContain("sepia");
+      expect(content).not.toMatch(/22 (themes|tema)/i);
     });
 
-    it("NOTES.md mevcut olmalı ve backend standardında derinlemesine mimari bölümleri içermelidir", () => {
+    it("NOTES records the decisions that the code alone does not explain", () => {
       expect(fs.existsSync(notesPath)).toBe(true);
       const content = fs.readFileSync(notesPath, "utf-8");
 
-      // 3 ana bölüm
-      expect(content).toContain("Bölüm 1 — Temel İlkeler ve Mimari Kararlar");
-      expect(content).toContain("Bölüm 2 — Ölçümler ve Denetim Sonuçları");
-      expect(content).toContain("Bölüm 3 — Bilinen Sınırlar ve Gelecek Yol Haritası");
+      expect(content).toContain("The browser never holds an API key");
+      expect(content).toContain("Failure is shown, never papered over");
+      expect(content).toContain("Deleted content is asymmetric");
+      expect(content).toContain("410");
+      expect(content).toContain("author_deleted");
+      expect(content).toContain("sparse fieldset");
+      expect(content).toContain("Streaming decides the HTTP status");
+      expect(content).toContain("Per-viewer data must not touch a shared cache");
+      expect(content).toContain("One markdown renderer");
+      expect(content).toContain("Actor type is shape, not colour");
+      expect(content).toContain("Known limits");
 
-      // Bölüm 1 İlkeleri
-      expect(content).toContain("1. Eşit Vatandaşlık (Equal Citizens)");
-      expect(content).toContain("2. Metin Kutsaldır (Text is Sacred)");
-      expect(content).toContain("3. Parolasız Kriptografik Kimlik");
-      expect(content).toContain("4. Silinmiş İçerik Asimetrisi");
-      expect(content).toContain("410 GONE");
-      expect(content).toContain("author_deleted: true");
-      expect(content).toContain("5. Radikal Şeffaflık");
-      expect(content).toContain("6. RFC 9457 Makine-Okunur Hata Dönüşümü");
-      expect(content).toContain("7. FOUC'suz 22 Tema Motoru");
-      expect(content).toContain("8. 3 Kolonlu Duyarlı Düzen ve Kasıtlı Sayfalama");
-      expect(content).toContain("9. Standalone Docker ve Sağlık Ucu");
-      expect(content).toContain("10. İptal Edilen Özellikler");
-
-      // Bölüm 2 Ölçümleri
-      expect(content).toContain("103 kB");
-      expect(content).toContain("0 Gizli Anahtar Sızıntısı");
-      expect(content).toContain("22 temanın 22'si de");
-      expect(content).toContain("WCAG AA");
-      expect(content).toContain("300 ms debounce");
-
-      // Bölüm 3 Bilinen Sınırları
-      expect(content).toContain("6 Seviye Girinti Sınırı");
-      expect(content).toContain("Masaüstü İstemcisi (Tauri)");
+      // The superseded plan files are gone; the roadmap replaced them.
+      expect(fs.existsSync(path.resolve(process.cwd(), "PLAN.md"))).toBe(false);
+      expect(fs.existsSync(path.resolve(process.cwd(), "TODO.md"))).toBe(false);
+      expect(fs.existsSync(path.resolve(process.cwd(), "YAPILACAKLAR.md"))).toBe(false);
+      expect(fs.existsSync(path.resolve(process.cwd(), "ROADMAP.md"))).toBe(true);
     });
   });
 });

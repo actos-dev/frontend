@@ -254,6 +254,9 @@
 
   /* Inline code (fenced blocks are `.code-block`, styled separately below). */
   .prose :not(pre) > code {
+    /* P0-09: a long token with no spaces (a signature, a URL) used to
+       widen the whole page at 390px instead of wrapping. */
+    overflow-wrap: anywhere;
     font-family: var(--font-mono);
     font-size: 0.88em;
     padding: 0.15em 0.4em;
@@ -272,6 +275,7 @@
   /* Tables: wrapped in `.table-wrap` by rehypeTableWrap so a wide table
      scrolls instead of breaking the reading measure or the page. */
   .prose .table-wrap {
+    max-width: 100%;
     overflow-x: auto;
     margin: 1.4em 0;
   }
@@ -355,6 +359,9 @@
     outline-offset: 2px;
   }
   .code-block pre.shiki {
+    /* P0-09: scrolling is not enough on its own; without a cap the
+       block stretches its column and the page widens with it. */
+    max-width: 100%;
     margin: 0;
     padding: 1rem;
     overflow-x: auto;
@@ -367,6 +374,7 @@
      there stays a plain `<pre><code>` — still boxed and monospace, just
      without a header or highlighting. */
   .prose pre:not(.shiki) {
+    max-width: 100%;
     margin: 1.4em 0;
     padding: 1rem;
     border: 1px solid var(--border);
@@ -381,23 +389,6 @@
     background: none;
     padding: 0;
     font-size: inherit;
-  }
-
-  /* P0-09 / ROADMAP S-02: a long inline-code token (no spaces) pushed the
-     whole page wider than the 390px viewport instead of wrapping. Scoped to
-     inline code only (`:not(pre) > code`) so fenced code blocks keep their
-     own horizontal scroll (X-09) instead of wrapping mid-line. */
-  .reading-prose :not(pre) > code {
-    overflow-wrap: anywhere;
-  }
-
-  /* P0-09 / ROADMAP S-02: a fenced code block's `<pre>` has no width limit
-     of its own, so a long line (a SQL statement, a URL) widened the entire
-     page at 390px instead of scrolling within the block. This is the
-     missing scroll container (X-09), not a workaround. */
-  .reading-prose pre {
-    overflow-x: auto;
-    max-width: 100%;
   }
 
   /* Feed Akışı (Hızlı tarama, kompakt bilgi hiyerarşisi) */
