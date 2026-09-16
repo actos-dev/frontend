@@ -1,11 +1,10 @@
 "use client";
 
-import { Bold, Code, Heading3, Italic, Link as LinkIcon, List, Quote } from "lucide-react";
+import { Bold, Code, Heading3, Italic, Link as LinkIcon, List, Loader2, Quote } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from "@/lib/i18n";
-import { renderMarkdown } from "@/lib/markdown";
 import { cn } from "@/lib/utils";
 
 export interface MarkdownEditorProps {
@@ -15,6 +14,21 @@ export interface MarkdownEditorProps {
   disabled?: boolean;
   minRows?: number;
   className?: string;
+}
+
+type PreviewRenderer = (markdown: string) => string;
+
+// Loaded once per page, on demand, and shared by every editor instance on
+// it. The preview pipeline (lib/render/preview.ts — remark, rehype, the
+// sanitize schema, the whole unified chain) is real weight, so someone who
+// opens the composer to type never pays for it; it only reaches the
+// browser the first time the Preview tab is actually activated.
+let previewRendererPromise: Promise<PreviewRenderer> | null = null;
+function loadPreviewRenderer(): Promise<PreviewRenderer> {
+  if (!previewRendererPromise) {
+    previewRendererPromise = import("@/lib/render/preview").then((mod) => mod.renderPreview);
+  }
+  return previewRendererPromise;
 }
 
 export function MarkdownEditor({
@@ -29,7 +43,38 @@ export function MarkdownEditor({
   const [activeTab, setActiveTab] = React.useState<"write" | "preview">("write");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  const renderedHtml = React.useMemo(() => renderMarkdown(value), [value]);
+  // The write path (textarea, onChange, drafts, submit) never touches any
+  // of this — it only feeds `value` in as a plain string.
+  const [previewHtml, setPreviewHtml] = React.useState("");
+  const [previewLoading, setPreviewLoading] = React.useState(false);
+  const renderRef = React.useRef<PreviewRenderer | null>(null);
+
+  React.useEffect(() => {
+    if (activeTab !== "preview") return;
+
+    if (!value.trim()) {
+      setPreviewHtml("");
+      return;
+    }
+
+    if (renderRef.current) {
+      setPreviewHtml(renderRef.current(value));
+      return;
+    }
+
+    let cancelled = false;
+    setPreviewLoading(true);
+    loadPreviewRenderer().then((render) => {
+      if (cancelled) return;
+      renderRef.current = render;
+      setPreviewHtml(render(value));
+      setPreviewLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, value]);
 
   const applyFormatting = (
     formatType: "bold" | "italic" | "heading" | "link" | "code" | "quote" | "list",
@@ -252,12 +297,20 @@ export function MarkdownEditor({
         {/* Preview Tab */}
         <TabsContent value="preview" className="m-0 p-0 focus-visible:outline-hidden">
           <div data-testid="markdown-preview" className="min-h-[300px] p-5 overflow-y-auto">
-            {renderedHtml ? (
+            {previewLoading ? (
+              <div
+                data-testid="preview-loading"
+                className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground"
+              >
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>{t("editor.preview_loading") || "Loading preview…"}</span>
+              </div>
+            ) : previewHtml ? (
               <div
                 data-testid="preview-reading-prose"
-                className="reading-prose text-foreground selection:bg-primary/10"
+                className="prose selection:bg-primary/10"
                 // biome-ignore lint/security/noDangerouslySetInnerHtml: safe escaped client markdown renderer
-                dangerouslySetInnerHTML={{ __html: renderedHtml }}
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
               />
             ) : (
               <p className="text-muted-foreground italic text-sm py-8 text-center">

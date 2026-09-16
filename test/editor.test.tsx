@@ -10,7 +10,7 @@ import { IMAGE_LIMIT_USER_MESSAGE, ImageUploader } from "@/components/editor/ima
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
 import { sanitizeTag, TagsInput } from "@/components/editor/tags-input";
 import { toast } from "@/components/ui/toast";
-import { renderMarkdown } from "@/lib/markdown";
+import { renderPreview } from "@/lib/render/preview";
 import {
   clearStoredDraft,
   DRAFT_STORAGE_KEY,
@@ -146,7 +146,7 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
   // 1. Markdown Editörü ve Önizleme Testleri
   // =========================================================================
   describe("1. Markdown Editörü (components/editor/markdown-editor.tsx)", () => {
-    it("yaz ve önizle sekmeleri arasında sorunsuz geçiş yapmalıdır", () => {
+    it("yaz ve önizle sekmeleri arasında sorunsuz geçiş yapmalıdır", async () => {
       const handleChange = vi.fn();
       render(
         <MarkdownEditor value="### Başlık\n**Kalın metin** ve *italik*." onChange={handleChange} />,
@@ -160,23 +160,27 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
       const previewTab = screen.getByTestId("tab-preview");
       fireEvent.click(previewTab);
 
-      // Önizleme konteyneri ve reading-prose kontrolü
+      // Önizleme konteyneri hemen görünür; render'ı yapan preview modülü
+      // (lib/render/preview.ts) ilk aktivasyonda dinamik olarak yüklenir, bu
+      // yüzden içerik bir an için "preview-loading" durumunda olabilir.
       const preview = screen.getByTestId("markdown-preview");
       expect(preview).toBeInTheDocument();
 
-      const readingProse = screen.getByTestId("preview-reading-prose");
-      expect(readingProse.className).toContain("reading-prose");
+      const readingProse = await screen.findByTestId("preview-reading-prose");
+      expect(readingProse.className).toContain("prose");
       expect(readingProse.innerHTML).toContain("Başlık");
       expect(readingProse.innerHTML).toContain("<strong>Kalın metin</strong>");
     });
 
-    it("boş içerikte önizleme bilgi mesajı göstermelidir", () => {
+    it("boş içerikte önizleme bilgi mesajı göstermelidir, önizleme modülünü hiç yüklemeden", async () => {
       render(<MarkdownEditor value="" onChange={vi.fn()} />);
 
       const previewTab = screen.getByTestId("tab-preview");
       fireEvent.click(previewTab);
 
+      // Boş içerik dinamik import'u hiç tetiklememeli: mesaj senkron görünür.
       expect(screen.getByText(/Önizlenecek bir içerik yok/i)).toBeInTheDocument();
+      expect(screen.queryByTestId("preview-loading")).toBeNull();
     });
 
     it("temel biçimlendirme araç çubuğu butonları (kalın, italik, başlık, link, kod, alıntı, liste) doğru biçimlendirmeyi eklemelidir", () => {
@@ -225,12 +229,15 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
       expect(handleChange).toHaveBeenCalledWith(expect.stringContaining("- liste öğesi"));
     });
 
-    it("renderMarkdown fonksiyonu güvenli HTML üretmeli ve raw script injection'ı engellemelidir", () => {
+    it("renderPreview fonksiyonu güvenli HTML üretmeli ve raw script injection'ı engellemelidir", () => {
       const malicious = `<script>alert('xss')</script>\n# Güvenli Başlık\n- Madde 1\n> Bir alıntı`;
-      const html = renderMarkdown(malicious);
+      const html = renderPreview(malicious);
 
+      // Raw HTML (the whole <script> block) is dropped outright, not just
+      // escaped-and-displayed — lib/render never enables
+      // `allowDangerousHtml` (F-02).
       expect(html).not.toContain("<script>");
-      expect(html).toContain("&lt;script&gt;");
+      expect(html).not.toContain("alert(");
       expect(html).toContain("Güvenli Başlık");
       expect(html).toContain("<li>Madde 1</li>");
       expect(html).toContain("<blockquote");

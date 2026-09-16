@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
+import { renderCommentBody, renderCommentTree } from "@/lib/render/comment-tree";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +29,13 @@ export async function GET(req: NextRequest) {
     }
 
     const client = await getServerClient();
-    // YAPILACAKLAR.md §3: bodyHtml: true sends ?body_html=true (not ?fields=)
-    const comments = await client.comments.list(postId, {
+    // F-02: the API is no longer asked for `body_html`; lib/render is the
+    // only renderer now, so bodies are rendered here, on the server.
+    const rawComments = await client.comments.list(postId, {
       sort: sort as "new" | "top",
       parent,
-      bodyHtml: true,
     });
+    const comments = await renderCommentTree(rawComments);
 
     return NextResponse.json(
       { ok: true, data: comments },
@@ -93,11 +95,12 @@ export async function POST(req: NextRequest) {
     }
 
     const client = await getServerClient();
-    const comment = await client.comments.create(postId, {
+    const created = await client.comments.create(postId, {
       body: body.trim(),
       parentId: parentId || null,
       idempotencyKey,
     });
+    const comment = await renderCommentBody(created);
 
     return NextResponse.json(
       { ok: true, data: comment },

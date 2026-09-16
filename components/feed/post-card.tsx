@@ -9,8 +9,9 @@ import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/compone
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
 import { toast } from "@/components/ui/toast";
+import { excerpt } from "@/lib/render/excerpt";
 import { type SessionUser, useSessionStore } from "@/lib/stores/session-store";
-import { cn, extractExcerpt, formatRelativeTime, slugify } from "@/lib/utils";
+import { cn, formatRelativeTime, slugify } from "@/lib/utils";
 
 export interface PostCardProps {
   post: Post;
@@ -59,7 +60,7 @@ export function PostCard({
   const postHref = `/posts/${post.id}/${slug}`;
   const relativeTime = formatRelativeTime(post.createdAt);
 
-  const excerpt = extractExcerpt(post.bodyHtml || post.body, 220);
+  const bodyExcerpt = excerpt(post.body, 220);
 
   // Thumbnail from post property or attachments
   const rawAttachments = post.attachments as
@@ -321,9 +322,9 @@ export function PostCard({
             </Link>
           </h2>
 
-          {excerpt && (
+          {bodyExcerpt && (
             <p className="text-xs sm:text-sm text-muted-foreground leading-normal line-clamp-2 sm:line-clamp-3">
-              <Highlight text={excerpt} query={highlightQuery} />
+              <Highlight text={bodyExcerpt} query={highlightQuery} />
             </p>
           )}
         </div>

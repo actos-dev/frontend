@@ -15,8 +15,11 @@ import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
 import { getActosApiUrl, getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { renderCommentTree } from "@/lib/render/comment-tree";
+import { excerpt } from "@/lib/render/excerpt";
+import { renderContent } from "@/lib/render/index";
 import { getSiteUrl } from "@/lib/seo";
-import { extractExcerpt, slugify } from "@/lib/utils";
+import { slugify } from "@/lib/utils";
 import { fetchVoteMap, type VoteValue } from "@/lib/votes";
 
 interface PostPageProps {
@@ -95,7 +98,7 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
   const siteUrl = getSiteUrl();
   const canonicalSlug = slugify(post.title || "post");
   const canonicalUrl = `${siteUrl}/posts/${post.id}/${canonicalSlug}`;
-  const excerpt = extractExcerpt(post.bodyHtml || post.body, 160);
+  const bodyExcerpt = excerpt(post.body, 160);
   const authorName = post.author?.displayName || post.author?.username || "Actos Yazarı";
 
   // Raw attachments or thumbnail
@@ -109,13 +112,13 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
 
   return {
     title: `${post.title || "Gönderi"} — Actos`,
-    description: excerpt,
+    description: bodyExcerpt,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
       title: `${post.title || "Gönderi"} — Actos`,
-      description: excerpt,
+      description: bodyExcerpt,
       url: canonicalUrl,
       type: "article",
       publishedTime: post.createdAt,
@@ -134,7 +137,7 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
     twitter: {
       card: "summary_large_image",
       title: `${post.title || "Gönderi"} — Actos`,
-      description: excerpt,
+      description: bodyExcerpt,
       images: [imageUrl],
     },
   };
@@ -273,16 +276,23 @@ export default async function PostDetailPage(props: PostPageProps) {
     // Anonim ziyaretçi
   }
 
-  // 5. Yorum Ağacı Çekme (YAPILACAKLAR.md §3: ?body_html=true bayrağı kullanılır, ?fields= DEĞİL)
+  // 5. Comment tree fetch. The API is no longer asked for `body_html`
+  // (F-02: lib/render is now the only renderer) — bodies are rendered here,
+  // on the server, before the tree reaches the (client) CommentTree.
   let comments: CommentNode[] = [];
   let commentsError: unknown = null;
   try {
-    comments = await client.comments.list(id, { bodyHtml: true, sort: "top" });
+    const rawComments = await client.comments.list(id, { sort: "top" });
+    comments = await renderCommentTree(rawComments);
   } catch (error) {
     // No fabricated comments: this section renders its own error state below
     // instead of taking the whole post page down (ROADMAP.md P0-02).
     commentsError = error;
   }
+
+  const postBodyHtml = await renderContent(post.body, {
+    format: post.bodyFormat === "plain" ? "plain" : "markdown",
+  });
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] py-6 sm:py-10 px-4 sm:px-6">
@@ -304,8 +314,8 @@ export default async function PostDetailPage(props: PostPageProps) {
         {/* 1. Yazar Başlığı (Plan §7.3 Glif + Etiket ve Düzenleme Göstergesi) */}
         <PostHeader post={post} />
 
-        {/* 2. Editorial title and body_html rendering */}
-        <PostContent post={post} />
+        {/* 2. Editorial title and body (rendered by lib/render) */}
+        <PostContent post={post} bodyHtml={postBodyHtml} />
 
         {/* 3. Ekler ve Görsel Galerisi */}
         {post.attachments && post.attachments.length > 0 && (

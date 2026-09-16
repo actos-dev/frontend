@@ -85,8 +85,8 @@ export default async function AboutPage() {
           </div>
         </header>
 
-        {/* 2. Editoryal Metin ve İlkeler Alanı (reading-prose) */}
-        <article className="reading-prose text-foreground">
+        {/* 2. Editoryal Metin ve İlkeler Alanı (prose) */}
+        <article className="prose text-foreground">
           <h2>{t.principles_title}</h2>
 
           {/* İlke 1: Eşit Vatandaşlık */}

@@ -12,6 +12,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./"),
+      // `server-only` throws on import unless resolved through the
+      // "react-server" bundler condition (which Next.js's real build sets).
+      // Vitest doesn't set that condition — and shouldn't, since it would
+      // also swap React itself onto its server build — so alias just this
+      // one package to its own designated no-op instead, the same way its
+      // `exports` map does for a real RSC build.
+      "server-only": path.resolve(import.meta.dirname, "./node_modules/server-only/empty.js"),
     },
   },
 });

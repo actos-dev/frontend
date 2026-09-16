@@ -11,6 +11,7 @@ import { PostAttachments } from "@/components/post/post-attachments";
 import { PostContent } from "@/components/post/post-content";
 import { PostHeader } from "@/components/post/post-header";
 import * as actosLib from "@/lib/actos";
+import { renderContent } from "@/lib/render/index";
 
 // Mock next/navigation
 const mockPermanentRedirect = vi.fn((url: string) => {
@@ -52,7 +53,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
     id: "c_post_100",
     contentType: "post",
     title: "Rust'ta ltree ile nested yorum ağacı",
-    body: "Postgres'in ltree eklentisi ile 32 seviyeli yorum ağacını test ediyoruz.",
+    body: "Postgres'in `ltree` eklentisi ile **32 seviyeli** yorum ağacını test ediyoruz.",
     bodyHtml:
       "<p>Postgres'in <code>ltree</code> eklentisi ile <strong>32 seviyeli</strong> yorum ağacını test ediyoruz.</p>",
     bodyFormat: "markdown",
@@ -190,32 +191,34 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
   // 2. PostContent Bileşeni & body_html
   // ==========================================================================
   describe("2. PostContent Bileşeni", () => {
-    it("editoryal başlığı büyük boyutta font-serif ile render etmelidir", () => {
-      render(<PostContent post={samplePost} />);
+    it("editoryal başlığı büyük boyutta font-serif ile render etmelidir", async () => {
+      const bodyHtml = await renderContent(samplePost.body, { format: "markdown" });
+      render(<PostContent post={samplePost} bodyHtml={bodyHtml} />);
 
       const heading = screen.getByRole("heading", { level: 1 });
       expect(heading.textContent).toBe(samplePost.title);
       expect(heading.className).toContain("font-serif");
     });
 
-    it("body_html alanını dangerouslySetInnerHTML ile reading-prose içinde render etmelidir", () => {
-      render(<PostContent post={samplePost} />);
+    it("lib/render'dan gelen bodyHtml'i dangerouslySetInnerHTML ile prose içinde render etmelidir", async () => {
+      const bodyHtml = await renderContent(samplePost.body, { format: "markdown" });
+      render(<PostContent post={samplePost} bodyHtml={bodyHtml} />);
 
-      const htmlContainer = screen.getByTestId("post-body-html");
+      const htmlContainer = screen.getByTestId("post-body");
       expect(htmlContainer).toBeDefined();
-      expect(htmlContainer.className).toContain("reading-prose");
+      expect(htmlContainer.className).toContain("prose");
       expect(htmlContainer.innerHTML).toContain("<code>ltree</code>");
       expect(htmlContainer.innerHTML).toContain("<strong>32 seviyeli</strong>");
     });
 
-    it("body_format: 'plain' iken HTML yerine biçimlendirilmiş düz metin (whitespace-pre-wrap) basmalıdır", () => {
-      render(<PostContent post={plainPost} />);
+    it("body_format: 'plain' iken Markdown ayrıştırmadan, kaçışlı düz metni tek bir <p> içinde basmalıdır", async () => {
+      const bodyHtml = await renderContent(plainPost.body, { format: "plain" });
+      render(<PostContent post={plainPost} bodyHtml={bodyHtml} />);
 
-      expect(screen.queryByTestId("post-body-html")).toBeNull();
-      const plainContainer = screen.getByTestId("post-body-plain");
-      expect(plainContainer).toBeDefined();
-      expect(plainContainer.className).toContain("whitespace-pre-wrap");
-      expect(plainContainer.textContent).toContain(
+      const container = screen.getByTestId("post-body");
+      expect(container).toBeDefined();
+      expect(container.innerHTML.match(/<p>/g)?.length).toBe(1);
+      expect(container.textContent).toContain(
         "Bu gönderi **markdown** değil, sadece düz metin olarak biçimlendirilmiştir.",
       );
     });

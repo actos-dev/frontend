@@ -117,7 +117,7 @@ describe("Faz 20 — Dokümantasyon, /about Sayfası ve i18n Eşitlemesi", () =>
       expect(screen.getAllByText(/\/posts/i).length).toBeGreaterThan(0);
     });
 
-    it("editoryal okuma sınıflarını (reading-container ve reading-prose) içermelidir", async () => {
+    it("editoryal okuma sınıflarını (reading-container ve prose) içermelidir", async () => {
       const pageUi = await AboutPage();
       const { container } = render(pageUi);
 
@@ -125,7 +125,7 @@ describe("Faz 20 — Dokümantasyon, /about Sayfası ve i18n Eşitlemesi", () =>
       expect(readingContainer).toBeDefined();
       expect(readingContainer).not.toBeNull();
 
-      const readingProse = container.querySelector(".reading-prose");
+      const readingProse = container.querySelector(".prose");
       expect(readingProse).toBeDefined();
       expect(readingProse).not.toBeNull();
     });

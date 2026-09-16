@@ -6,7 +6,8 @@ import Link from "next/link";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
-import { cn, extractExcerpt, formatRelativeTime } from "@/lib/utils";
+import { excerpt } from "@/lib/render/excerpt";
+import { cn, formatRelativeTime } from "@/lib/utils";
 
 export interface CommentSearchCardProps {
   comment: Post;
@@ -21,7 +22,7 @@ export function CommentSearchCard({ comment, highlightQuery, className }: Commen
   const displayName = author?.displayName || username;
   const relativeTime = formatRelativeTime(comment.createdAt);
 
-  const excerpt = extractExcerpt(comment.bodyHtml || comment.body, 280);
+  const bodyExcerpt = excerpt(comment.body, 280);
 
   return (
     <article
@@ -80,7 +81,7 @@ export function CommentSearchCard({ comment, highlightQuery, className }: Commen
       {/* Yorum Gövdesi */}
       <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed pl-8">
         <p className="line-clamp-3">
-          <Highlight text={excerpt} query={highlightQuery} />
+          <Highlight text={bodyExcerpt} query={highlightQuery} />
         </p>
       </div>
 

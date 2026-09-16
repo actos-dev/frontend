@@ -1,5 +1,6 @@
 import type { Post } from "actos";
-import { extractExcerpt, slugify } from "@/lib/utils";
+import { excerpt } from "@/lib/render/excerpt";
+import { slugify } from "@/lib/utils";
 
 /**
  * Returns the base site URL without trailing slash.
@@ -82,7 +83,7 @@ export interface DiscussionForumPostingJsonLd {
 export function buildDiscussionForumPostingJsonLd(post: Post): DiscussionForumPostingJsonLd {
   const siteUrl = getSiteUrl();
   const canonicalUrl = buildPostCanonicalUrl(post.id, post.title);
-  const excerpt = extractExcerpt(post.bodyHtml || post.body, 500);
+  const bodyExcerpt = excerpt(post.body, 500);
   const authorName = post.author?.displayName || post.author?.username || "Anonim";
   const authorUrl = `${siteUrl}/u/${post.author?.username || "anon"}`;
 
@@ -90,7 +91,7 @@ export function buildDiscussionForumPostingJsonLd(post: Post): DiscussionForumPo
     "@context": "https://schema.org",
     "@type": "DiscussionForumPosting",
     headline: post.title || "Gönderi",
-    articleBody: excerpt,
+    articleBody: bodyExcerpt,
     author: {
       "@type": "Person",
       name: authorName,

@@ -9,7 +9,9 @@ import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
-import { extractExcerpt, slugify } from "@/lib/utils";
+import { renderCommentBody, renderCommentTree } from "@/lib/render/comment-tree";
+import { excerpt } from "@/lib/render/excerpt";
+import { slugify } from "@/lib/utils";
 
 interface DeepCommentPageProps {
   params: Promise<{
@@ -70,10 +72,14 @@ export default async function DeepCommentPage(props: DeepCommentPageProps) {
 
   try {
     commentDetail = await client.comments.get(commentId);
-    childNodes = await client.comments.list(postId, {
-      parent: commentId,
-      bodyHtml: true,
-    });
+    const rawChildNodes = await client.comments.list(postId, { parent: commentId });
+    childNodes = await renderCommentTree(rawChildNodes);
+    if (commentDetail?.comment) {
+      commentDetail = {
+        ...commentDetail,
+        comment: await renderCommentBody(commentDetail.comment),
+      };
+    }
   } catch (err) {
     const outcome = classifyCommentError(err);
     if (outcome === "gone") {
@@ -153,7 +159,7 @@ export default async function DeepCommentPage(props: DeepCommentPageProps) {
               <Link href={postHref}>{post.title}</Link>
             </h1>
             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-              {extractExcerpt(post.bodyHtml || post.body, 140)}
+              {excerpt(post.body, 140)}
             </p>
           </div>
         )}

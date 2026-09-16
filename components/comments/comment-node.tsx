@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CommentForm } from "@/components/comments/comment-form";
+import { CodeBlockEnhancer } from "@/components/render/code-block-enhancer";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -402,11 +403,13 @@ export function CommentNodeComponent({
           ) : (
             <div className="text-foreground/90 text-sm leading-relaxed break-words py-0.5">
               {comment.bodyHtml ? (
-                <div
-                  className="prose prose-sm dark:prose-invert max-w-none text-sm"
-                  // biome-ignore lint/security/noDangerouslySetInnerHtml: backend sanitized pulldown-cmark + ammonia HTML
-                  dangerouslySetInnerHTML={{ __html: comment.bodyHtml }}
-                />
+                <CodeBlockEnhancer>
+                  <div
+                    className="prose prose-comment"
+                    // biome-ignore lint/security/noDangerouslySetInnerHtml: rendered and sanitized by lib/render (rehype-sanitize)
+                    dangerouslySetInnerHTML={{ __html: comment.bodyHtml }}
+                  />
+                </CodeBlockEnhancer>
               ) : (
                 <p className="whitespace-pre-wrap">{comment.body}</p>
               )}
