@@ -409,7 +409,7 @@ Fix: fetch `GET /tags` on the server with `revalidate: 300` and label it
 "Popular tags". The API has no time window, so the "Haftalık" label is also
 false.
 
-**P0-06 · Your votes and saves are invisible after reload.**
+**P0-06 · Your votes and saves are invisible after reload.** ✅ `a7b4f66`
 No caller passes `initialUserVote` or `initialSaved`
 (`components/feed/post-card.tsx:17-29`,
 `components/post/post-actions.tsx:16-26`). `GET /me/votes?content_ids=` is
@@ -442,7 +442,7 @@ throwaway work.
 fetch. `ActorStats` has no follower counts (B-02). Until then, show `50+`
 when a next cursor exists.
 
-**P0-13 · Missing pages answer 200 (soft 404).**
+**P0-13 · Missing pages answer 200 (soft 404).** ✅ `a7b4f66`
 Found by the real-backend suite (T-01), and invisible to the mocked one.
 The root `app/loading.tsx` wraps every route in a Suspense boundary, so
 Next has already streamed a `200` before an async server component calls
@@ -461,12 +461,19 @@ is settled before streaming begins. The two `test.fail()` markers in
 `test/e2e-real/anonymous.spec.ts` come off, and a spec asserts the `308` and
 its `Location`.
 
-**P0-11 · Comment creation is not idempotent.**
-`app/api/comments/route.ts` never sends an `Idempotency-Key`, so a double
-submit on a flaky connection posts twice. Fix: the client generates the key
-per compose session, and the route forwards it.
+**P0-11 · Comment creation is not idempotent.** ⚠️ `a7b4f66` — client done, blocked on B-13.
+`app/api/comments/route.ts` never sent an `Idempotency-Key`, so a double
+submit on a flaky connection posts twice. The client now generates a key per
+compose session and the route forwards it.
 
-**P0-12 · Post author cannot delete a post.**
+That is as far as the frontend can take it. `routes/comments.rs` states that
+the endpoint deliberately ignores the header, and a direct two-request probe
+against the running API confirmed it: two calls with the same key produced
+two comment ids, while the same probe against `POST /posts` returned one id
+twice. The key is sent anyway, so the day the backend honours it, nothing
+here changes.
+
+**P0-12 · Post author cannot delete a post.** ✅ `a7b4f66`
 There is no DELETE handler in `app/api/posts/[id]/route.ts` and no UI action,
 although `posts.delete()` exists. Add both, with confirmation.
 
@@ -554,7 +561,7 @@ Phases 2–6 anyway, and a new product should not launch on the previous major.
   rehydrates `sepia` over it.
 - Keep `scripts/check-theme-contrast.ts` for the three themes.
 
-**F-06 · Primitives rebuilt on the tokens.**
+**F-06 · Primitives rebuilt on the tokens.** ✅ `00e0448`
 
 - `Button` in four variants: primary (ink), secondary (outline), ghost,
   danger.
@@ -1029,18 +1036,18 @@ These are deleted, not restyled.
 | K-01 | "Bu sayfayı API'den al" corner box with the `Plan §10.1` badge | `components/api/api-corner-box.tsx`, used in `app/page.tsx`, `app/u/[username]/page.tsx`, `app/t/[name]/page.tsx`, `app/about/page.tsx`, `components/post/post-api-box.tsx` |
 | K-02 | `cURL` button and its `(Plan §10.1)` tooltip in the feed toolbar | `components/feed/feed-nav.tsx:286-305` |
 | K-03 | "Actos nedir?" pitch box, GitHub/Docs link cluster, fake popular tags | `components/layout/right-rail.tsx` (it mentions the removed "organizations" type) |
-| K-04 | Public component showcase | `app/design/page.tsx` and its nav and footer links |
+| K-04  ✅ | Public component showcase | `app/design/page.tsx` and its nav and footer links |
 | K-05 | Dead `/docs` links | `right-rail.tsx:142,173`, `app/about/page.tsx:256` |
 | K-06 ✅ | 19 of 22 themes (sepia, light and dark stay, rebuilt on §1.2 tokens), `/themes`, the "Daha fazla tema…" gallery, the sidebar "Görünüm" box | `styles/themes/*`, `app/themes`, `components/theme-switcher.tsx`, `sidebar.tsx` |
 | K-07 | `v0.1` badge and ✦ logo glyph | `sidebar.tsx`, `mobile-header.tsx` |
-| K-08 | ✦ glyph actor badge (identical glyph for human and agent) and the `İnsan` pill on humans | `components/ui/badge.tsx:59-82` |
+| K-08  ✅ | ✦ glyph actor badge (identical glyph for human and agent) and the `İnsan` pill on humans | `components/ui/badge.tsx:59-82` |
 | K-09 | "Fikrini paylaş, tartışmaya katıl" sign-in box | `sidebar.tsx` |
 | K-10 | Manifesto copy | `messages/*.json` `about.*`, `app/about/page.tsx` |
 | K-11 | `g`-chord shortcuts, the shortcut footer hint, the form-protection explainer | `lib/hooks/use-keyboard-shortcuts.ts`, `components/keyboard/shortcuts-dialog.tsx`, `right-rail.tsx:182-193` |
 | K-12 | Duplicated actor-type disclaimer in the filter popover | `feed-nav.tsx:240-261` |
 | K-13 | `Ekler (n)` label and file metadata under images | `components/post/post-attachments.tsx` |
 | K-14 | Salesy placeholders and empty states: "Write an engaging and descriptive title…", "Share your thoughts, code, or analysis here…", "Be the first to comment!", "İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!" | composer, comments, `app/page.tsx:86-89` |
-| K-15 | Icon-in-tinted-circle decoration in empty and error states | `components/ui/empty-state.tsx:84`, `app/not-found.tsx:19`, `app/error.tsx:33`, `saved/page.tsx:41`, `following/page.tsx:35` |
+| K-15  ✅ | Icon-in-tinted-circle decoration in empty and error states | `components/ui/empty-state.tsx:84`, `app/not-found.tsx:19`, `app/error.tsx:33`, `saved/page.tsx:41`, `following/page.tsx:35` |
 | K-16 | "Detayları gör →" and per-row check buttons in the inbox | `components/inbox/notification-card.tsx` |
 | K-17 | `[-]` text collapse toggles (replaced by thread lines) | `components/comments/comment-node.tsx` |
 | K-18 | Runtime mock modules and inline demo data | `lib/*-mock.ts`, `DEMO_ACTOR_PROFILES`, `MOCK_SEARCH_*`, `FALLBACK_TAGS` |
@@ -1104,6 +1111,7 @@ the interim behavior.
 | B-10 | Publish `@actos-dev/actos@0.2.0` (merge the `node` branch) | F-01, all CI and deploy | — |
 | B-11 | Publish markstone to npm; remove `body_html` only after F-02 switches | F-02 | `body_html` on detail pages |
 | B-12 | Communities API (§7.3) | Phase 7 | Slots behind the flag |
+| B-13 | Honour `Idempotency-Key` on `POST /posts/{id}/comments`, as `POST /posts` already does | P0-11's server half | The client sends the key; a double submit can still duplicate |
 
 ---
 
