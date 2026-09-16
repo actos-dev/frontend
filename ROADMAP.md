@@ -947,6 +947,20 @@ colors, icons), and the `viewport` export with `themeColor` for all three themes
   backend's 34 MiB limit.
 - Surface 429 `Retry-After` in toasts: "Slow down. Try again in 40 s".
 
+**D-03b · Remote images in bodies leak the reader's IP.**
+The markdown pipeline allows `http`/`https` image sources, so a post body can
+embed an image from any host. Every reader who opens that post hands their IP
+address, user agent and a timing signal to whoever controls it, which is a
+tracking pixel by another name and a real deanonymisation vector on a
+platform people read without an account.
+
+Decide one of: proxy remote images through the app (an `/_img` route with
+allow-listed content types, a size cap and a cache), or disallow remote
+images in bodies and accept only uploaded attachments. Proxying keeps the
+markdown contract intact and is the way most social apps solve this. Until
+then the pipeline's behaviour is unchanged, which is why this is a launch
+item, not a cleanup item.
+
 **D-04 · Images.** Use `next/image` for avatars, thumbnails and gallery
 images; today it has zero usages. Trim `remotePatterns` to
 `media.actos.com.tr` plus local dev. Drop `*.amazonaws.com` and the plain
