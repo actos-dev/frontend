@@ -495,7 +495,7 @@ Order:
    56 import sites.
 3. `pnpm install`, then run all gates.
 
-**F-02 · One markdown pipeline.**
+**F-02 · One markdown pipeline.** ✅ `5f1d2d2`
 Markdown is currently rendered three ways:
 
 - `body_html` from the API on detail pages
