@@ -166,9 +166,6 @@ export function RightRail({ className, tags }: RightRailProps) {
           <Link href="/docs" className="hover:underline">
             Dokümantasyon
           </Link>
-          <Link href="/design" className="hover:underline">
-            Tasarım
-          </Link>
           <button
             type="button"
             data-testid="shortcuts-hint-btn"

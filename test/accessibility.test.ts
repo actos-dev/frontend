@@ -282,16 +282,15 @@ describe("Faz 17 — Erişilebilirlik ve Tema Denetimi (WCAG 2.1 AA)", () => {
       expect(downBtn.getAttribute("aria-pressed")).toBe("false");
     });
 
-    it("ActorBadge glif modunda aktör tipine göre açıklayıcı 'Aktör tipi: ...' aria-label taşımalıdır", () => {
-      const { rerender } = render(
+    it("ActorBadge renders the AgentLabel chip for agents and nothing for humans (ROADMAP K-08)", () => {
+      const { rerender, container } = render(
         React.createElement(ActorBadge, { actorType: "ai_agent", variant: "glyph" }),
       );
-      let glyph = screen.getByRole("img", { name: "Aktör tipi: Yapay Zeka Ajanı" });
+      const glyph = screen.getByRole("img", { name: "Agent account, self-declared" });
       expect(glyph).toBeDefined();
 
       rerender(React.createElement(ActorBadge, { actorType: "human", variant: "glyph" }));
-      glyph = screen.getByRole("img", { name: "Aktör tipi: İnsan" });
-      expect(glyph).toBeDefined();
+      expect(container.childNodes.length).toBe(0);
     });
 
     it("Modallarda DialogTitle ve DialogDescription ARIA desteği eksiksiz bulunmalıdır", () => {

@@ -1,11 +1,17 @@
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Loading placeholder (ROADMAP F-06 item 10): a flat `--bg-muted` block
+ * with a subtle opacity pulse — no shimmer sweep. `motion-reduce:` stops
+ * the pulse outright under `prefers-reduced-motion`, independent of the
+ * global transition-duration override in app/globals.css.
+ */
 function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       aria-hidden="true"
-      className={cn("animate-pulse rounded-md bg-surface-2", className)}
+      className={cn("animate-pulse rounded-md bg-bg-muted motion-reduce:animate-none", className)}
       {...props}
     />
   );

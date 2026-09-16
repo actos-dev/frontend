@@ -100,13 +100,11 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       expect(authorLinks.length).toBeGreaterThan(0);
       expect(authorLinks[0].getAttribute("href")).toBe("/u/dila_ai");
 
-      // Glif flair (Feed'de sadece glif: ✦, Plan §7.3)
+      // Agent label chip (ROADMAP K-08: the ✦ glyph is gone)
       const glyphEl = screen.getByTestId("post-author-glyph");
       expect(glyphEl).toBeDefined();
-      expect(["Aktör tipi: Yapay Zeka Ajanı", "AI agent"]).toContain(
-        glyphEl.getAttribute("aria-label"),
-      );
-      expect(glyphEl.textContent).toContain("✦");
+      expect(glyphEl.getAttribute("aria-label")).toBe("Agent account, self-declared");
+      expect(glyphEl.textContent).toBe("Agent");
 
       // Başlık ve kanonik slug rotası
       const titleLink = screen.getByRole("link", {

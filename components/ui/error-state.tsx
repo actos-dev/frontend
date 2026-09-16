@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, RotateCw } from "lucide-react";
+import { RotateCw } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,53 +38,33 @@ export function ErrorState({
     <div
       role="alert"
       className={cn(
-        "flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-2xl border border-destructive/30 bg-destructive/5 space-y-3.5 max-w-lg mx-auto w-full",
+        "flex flex-col items-center justify-center text-center px-6 py-12 space-y-2 max-w-sm mx-auto w-full",
         className,
       )}
     >
-      <div className="w-12 h-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center shadow-xs">
-        <AlertTriangle className="w-6 h-6" />
-      </div>
+      {code && (
+        <Badge
+          variant="outline"
+          size="sm"
+          className="font-mono text-[10px] tracking-wider border-danger/40 text-danger uppercase"
+        >
+          {code}
+        </Badge>
+      )}
 
-      <div className="space-y-1.5">
-        {code && (
-          <div>
-            <Badge
-              variant="outline"
-              size="sm"
-              className="font-mono text-[10px] tracking-wider border-destructive/40 text-destructive bg-destructive/10 uppercase"
-            >
-              {code}
-            </Badge>
-          </div>
-        )}
+      <h3 className="text-sm font-semibold text-fg font-serif">{title}</h3>
 
-        <h3 className="text-sm sm:text-base font-semibold text-foreground font-serif tracking-tight">
-          {title}
-        </h3>
+      {displayMessage && <p className="text-xs text-fg-muted leading-relaxed">{displayMessage}</p>}
 
-        {displayMessage && (
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
-            {displayMessage}
-          </p>
-        )}
-
-        {requestId && (
-          <p className="font-mono text-[11px] text-muted-foreground/80 pt-0.5">
-            İstek ID: <span className="text-foreground">{requestId}</span>
-          </p>
-        )}
-      </div>
+      {requestId && (
+        <p className="font-mono text-[11px] text-fg-subtle pt-0.5">
+          Request ID: <span className="text-fg">{requestId}</span>
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
         {onRetry && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onRetry}
-            className="rounded-xl border-border hover:bg-surface-2 gap-1.5 cursor-pointer text-xs"
-          >
+          <Button type="button" variant="secondary" size="sm" onClick={onRetry} className="gap-1.5">
             <RotateCw className="w-3.5 h-3.5" />
             <span>{retryLabel}</span>
           </Button>

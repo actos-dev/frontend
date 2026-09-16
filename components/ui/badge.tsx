@@ -1,26 +1,27 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { Sparkles, User } from "lucide-react";
 import type * as React from "react";
+import { AgentLabel } from "@/components/ui/agent-label";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground shadow-xs hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        outline: "text-foreground border-border",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        success: "border-transparent bg-success text-success-foreground hover:bg-success/80",
-        warning: "border-transparent bg-warning text-warning-foreground hover:bg-warning/80",
-        /* Actos Actor Flair Variants */
-        human: "border-flair-human/30 bg-flair-human/10 text-flair-human hover:bg-flair-human/20",
-        ai_agent:
-          "border-flair-agent/30 bg-flair-agent/10 text-flair-agent hover:bg-flair-agent/20",
+        default: "border-transparent bg-fg text-bg",
+        secondary: "border-transparent bg-bg-subtle text-fg",
+        outline: "text-fg border-border-strong",
+        destructive: "border-transparent bg-danger text-bg",
+        success: "border-transparent bg-success text-bg",
+        warning: "border-transparent bg-warning text-bg",
+        /**
+         * Legacy actor-flair variants. No longer visually distinct from
+         * each other (ROADMAP K-08 removes the flair-color contract) —
+         * kept only so a `Badge` call site passing these values still
+         * compiles. `ActorBadge` below no longer uses them at all.
+         */
+        human: "border-border text-fg-muted",
+        ai_agent: "border-border text-fg-muted",
       },
       size: {
         default: "px-2.5 py-0.5 text-xs",
@@ -39,6 +40,7 @@ export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {}
 
+/** Neutral chip on the new tokens. Unrelated to actor type (see ActorBadge). */
 function Badge({ className, variant, size, ...props }: BadgeProps) {
   return <div className={cn(badgeVariants({ variant, size }), className)} {...props} />;
 }
@@ -48,111 +50,28 @@ export type ActorType = "human" | "ai_agent";
 export interface ActorBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   actorType: ActorType;
   /**
-   * "compact": Yalnızca ikon (Küçük rozet)
-   * "glyph": Yalnızca metin glifi: ✦, 🤖 vb. (Feed için tarama konforu, Plan §7.3)
-   * "full": Glif + etiket metni (Post ve profil sayfası)
+   * Kept for backward compatibility with existing call sites; no longer
+   * changes the output. Humans get no badge at all, and agents always get
+   * the same `AgentLabel` chip regardless of this value (ROADMAP K-08).
    */
   variant?: "compact" | "full" | "glyph";
   customLabel?: string;
 }
 
-export const ACTOR_GLYPHS: Record<ActorType, string> = {
-  human: "✦",
-  ai_agent: "✦",
-};
-
-const ACTOR_CONFIG: Record<
-  ActorType,
-  {
-    label: string;
-    glyphAriaLabel: string;
-    glyph: string;
-    icon: React.ComponentType<{ className?: string }>;
-    variant: "human" | "ai_agent";
-  }
-> = {
-  human: {
-    label: "İnsan",
-    glyphAriaLabel: "Aktör tipi: İnsan",
-    glyph: "✦",
-    icon: User,
-    variant: "human",
-  },
-  ai_agent: {
-    label: "AI agent",
-    glyphAriaLabel: "Aktör tipi: Yapay Zeka Ajanı",
-    glyph: "✦",
-    icon: Sparkles,
-    variant: "ai_agent",
-  },
-};
-
+/**
+ * The ✦ glyph and the "İnsan" pill are gone (ROADMAP K-08). Humans render
+ * nothing here — the circular avatar shape is their only, sufficient,
+ * signal. Agents render the small mono `AgentLabel` chip.
+ */
 function ActorBadge({
   actorType,
-  variant = "full",
-  customLabel,
+  variant: _variant,
+  customLabel: _customLabel,
   className,
   ...props
 }: ActorBadgeProps) {
-  const config = ACTOR_CONFIG[actorType] ?? ACTOR_CONFIG.human;
-  const Icon = config.icon;
-  const label = customLabel || config.label;
-
-  if (variant === "glyph") {
-    const glyphLabel = customLabel || config.glyphAriaLabel;
-    return (
-      <span
-        role="img"
-        aria-label={glyphLabel}
-        className={cn(
-          "inline-flex items-center justify-center font-mono font-bold select-none text-xs",
-          config.variant === "human" && "text-flair-human",
-          config.variant === "ai_agent" && "text-flair-agent",
-          className,
-        )}
-        title={glyphLabel}
-        {...props}
-      >
-        {config.glyph}
-      </span>
-    );
-  }
-
-  if (variant === "compact") {
-    return (
-      <span
-        role="img"
-        aria-label={label}
-        className={cn(
-          "inline-flex items-center justify-center rounded-full p-0.5 border transition-colors",
-          badgeVariants({ variant: config.variant, size: "sm" }),
-          className,
-        )}
-        title={label}
-        {...props}
-      >
-        <Icon className="h-3 w-3" />
-      </span>
-    );
-  }
-
-  return (
-    <span
-      role="status"
-      aria-label={label}
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors select-none",
-        badgeVariants({ variant: config.variant }),
-        className,
-      )}
-      {...props}
-    >
-      <span aria-hidden="true" className="font-mono text-xs font-bold leading-none select-none">
-        {config.glyph}
-      </span>
-      <span>{label}</span>
-    </span>
-  );
+  if (actorType !== "ai_agent") return null;
+  return <AgentLabel className={className} {...props} />;
 }
 
 export { ActorBadge, Badge, badgeVariants };

@@ -1,8 +1,11 @@
 // @vitest-environment happy-dom
 
-import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import * as React from "react";
 import { describe, expect, it } from "vitest";
-import { Avatar, AvatarActorBadge, AvatarFallback } from "@/components/ui/avatar";
+import { AgentLabel } from "@/components/ui/agent-label";
+import { ActorAvatar, Avatar, AvatarActorBadge, AvatarFallback } from "@/components/ui/avatar";
 import { ActorBadge, Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SegmentedControl, type SegmentedControlOption } from "@/components/ui/segmented-control";
 import {
   Select,
   SelectContent,
@@ -26,156 +30,186 @@ import { Skeleton, SkeletonPostCard } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getAvatarTintColor } from "@/lib/avatar-tint";
 import { cn } from "@/lib/utils";
 
-describe("Faz 2 — Tasarım Sistemi ve Temel Bileşenler", () => {
-  describe("1. Yardımcı Fonksiyon: cn (clsx + tailwind-merge)", () => {
-    it("koşullu sınıfları ve çakışan Tailwind sınıflarını doğru birleştirmelidir", () => {
+describe("F-06 — Primitives rebuilt on the tokens", () => {
+  describe("cn (clsx + tailwind-merge)", () => {
+    it("merges conditional classes and resolves conflicting Tailwind classes", () => {
       expect(cn("px-2 py-1", "px-4")).toBe("py-1 px-4");
-      expect(cn("bg-primary", false && "bg-secondary", undefined, "text-white")).toBe(
-        "bg-primary text-white",
-      );
+      expect(cn("bg-fg", false && "bg-bg-subtle", undefined, "text-bg")).toBe("bg-fg text-bg");
     });
   });
 
-  describe("2. Button Bileşeni", () => {
-    it("varsayılan (default) varyant ve boyutta doğru sınıflarla render edilmelidir", () => {
-      render(<Button>Giriş Yap</Button>);
-      const button = screen.getByRole("button", { name: "Giriş Yap" });
-      expect(button).toBeDefined();
-      expect(button.className).toContain("bg-primary");
-      expect(button.className).toContain("text-primary-foreground");
+  describe("Button", () => {
+    it("defaults to the primary (ink) variant and md size", () => {
+      render(<Button>Sign in</Button>);
+      const button = screen.getByRole("button", { name: "Sign in" });
+      expect(button.className).toContain("bg-fg");
+      expect(button.className).toContain("text-bg");
       expect(button.className).toContain("h-9");
     });
 
-    it("tüm varyant sınıflarını (secondary, outline, ghost, destructive, link) uygulamalıdır", () => {
-      const { rerender } = render(<Button variant="secondary">İkincil</Button>);
-      let button = screen.getByRole("button", { name: "İkincil" });
-      expect(button.className).toContain("bg-secondary");
+    it("renders the four real variants (primary, secondary, ghost, danger)", () => {
+      const { rerender } = render(<Button variant="primary">Primary</Button>);
+      expect(screen.getByRole("button", { name: "Primary" }).className).toContain("bg-fg");
 
-      rerender(<Button variant="outline">Çerçeveli</Button>);
-      button = screen.getByRole("button", { name: "Çerçeveli" });
-      expect(button.className).toContain("border-border");
+      rerender(<Button variant="secondary">Secondary</Button>);
+      let button = screen.getByRole("button", { name: "Secondary" });
+      expect(button.className).toContain("border-border-strong");
+      expect(button.className).toContain("bg-transparent");
 
-      rerender(<Button variant="ghost">Hayalet</Button>);
-      button = screen.getByRole("button", { name: "Hayalet" });
-      expect(button.className).toContain("hover:bg-surface-2");
+      rerender(<Button variant="ghost">Ghost</Button>);
+      button = screen.getByRole("button", { name: "Ghost" });
+      expect(button.className).toContain("bg-transparent");
 
-      rerender(<Button variant="destructive">Sil</Button>);
-      button = screen.getByRole("button", { name: "Sil" });
-      expect(button.className).toContain("bg-destructive");
-
-      rerender(<Button variant="link">Bağlantı</Button>);
-      button = screen.getByRole("button", { name: "Bağlantı" });
-      expect(button.className).toContain("hover:underline");
+      rerender(<Button variant="danger">Danger</Button>);
+      button = screen.getByRole("button", { name: "Danger" });
+      expect(button.className).toContain("bg-danger");
     });
 
-    it("tüm boyut sınıflarını (sm, lg, icon) uygulamalıdır", () => {
-      const { rerender } = render(<Button size="sm">Küçük</Button>);
-      let button = screen.getByRole("button", { name: "Küçük" });
-      expect(button.className).toContain("h-8");
+    it("maps legacy variant names onto the four real ones", () => {
+      const { rerender } = render(<Button variant="default">Default</Button>);
+      expect(screen.getByRole("button", { name: "Default" }).className).toContain("bg-fg");
 
-      rerender(<Button size="lg">Büyük</Button>);
-      button = screen.getByRole("button", { name: "Büyük" });
-      expect(button.className).toContain("h-10");
+      rerender(<Button variant="outline">Outline</Button>);
+      let button = screen.getByRole("button", { name: "Outline" });
+      expect(button.className).toContain("border-border-strong");
+      expect(button.className).toContain("bg-transparent");
+
+      rerender(<Button variant="destructive">Destructive</Button>);
+      button = screen.getByRole("button", { name: "Destructive" });
+      expect(button.className).toContain("bg-danger");
+
+      rerender(<Button variant="link">Link</Button>);
+      button = screen.getByRole("button", { name: "Link" });
+      expect(button.className).toContain("bg-transparent");
+    });
+
+    it("maps the legacy 'default' size to md (36px) and keeps sm/lg/icon", () => {
+      const { rerender } = render(<Button size="default">Default size</Button>);
+      expect(screen.getByRole("button", { name: "Default size" }).className).toContain("h-9");
+
+      rerender(<Button size="sm">Small</Button>);
+      expect(screen.getByRole("button", { name: "Small" }).className).toContain("h-[30px]");
+
+      rerender(<Button size="lg">Large</Button>);
+      expect(screen.getByRole("button", { name: "Large" }).className).toContain("h-10");
 
       rerender(
-        <Button size="icon" aria-label="İkon Buton">
+        <Button size="icon" aria-label="Icon button">
           <span>+</span>
         </Button>,
       );
-      button = screen.getByRole("button", { name: "İkon Buton" });
-      expect(button.className).toContain("h-9");
-      expect(button.className).toContain("w-9");
+      const iconButton = screen.getByRole("button", { name: "Icon button" });
+      expect(iconButton.className).toContain("h-9");
+      expect(iconButton.className).toContain("w-9");
     });
 
-    it("disabled durumunda pointer-events-none ve opacity-50 almalıdır", () => {
-      render(<Button disabled>Devre Dışı</Button>);
-      const button = screen.getByRole("button", { name: "Devre Dışı" });
+    it("carries the focus-visible accent ring and the disabled state", () => {
+      render(<Button disabled>Disabled</Button>);
+      const button = screen.getByRole("button", { name: "Disabled" });
       expect(button.hasAttribute("disabled")).toBe(true);
       expect(button.className).toContain("disabled:opacity-50");
+      expect(button.className).toContain("focus-visible:ring-accent");
     });
 
-    it("asChild ile özel alt eleman (slot) render edebilmelidir", () => {
+    it("renders a custom child element via asChild", () => {
       render(
         <Button asChild>
-          <a href="/login">Giriş Linki</a>
+          <a href="/login">Login link</a>
         </Button>,
       );
-      const link = screen.getByRole("link", { name: "Giriş Linki" });
-      expect(link).toBeDefined();
+      const link = screen.getByRole("link", { name: "Login link" });
       expect(link.getAttribute("href")).toBe("/login");
-      expect(link.className).toContain("bg-primary");
+      expect(link.className).toContain("bg-fg");
     });
   });
 
-  describe("3. Input ve Textarea Bileşenleri", () => {
-    it("Input doğru öznitelikler ve odak/kenarlık token sınıflarıyla render edilmelidir", () => {
+  describe("Input and Textarea", () => {
+    it("renders Input on the new tokens", () => {
       render(<Input placeholder="actos_..." type="password" />);
       const input = screen.getByPlaceholderText("actos_...");
-      expect(input).toBeDefined();
       expect(input.getAttribute("type")).toBe("password");
-      expect(input.className).toContain("border-input");
-      expect(input.className).toContain("focus-visible:ring-ring");
+      expect(input.className).toContain("border-border-strong");
+      expect(input.className).toContain("bg-bg");
+      expect(input.className).toContain("placeholder:text-fg-subtle");
+      expect(input.className).toContain("focus-visible:ring-accent");
     });
 
-    it("Textarea doğru satır ve biçimlendirme sınıflarıyla render edilmelidir", () => {
-      render(<Textarea placeholder="Yorum yazın..." rows={4} />);
-      const textarea = screen.getByPlaceholderText("Yorum yazın...");
-      expect(textarea).toBeDefined();
+    it("renders Textarea on the new tokens", () => {
+      render(<Textarea placeholder="Write a comment..." rows={4} />);
+      const textarea = screen.getByPlaceholderText("Write a comment...");
       expect(textarea.className).toContain("min-h-[80px]");
-      expect(textarea.className).toContain("border-input");
+      expect(textarea.className).toContain("border-border-strong");
     });
 
-    it("Input ve Textarea disabled durumunda disabled özniteliği taşımalıdır", () => {
+    it("carries the disabled attribute through", () => {
       render(
         <div>
-          <Input disabled placeholder="Kilitli Girdi" />
-          <Textarea disabled placeholder="Kilitli Metin" />
+          <Input disabled placeholder="Locked input" />
+          <Textarea disabled placeholder="Locked textarea" />
         </div>,
       );
-      expect(screen.getByPlaceholderText("Kilitli Girdi").hasAttribute("disabled")).toBe(true);
-      expect(screen.getByPlaceholderText("Kilitli Metin").hasAttribute("disabled")).toBe(true);
+      expect(screen.getByPlaceholderText("Locked input").hasAttribute("disabled")).toBe(true);
+      expect(screen.getByPlaceholderText("Locked textarea").hasAttribute("disabled")).toBe(true);
     });
   });
 
-  describe("4. Badge ve ActorBadge Bileşenleri", () => {
-    it("genel Badge tüm varyantlarıyla doğru renklendirilmelidir", () => {
-      const { rerender } = render(<Badge variant="default">Ana Rozet</Badge>);
-      expect(screen.getByText("Ana Rozet").className).toContain("bg-primary");
+  describe("Badge", () => {
+    it("renders every variant on the new tokens", () => {
+      const { rerender } = render(<Badge variant="default">Default</Badge>);
+      expect(screen.getByText("Default").className).toContain("bg-fg");
 
-      rerender(<Badge variant="success">Başarılı</Badge>);
-      expect(screen.getByText("Başarılı").className).toContain("bg-success");
+      rerender(<Badge variant="success">Success</Badge>);
+      expect(screen.getByText("Success").className).toContain("bg-success");
 
-      rerender(<Badge variant="warning">Uyarı</Badge>);
-      expect(screen.getByText("Uyarı").className).toContain("bg-warning");
+      rerender(<Badge variant="warning">Warning</Badge>);
+      expect(screen.getByText("Warning").className).toContain("bg-warning");
 
-      rerender(<Badge variant="destructive">Hata</Badge>);
-      expect(screen.getByText("Hata").className).toContain("bg-destructive");
-    });
-
-    it("ActorBadge her iki aktör tipini (human, ai_agent) tam modda etiket ve semantik token renkleriyle render etmelidir", () => {
-      const { rerender } = render(<ActorBadge actorType="human" />);
-      let badge = screen.getByRole("status", { name: "İnsan" });
-      expect(badge).toBeDefined();
-      expect(badge.className).toContain("text-flair-human");
-
-      rerender(<ActorBadge actorType="ai_agent" />);
-      badge = screen.getByRole("status", { name: "AI agent" });
-      expect(badge).toBeDefined();
-      expect(badge.className).toContain("text-flair-agent");
-    });
-
-    it("ActorBadge kompakt modda (Feed için) erişilebilir aria-label taşımalı ve role='img' olmalıdır", () => {
-      render(<ActorBadge actorType="ai_agent" variant="compact" />);
-      const badge = screen.getByRole("img", { name: "AI agent" });
-      expect(badge).toBeDefined();
-      expect(badge.className).toContain("text-flair-agent");
+      rerender(<Badge variant="destructive">Destructive</Badge>);
+      expect(screen.getByText("Destructive").className).toContain("bg-danger");
     });
   });
 
-  describe("5. Avatar Bileşeni", () => {
-    it("Avatar ve Fallback baş harflerle render edilmelidir", () => {
+  describe("AgentLabel", () => {
+    it("renders the mono AGENT chip with its fixed accessible name", () => {
+      render(<AgentLabel />);
+      const label = screen.getByLabelText("Agent account, self-declared");
+      expect(label.textContent).toBe("Agent");
+      expect(label.className).toContain("font-mono");
+      expect(label.className).toContain("uppercase");
+      expect(label.className).toContain("border-border-strong");
+    });
+  });
+
+  describe("ActorBadge (K-08)", () => {
+    it("renders nothing for a human actor — the ✦ glyph and the human pill are gone", () => {
+      const { container } = render(<ActorBadge actorType="human" />);
+      expect(container).toBeEmptyDOMElement();
+      expect(screen.queryByText(/✦/)).toBeNull();
+    });
+
+    it("renders the AgentLabel chip for an ai_agent actor", () => {
+      render(<ActorBadge actorType="ai_agent" />);
+      const label = screen.getByLabelText("Agent account, self-declared");
+      expect(label.textContent).toBe("Agent");
+    });
+
+    it("ignores the legacy variant/customLabel props and still forwards data attributes", () => {
+      render(<ActorBadge actorType="ai_agent" variant="glyph" data-testid="post-author-glyph" />);
+      const label = screen.getByTestId("post-author-glyph");
+      expect(label.getAttribute("aria-label")).toBe("Agent account, self-declared");
+
+      const { container } = render(
+        <ActorBadge actorType="human" variant="full" customLabel="Human" data-testid="x" />,
+      );
+      expect(container).toBeEmptyDOMElement();
+    });
+  });
+
+  describe("Avatar primitives", () => {
+    it("renders Avatar and AvatarFallback with initials", () => {
       render(
         <Avatar>
           <AvatarFallback>EO</AvatarFallback>
@@ -183,112 +217,250 @@ describe("Faz 2 — Tasarım Sistemi ve Temel Bileşenler", () => {
       );
       const fallback = screen.getByText("EO");
       expect(fallback).toBeDefined();
-      expect(fallback.className).toContain("rounded-full");
-      expect(fallback.className).toContain("bg-surface-2");
     });
 
-    it("AvatarActorBadge ilgili aktör rengi ve ikonunu taşımalıdır", () => {
+    it("AvatarActorBadge is a no-op now that shape carries the actor-type signal", () => {
       const { container } = render(
         <Avatar>
           <AvatarFallback>DA</AvatarFallback>
           <AvatarActorBadge actorType="ai_agent" />
         </Avatar>,
       );
-      const badge = container.querySelector(".bg-flair-agent");
-      expect(badge).not.toBeNull();
+      // No overlay icon of any kind is rendered by AvatarActorBadge anymore.
+      expect(container.querySelector("svg")).toBeNull();
+      expect(container.textContent).toBe("DA");
     });
   });
 
-  describe("6. Skeleton ve Yükleme İskeletleri", () => {
-    it("Skeleton animate-pulse ve bg-surface-2 taşımalıdır", () => {
+  describe("ActorAvatar", () => {
+    it("renders a circle for humans and a squircle for agents", () => {
+      const { container: humanContainer } = render(
+        <ActorAvatar actorType="human" username="efe" />,
+      );
+      const humanRoot = humanContainer.firstElementChild as HTMLElement;
+      expect(humanRoot.className).toContain("rounded-full");
+      expect(humanRoot.className).not.toContain("rounded-[28%]");
+
+      const { container: agentContainer } = render(
+        <ActorAvatar actorType="ai_agent" username="dila_ai" />,
+      );
+      const agentRoot = agentContainer.firstElementChild as HTMLElement;
+      expect(agentRoot.className).toContain("rounded-[28%]");
+    });
+
+    it("shows one initial at size 20 and two initials at larger sizes", () => {
+      const { getByText: getByTextSmall } = render(
+        <ActorAvatar actorType="human" username="efe" size={20} />,
+      );
+      expect(getByTextSmall("E")).toBeDefined();
+
+      const { getByText: getByTextLarge } = render(
+        <ActorAvatar actorType="human" username="efe" size={40} />,
+      );
+      expect(getByTextLarge("EF")).toBeDefined();
+    });
+
+    it("gives the same username a stable tint regardless of actor type or size", () => {
+      const expected = getAvatarTintColor("dila_ai");
+
+      const { container: c1 } = render(
+        <ActorAvatar actorType="ai_agent" username="dila_ai" size={28} />,
+      );
+      const { container: c2 } = render(
+        <ActorAvatar actorType="human" username="dila_ai" size={88} />,
+      );
+
+      const fallback1 = c1.querySelector("[style]") as HTMLElement;
+      const fallback2 = c2.querySelector("[style]") as HTMLElement;
+      expect(fallback1.style.backgroundColor).toBe(expected);
+      expect(fallback2.style.backgroundColor).toBe(expected);
+    });
+
+    it("gives different usernames a different tint (at least for this pair)", () => {
+      expect(getAvatarTintColor("efe")).not.toBe(getAvatarTintColor("dila_ai_helper_2"));
+    });
+  });
+
+  describe("SegmentedControl", () => {
+    const options: SegmentedControlOption<"everyone" | "humans" | "agents">[] = [
+      { value: "everyone", label: "Everyone" },
+      { value: "humans", label: "Humans" },
+      { value: "agents", label: "Agents" },
+    ];
+
+    function ControlledSegmented() {
+      const [value, setValue] = React.useState<"everyone" | "humans" | "agents">("everyone");
+      return (
+        <SegmentedControl
+          aria-label="Audience"
+          options={options}
+          value={value}
+          onValueChange={setValue}
+        />
+      );
+    }
+
+    it("exposes an accessible radiogroup with the active segment checked", () => {
+      render(<ControlledSegmented />);
+      const group = screen.getByRole("radiogroup", { name: "Audience" });
+      expect(group).toBeDefined();
+
+      const everyone = screen.getByRole("radio", { name: "Everyone" });
+      expect(everyone.getAttribute("aria-checked")).toBe("true");
+      expect(screen.getByRole("radio", { name: "Humans" }).getAttribute("aria-checked")).toBe(
+        "false",
+      );
+    });
+
+    it("moves selection and focus with ArrowRight/ArrowLeft, and wraps at the ends", () => {
+      render(<ControlledSegmented />);
+
+      const everyone = screen.getByRole("radio", { name: "Everyone" });
+      everyone.focus();
+      fireEvent.keyDown(everyone, { key: "ArrowRight" });
+
+      const humans = screen.getByRole("radio", { name: "Humans" });
+      expect(humans.getAttribute("aria-checked")).toBe("true");
+      expect(document.activeElement).toBe(humans);
+
+      fireEvent.keyDown(humans, { key: "ArrowLeft" });
+      expect(screen.getByRole("radio", { name: "Everyone" }).getAttribute("aria-checked")).toBe(
+        "true",
+      );
+
+      // Wrapping: ArrowLeft from the first item selects the last one.
+      fireEvent.keyDown(screen.getByRole("radio", { name: "Everyone" }), { key: "ArrowLeft" });
+      expect(screen.getByRole("radio", { name: "Agents" }).getAttribute("aria-checked")).toBe(
+        "true",
+      );
+    });
+
+    it("jumps to the first/last option with Home/End", () => {
+      render(<ControlledSegmented />);
+      const everyone = screen.getByRole("radio", { name: "Everyone" });
+      fireEvent.keyDown(everyone, { key: "End" });
+      expect(screen.getByRole("radio", { name: "Agents" }).getAttribute("aria-checked")).toBe(
+        "true",
+      );
+
+      fireEvent.keyDown(screen.getByRole("radio", { name: "Agents" }), { key: "Home" });
+      expect(screen.getByRole("radio", { name: "Everyone" }).getAttribute("aria-checked")).toBe(
+        "true",
+      );
+    });
+
+    it("selects an option on click", () => {
+      render(<ControlledSegmented />);
+      fireEvent.click(screen.getByRole("radio", { name: "Agents" }));
+      expect(screen.getByRole("radio", { name: "Agents" }).getAttribute("aria-checked")).toBe(
+        "true",
+      );
+    });
+  });
+
+  describe("Skeleton", () => {
+    it("uses --bg-muted and pulses, but stops under prefers-reduced-motion", () => {
       const { container } = render(<Skeleton className="h-4 w-20" />);
       const el = container.firstChild as HTMLElement;
+      expect(el.className).toContain("bg-bg-muted");
       expect(el.className).toContain("animate-pulse");
-      expect(el.className).toContain("bg-surface-2");
+      expect(el.className).toContain("motion-reduce:animate-none");
       expect(el.getAttribute("aria-hidden")).toBe("true");
     });
 
-    it("SkeletonPostCard aria-busy='true' taşımalı ve iç iskelet öğeleri içermelidir", () => {
+    it("SkeletonPostCard carries aria-busy and its inner skeleton rows", () => {
       render(<SkeletonPostCard />);
-      const card = screen.getByLabelText("İçerik yükleniyor");
-      expect(card).toBeDefined();
+      const card = screen.getByRole("status");
       expect(card.getAttribute("aria-busy")).toBe("true");
     });
   });
 
-  describe("7. Tabs, Dialog, Popover, Select ve Tooltip Primitive Doğrulaması", () => {
-    it("Tabs bileşeni sekmeleri ve içeriği sorunsuz render etmelidir", () => {
+  describe("Tabs, Dialog, Popover, Select and Tooltip", () => {
+    it("Tabs renders an underline style with no pill background", () => {
       render(
         <Tabs defaultValue="tab1">
           <TabsList>
-            <TabsTrigger value="tab1">Birinci</TabsTrigger>
-            <TabsTrigger value="tab2">İkinci</TabsTrigger>
+            <TabsTrigger value="tab1">First</TabsTrigger>
+            <TabsTrigger value="tab2">Second</TabsTrigger>
           </TabsList>
-          <TabsContent value="tab1">İçerik 1</TabsContent>
-          <TabsContent value="tab2">İçerik 2</TabsContent>
+          <TabsContent value="tab1">Content 1</TabsContent>
+          <TabsContent value="tab2">Content 2</TabsContent>
         </Tabs>,
       );
 
-      expect(screen.getByRole("tab", { name: "Birinci" })).toBeDefined();
-      expect(screen.getByRole("tab", { name: "İkinci" })).toBeDefined();
-      expect(screen.getByText("İçerik 1")).toBeDefined();
+      const first = screen.getByRole("tab", { name: "First" });
+      const second = screen.getByRole("tab", { name: "Second" });
+      expect(first.getAttribute("data-state")).toBe("active");
+      expect(second.getAttribute("data-state")).toBe("inactive");
+      expect(first.className).toContain("data-[state=active]:border-accent");
+      expect(first.className).toContain("data-[state=active]:text-fg");
+      expect(first.className).not.toContain("rounded-lg");
+      expect(screen.getByText("Content 1")).toBeDefined();
     });
 
-    it("Dialog bileşeni tetikleyici ve temel yapıyı barındırmalıdır", () => {
+    it("Dialog opens on trigger and uses the radius-10 surface", () => {
       render(
         <Dialog>
           <DialogTrigger asChild>
-            <Button>Modali Aç</Button>
+            <Button>Open dialog</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Başlık</DialogTitle>
-              <DialogDescription>Açıklama</DialogDescription>
+              <DialogTitle>Title</DialogTitle>
+              <DialogDescription>Description</DialogDescription>
             </DialogHeader>
           </DialogContent>
         </Dialog>,
       );
 
-      expect(screen.getByRole("button", { name: "Modali Aç" })).toBeDefined();
+      const trigger = screen.getByRole("button", { name: "Open dialog" });
+      fireEvent.click(trigger);
+
+      // Radix marks background content aria-hidden once open, so the
+      // trigger itself is no longer queryable by role — check the dialog.
+      const dialog = screen.getByRole("dialog");
+      expect(dialog.className).toContain("rounded-xl");
+      expect(dialog.className).toContain("bg-bg");
+      expect(dialog.className).toContain("shadow-pop");
     });
 
-    it("Popover ve Tooltip tetikleyicileri sorunsuz render edilmelidir", () => {
+    it("Popover and Tooltip triggers render without crashing", () => {
       render(
         <TooltipProvider>
           <Popover>
             <PopoverTrigger asChild>
-              <Button>Açılır Bilgi</Button>
+              <Button>Open info</Button>
             </PopoverTrigger>
-            <PopoverContent>Detay</PopoverContent>
+            <PopoverContent>Detail</PopoverContent>
           </Popover>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button>İpucu</Button>
+              <Button>Hint</Button>
             </TooltipTrigger>
-            <TooltipContent>İpucu Detayı</TooltipContent>
+            <TooltipContent>Hint detail</TooltipContent>
           </Tooltip>
         </TooltipProvider>,
       );
 
-      expect(screen.getByRole("button", { name: "Açılır Bilgi" })).toBeDefined();
-      expect(screen.getByRole("button", { name: "İpucu" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "Open info" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "Hint" })).toBeDefined();
     });
 
-    it("Select bileşeni tetikleyiciyi sorunsuz render etmelidir", () => {
+    it("Select renders its trigger", () => {
       render(
         <Select defaultValue="option1">
-          <SelectTrigger aria-label="Seçim Alanı">
-            <SelectValue placeholder="Seçiniz" />
+          <SelectTrigger aria-label="Sort">
+            <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="option1">Seçenek 1</SelectItem>
-            <SelectItem value="option2">Seçenek 2</SelectItem>
+            <SelectItem value="option1">Option 1</SelectItem>
+            <SelectItem value="option2">Option 2</SelectItem>
           </SelectContent>
         </Select>,
       );
 
-      expect(screen.getByRole("combobox", { name: "Seçim Alanı" })).toBeDefined();
+      expect(screen.getByRole("combobox", { name: "Sort" })).toBeDefined();
     });
   });
 });

@@ -713,8 +713,8 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       expect(editedBadge).toBeDefined();
       expect(editedBadge.textContent).toContain("düzenlendi");
 
-      // Glif + Etiket: ✦ AI agent
-      expect(screen.getByText("AI agent")).toBeDefined();
+      // Agent label chip (ROADMAP K-08: the ✦ glyph is gone)
+      expect(screen.getByText("Agent")).toBeDefined();
     });
   });
 });

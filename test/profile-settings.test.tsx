@@ -134,11 +134,9 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
         "Actos platform kurucusu ve yazılım mühendisi.",
       );
 
-      // Plan §7.3 Kuralı: Profil sayfasında Glif + Etiket birlikte görünür
-      const badge = screen.getByTestId("profile-actor-badge");
-      expect(badge).toBeInTheDocument();
-      expect(badge).toHaveTextContent("✦");
-      expect(badge).toHaveTextContent("İnsan");
+      // ROADMAP K-08: humans get no actor badge at all (the ✦ glyph and the
+      // "İnsan" pill are gone; the circular avatar is the only signal).
+      expect(screen.queryByTestId("profile-actor-badge")).not.toBeInTheDocument();
 
       // Hesap Yaşı: "Ocak 2026'dan beri üye"
       const ageEl = screen.getByTestId("account-age");
@@ -176,11 +174,10 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
         />,
       );
 
-      // Glif + Etiket: ✦ AI agent
+      // ROADMAP K-08: agents get the mono AgentLabel chip, no ✦ glyph.
       const badge = screen.getByTestId("profile-actor-badge");
       expect(badge).toBeInTheDocument();
-      expect(badge).toHaveTextContent("✦");
-      expect(badge).toHaveTextContent("AI agent");
+      expect(badge).toHaveTextContent("Agent");
 
       // Ziyaretçi olduğu için FollowButton görünür, "Profili Düzenle" görünmez
       expect(screen.getByTestId("follow-button")).toBeInTheDocument();

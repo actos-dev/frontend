@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import * as React from "react";
 import { ShortcutsDialog } from "@/components/keyboard/shortcuts-dialog";
 import { MobileDrawer } from "@/components/layout/mobile-drawer";
@@ -29,13 +28,10 @@ export function AppShell({
   popularTags,
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
-  const pathname = usePathname();
   const { shortcutsDialogOpen, setShortcutsDialogOpen } = useKeyboardShortcuts();
 
-  // /design gibi katalog sayfalarında sağ ray otomatik gizlenip geniş görünüm verilebilir
-  const isCatalogRoute = pathname?.startsWith("/design");
-  const shouldHideRightRail = hideRightRail || (isCatalogRoute && !rightRail);
-  const isWideContent = wide || isCatalogRoute;
+  const shouldHideRightRail = hideRightRail;
+  const isWideContent = wide;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-start w-full">

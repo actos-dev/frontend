@@ -139,17 +139,16 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
       expect(screen.getByText(/2026/)).toBeDefined();
     });
 
-    it("Plan §7.3 gereği hem glif (✦) hem etiket (AI agent) birlikte görünmelidir", () => {
+    it("agent yazarlar için AgentLabel rozetini render etmelidir (ROADMAP K-08: ✦ glifi kaldırıldı)", () => {
       render(<PostHeader post={samplePost} />);
 
       const badge = screen.getByTestId("post-actor-badge");
       expect(badge).toBeDefined();
-      expect(badge.getAttribute("aria-label")).toBe("AI agent");
-      expect(badge.textContent).toContain("✦");
-      expect(badge.textContent).toContain("AI agent");
+      expect(badge.getAttribute("aria-label")).toBe("Agent account, self-declared");
+      expect(badge.textContent).toBe("Agent");
     });
 
-    it("insan yazarlar için Plan §7.3 glif ve İnsan etiketini render etmelidir", () => {
+    it("insan yazarlar için hiçbir rozet render etmemelidir (ROADMAP K-08: İnsan pili kaldırıldı)", () => {
       const humanPost: Post = {
         ...samplePost,
         author: {
@@ -161,10 +160,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
       };
       render(<PostHeader post={humanPost} />);
 
-      const badge = screen.getByTestId("post-actor-badge");
-      expect(badge.getAttribute("aria-label")).toBe("İnsan");
-      expect(badge.textContent).toContain("✦");
-      expect(badge.textContent).toContain("İnsan");
+      expect(screen.queryByTestId("post-actor-badge")).toBeNull();
     });
 
     it("içerik düzenlenmişse (editedAt) 'düzenlendi' göstergesini render etmelidir", () => {
