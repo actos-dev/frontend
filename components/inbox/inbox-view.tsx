@@ -1,7 +1,8 @@
 "use client";
 
+import { type InfiniteData, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCheck, Inbox, Loader2 } from "lucide-react";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { NotificationCard, type NotificationRow } from "@/components/inbox/notification-card";
 import { LoadMore } from "@/components/pagination/load-more";
 import { Button } from "@/components/ui/button";
@@ -9,68 +10,100 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
+import { queryKeys } from "@/lib/query/keys";
+import { inboxQueryOptions } from "@/lib/query/queries";
+import type { InboxQueryPage } from "@/lib/query/types";
 import { useSessionStore } from "@/lib/stores/session-store";
 
 export type InboxFilterTab = "all" | "unread" | "replies" | "mentions";
 
 export interface InboxViewProps {
-  initialNotifications: NotificationRow[];
+  initialNotifications?: NotificationRow[];
   initialNextCursor?: string | null;
   initialUnreadCount?: number;
+  initialFilter?: InboxFilterTab;
+  initialCursor?: string;
+  initialViewerId?: string | null;
 }
 
 export function InboxView({
   initialNotifications,
   initialNextCursor = null,
   initialUnreadCount = 0,
+  initialFilter = "all",
+  initialCursor,
+  initialViewerId,
 }: InboxViewProps) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<InboxFilterTab>("all");
-  const [notifications, setNotifications] = useState(initialNotifications);
-  const [nextCursor, setNextCursor] = useState(initialNextCursor);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<InboxFilterTab>(initialFilter);
   const [isMarkingAll, setIsMarkingAll] = useState(false);
-  const [_isPending, startTransition] = useTransition();
+  const authStatus = useSessionStore((state) => state.status);
+  const sessionUserId = useSessionStore((state) => state.user?.id ?? null);
+  const viewerId =
+    authStatus === "authenticated"
+      ? (sessionUserId ?? initialViewerId ?? null)
+      : authStatus === "unauthenticated"
+        ? null
+        : (initialViewerId ?? null);
+  const initialStateMatchesViewer = initialViewerId === undefined || initialViewerId === viewerId;
+  const viewerCacheId = viewerId ?? "anonymous";
+
+  const compatibilityInitialData =
+    initialNotifications === undefined
+      ? undefined
+      : {
+          pages: [
+            {
+              notifications: initialNotifications,
+              nextCursor: initialNextCursor,
+              unreadCount: initialUnreadCount,
+            } satisfies InboxQueryPage,
+          ],
+          pageParams: [initialCursor ?? null],
+        };
+  const inbox = useInfiniteQuery({
+    ...inboxQueryOptions(
+      activeTab,
+      activeTab === initialFilter ? initialCursor : undefined,
+      viewerId,
+    ),
+    initialData:
+      initialStateMatchesViewer && activeTab === initialFilter
+        ? compatibilityInitialData
+        : undefined,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[2] === viewerCacheId ? previousData : undefined,
+  });
+  const notifications = inbox.data?.pages.flatMap((page) => page.notifications) ?? [];
+  const nextCursor = inbox.data?.pages.at(-1)?.nextCursor ?? null;
+  const pageUnreadCount = inbox.data?.pages.at(-1)?.unreadCount;
 
   const unreadCount = useSessionStore((state) => state.unreadCount);
   const setUnreadCount = useSessionStore((state) => state.setUnreadCount);
 
-  // Sync initial unread count to session store upon mounting
   useEffect(() => {
-    if (initialUnreadCount !== undefined) {
-      setUnreadCount(initialUnreadCount);
+    if (typeof pageUnreadCount === "number") setUnreadCount(pageUnreadCount);
+  }, [pageUnreadCount, setUnreadCount]);
+
+  const updateInboxCaches = (updater: (page: InboxQueryPage) => InboxQueryPage) => {
+    const matches = queryClient.getQueriesData<InfiniteData<InboxQueryPage, string | null>>({
+      queryKey: queryKeys.inbox.all,
+      predicate: (query) => query.queryKey[2] === viewerCacheId,
+    });
+    for (const [key, cached] of matches) {
+      if (!cached) continue;
+      queryClient.setQueryData<InfiniteData<InboxQueryPage, string | null>>(key, {
+        ...cached,
+        pages: cached.pages.map(updater),
+      });
     }
-  }, [initialUnreadCount, setUnreadCount]);
+  };
 
   // Tab change handler
   const handleTabChange = async (tab: string) => {
     const filter = tab as InboxFilterTab;
     setActiveTab(filter);
-
-    startTransition(async () => {
-      try {
-        const query = new URLSearchParams();
-        query.set("filter", filter);
-        if (filter === "unread") {
-          query.set("unread", "true");
-        }
-        const res = await fetch(`/api/inbox?${query.toString()}`);
-        if (res.ok) {
-          const data = await res.json();
-          setNotifications(data.notifications || []);
-          setNextCursor(data.nextCursor ?? null);
-          if (typeof data.unreadCount === "number") {
-            setUnreadCount(data.unreadCount);
-          }
-        } else {
-          // Keep showing the previously loaded notifications rather than
-          // substituting fabricated data (ROADMAP.md decision 7).
-          toast.error(t("states.inboxLoadFailed"));
-        }
-      } catch {
-        toast.error(t("states.inboxLoadFailed"));
-      }
-    });
   };
 
   // Mark all notifications as read
@@ -78,17 +111,20 @@ export function InboxView({
     if (isMarkingAll || unreadCount === 0) return;
 
     setIsMarkingAll(true);
-    const prevNotifications = [...notifications];
     const prevUnreadCount = unreadCount;
-
-    // Optimistically mark all loaded notifications as read
     const nowIso = new Date().toISOString();
-    setNotifications((prev) =>
-      prev.map((item) => ({
+    const snapshots = queryClient.getQueriesData<InfiniteData<InboxQueryPage, string | null>>({
+      queryKey: queryKeys.inbox.all,
+      predicate: (query) => query.queryKey[2] === viewerCacheId,
+    });
+    updateInboxCaches((page) => ({
+      ...page,
+      notifications: page.notifications.map((item) => ({
         ...item,
         readAt: item.readAt || nowIso,
       })),
-    );
+      unreadCount: 0,
+    }));
     setUnreadCount(0);
 
     try {
@@ -101,62 +137,29 @@ export function InboxView({
       } else {
         // The write did not actually happen: undo the optimistic update
         // instead of reporting success (ROADMAP.md decision 7).
-        setNotifications(prevNotifications);
-        setUnreadCount(prevUnreadCount);
+        for (const [key, data] of snapshots) queryClient.setQueryData(key, data);
+        if (useSessionStore.getState().user?.id === viewerId) setUnreadCount(prevUnreadCount);
         toast.error("Bildirimler okundu olarak işaretlenemedi.");
       }
     } catch {
       // Revert on serious network failure
-      setNotifications(prevNotifications);
-      setUnreadCount(prevUnreadCount);
+      for (const [key, data] of snapshots) queryClient.setQueryData(key, data);
+      if (useSessionStore.getState().user?.id === viewerId) setUnreadCount(prevUnreadCount);
       toast.error("Bildirimler okundu olarak işaretlenemedi.");
     } finally {
       setIsMarkingAll(false);
     }
   };
 
-  // Load more via keyset cursor pagination
-  const handleLoadMore = async (cursor: string) => {
-    if (!cursor || isLoadingMore) return;
-
-    setIsLoadingMore(true);
-    try {
-      const query = new URLSearchParams();
-      query.set("cursor", cursor);
-      query.set("filter", activeTab);
-      if (activeTab === "unread") {
-        query.set("unread", "true");
-      }
-
-      const res = await fetch(`/api/inbox?${query.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        const newItems = data.notifications || [];
-        setNotifications((prev) => {
-          const existingIds = new Set(prev.map((n) => n.id));
-          const freshItems = newItems.filter((n: NotificationRow) => !existingIds.has(n.id));
-          return [...prev, ...freshItems];
-        });
-        setNextCursor(data.nextCursor ?? null);
-        if (typeof data.unreadCount === "number") {
-          setUnreadCount(data.unreadCount);
-        }
-      } else {
-        toast.error(t("states.inboxLoadFailed"));
-      }
-    } catch {
-      toast.error(t("states.inboxLoadFailed"));
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
-
   // Callback when a single notification is marked as read
   const handleSingleRead = (id: string) => {
     const nowIso = new Date().toISOString();
-    setNotifications((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, readAt: nowIso } : item)),
-    );
+    updateInboxCaches((page) => ({
+      ...page,
+      notifications: page.notifications.map((item) =>
+        item.id === id ? { ...item, readAt: nowIso } : item,
+      ),
+    }));
   };
 
   // Filtered view items
@@ -270,8 +273,12 @@ export function InboxView({
             <LoadMore
               nextCursor={nextCursor}
               hasMore={Boolean(nextCursor)}
-              onLoadMore={handleLoadMore}
-              isLoading={isLoadingMore}
+              onLoadMore={async () => {
+                const result = await inbox.fetchNextPage();
+                if (result.isFetchNextPageError) toast.error(t("states.inboxLoadFailed"));
+              }}
+              isLoading={inbox.isFetchingNextPage}
+              syncUrl={false}
               label="Daha fazla bildirim yükle"
               loadingLabel="Bildirimler yükleniyor..."
             />

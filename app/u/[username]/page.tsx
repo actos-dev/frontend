@@ -111,6 +111,14 @@ export default async function ProfilePage(props: ProfilePageProps) {
     rawTab === "comments" || rawTab === "followers" || rawTab === "following" ? rawTab : "posts";
 
   const client = await getServerClient();
+  let viewerId: string | null = null;
+  if (await hasSessionCookie()) {
+    try {
+      viewerId = (await client.auth.whoami())?.actor?.id ?? null;
+    } catch {
+      viewerId = null;
+    }
+  }
 
   let profile: ActorProfile | null = null;
   let profileError: unknown = null;
@@ -171,7 +179,7 @@ export default async function ProfilePage(props: ProfilePageProps) {
 
     // P0-06: the viewer's own votes never live in a shared, cached list
     // response, so fetch them separately and only when signed in.
-    if (postsPage.items.length > 0 && (await hasSessionCookie())) {
+    if (postsPage.items.length > 0 && viewerId) {
       voteMap = await fetchVoteMap(
         client,
         postsPage.items.map((p) => p.id),
@@ -202,6 +210,7 @@ export default async function ProfilePage(props: ProfilePageProps) {
         stats={profile.stats}
         followerCount={followerCount}
         followingCount={followingCount}
+        initialViewerId={viewerId}
       />
 
       {/* 2. Sekmeler (Tabs) */}
@@ -232,7 +241,12 @@ export default async function ProfilePage(props: ProfilePageProps) {
             ) : (
               <div className="space-y-4" data-testid="profile-posts-list">
                 {postsPage.items.map((post) => (
-                  <PostCard key={post.id} post={post} initialUserVote={voteMap[post.id] ?? 0} />
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    initialUserVote={voteMap[post.id] ?? 0}
+                    initialViewerId={viewerId}
+                  />
                 ))}
               </div>
             )}

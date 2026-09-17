@@ -4,8 +4,7 @@ Decisions that are not obvious from the code, and the constraints behind
 them. `ROADMAP.md` holds the plan and the open work; this file holds the
 things a reader of the code would otherwise have to rediscover.
 
-Last revised 2026-09-16, after the 0.2.0 sync and the first units of the
-overhaul.
+Last revised 2026-09-17, after the foundation layer and Markstone integration.
 
 ---
 
@@ -71,24 +70,21 @@ response.
 The API exposes no per-item "saved" flag, so outside `/saved` the save button
 starts in an unknown state. Recorded as B-03 in the roadmap.
 
-## 7. One markdown renderer, on the server
+## 7. Markstone is the one markdown renderer
 
-`lib/render` is the only renderer. remark parses, `rehype-sanitize` runs
-before any enrichment, and only then do heading ids, external-link rules,
-table wrapping and Shiki highlighting apply. Raw HTML is dropped rather than
-escaped, URLs are limited to `http`, `https` and `mailto`, and invisible and
-bidirectional control characters are stripped.
+`lib/render` is the only entry point. Markstone 0.1.0 renders through its
+native Node path on the server and its lazy WASM path in the editor preview.
+Only then do heading ids, external-link rules, table wrapping and Shiki
+highlighting apply. Raw HTML is dropped, URLs are limited to safe schemes,
+and invisible and bidirectional control characters are stripped by the
+renderer.
 
-Mentions and tags are transcribed from markstone's Actos crate, including the
-rule that a candidate has to validate as a whole, so `@foo-bar` stays plain
-text instead of linking `@foo`.
+Mentions and tags come directly from Markstone's Actos family, so the server
+and preview share exactly the same grammar.
 
 Highlighting emits both themes as CSS variables, so one server rendering
 serves sepia, light and dark and no highlighter ships to the browser. The
 preview pipeline in the composer loads on demand.
-
-When markstone publishes, `renderContent` and `renderPreview` are the two
-functions that get swapped, and `body_html` can leave the API.
 
 ## 8. The client and server boundary is load-bearing
 
@@ -123,8 +119,12 @@ it as a verification.
 
 - The comment tree stops indenting at six levels and offers a "continue
   thread" link. Deeper conversations are navigated, not nested.
-- Pagination is a cursor and an explicit "load more". Scroll restoration and
-  infinite scroll arrive with the client data layer (F-03).
+- Lists use TanStack Query's cursor cache. Loaded pages survive back
+  navigation; Phase 3 replaces the button-first trigger with intersection
+  observation while retaining the button as a fallback.
+- Viewer-private query keys include the account id. Public feed pages remain
+  shareable, but votes, saves, follows and inbox state cannot cross a logout
+  or account switch.
 - There is no realtime anything. The inbox polls while the tab is visible.
 - Domain verification was cancelled on the backend and has no UI here.
 - Communities are designed but not implemented on the server. The UI leaves

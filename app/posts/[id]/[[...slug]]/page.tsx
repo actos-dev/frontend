@@ -1,3 +1,4 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { CommentNode, Post } from "actos";
 import { GoneError, NotFoundError } from "actos";
 import { ArrowLeft } from "lucide-react";
@@ -14,6 +15,9 @@ import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { commentQueryOptions } from "@/lib/query/queries";
+import { makeServerQueryClient, seedInfinitePage } from "@/lib/query/server";
+import type { CommentQueryPage } from "@/lib/query/types";
 import { renderCommentTree } from "@/lib/render/comment-tree";
 import { excerpt } from "@/lib/render/excerpt";
 import { renderContent } from "@/lib/render/index";
@@ -257,9 +261,11 @@ export default async function PostDetailPage(props: PostPageProps) {
   // 4. Oturum Kontrolü ve Yazar Sahipliği
   let isAuthor = false;
   let viewerVote: VoteValue = 0;
+  let viewerId: string | null = null;
   try {
     const client = await getServerClient();
     const whoami = await client.auth.whoami();
+    viewerId = whoami?.actor?.id ?? null;
     if (whoami?.actor?.id && whoami.actor.id === post.author.id) {
       isAuthor = true;
     } else if (whoami?.actor?.username && whoami.actor.username === post.author.username) {
@@ -279,14 +285,37 @@ export default async function PostDetailPage(props: PostPageProps) {
   // (F-02: lib/render is now the only renderer) — bodies are rendered here,
   // on the server, before the tree reaches the (client) CommentTree.
   let comments: CommentNode[] = [];
+  let commentsNextCursor: string | null = null;
   let commentsError: unknown = null;
   try {
-    const rawComments = await client.comments.list(id, { sort: "top" });
-    comments = await renderCommentTree(rawComments);
+    const response = await client.transport.request<{
+      comments: CommentNode[];
+      nextCursor?: string | null;
+    }>({
+      method: "GET",
+      path: `/posts/${encodeURIComponent(id)}/comments`,
+      query: { sort: "top", limit: 25 },
+    });
+    comments = await renderCommentTree(response.data.comments);
+    commentsNextCursor = response.data.nextCursor ?? null;
   } catch (error) {
     // No fabricated comments: this section renders its own error state below
     // instead of taking the whole post page down (ROADMAP.md P0-02).
     commentsError = error;
+  }
+
+  const commentsQueryClient = makeServerQueryClient();
+  if (!commentsError) {
+    const initialCommentPage: CommentQueryPage = {
+      items: comments,
+      nextCursor: commentsNextCursor,
+    };
+    seedInfinitePage(
+      commentsQueryClient,
+      commentQueryOptions(id, "top").queryKey,
+      initialCommentPage,
+      null,
+    );
   }
 
   const postBodyHtml = await renderContent(post.body, {
@@ -326,6 +355,7 @@ export default async function PostDetailPage(props: PostPageProps) {
           post={post}
           isAuthor={isAuthor}
           initialUserVote={viewerVote}
+          initialViewerId={viewerId}
           className="my-8"
         />
 
@@ -335,12 +365,9 @@ export default async function PostDetailPage(props: PostPageProps) {
             <ErrorStateRetry {...describeError(commentsError)} />
           </div>
         ) : (
-          <CommentTree
-            postId={post.id}
-            postSlug={canonicalSlug}
-            initialComments={comments}
-            className="my-10"
-          />
+          <HydrationBoundary state={dehydrate(commentsQueryClient)}>
+            <CommentTree postId={post.id} postSlug={canonicalSlug} className="my-10" />
+          </HydrationBoundary>
         )}
       </div>
     </div>

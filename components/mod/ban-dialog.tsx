@@ -1,6 +1,5 @@
 "use client";
 
-import type { Ban } from "actos";
 import { AlertCircle, Ban as BanIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,11 +19,10 @@ import { toast } from "@/components/ui/toast";
 interface BanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (ban: Ban) => void;
   defaultUsername?: string;
 }
 
-export function BanDialog({ open, onOpenChange, onSuccess, defaultUsername = "" }: BanDialogProps) {
+export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialogProps) {
   const [username, setUsername] = useState(defaultUsername);
   const [duration, setDuration] = useState<"1d" | "3d" | "7d" | "30d" | "permanent">("permanent");
   const [reason, setReason] = useState("");
@@ -89,7 +87,6 @@ export function BanDialog({ open, onOpenChange, onSuccess, defaultUsername = "" 
 
       handleReset();
       onOpenChange(false);
-      onSuccess?.(data.ban);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Sunucu hatası";
       setErrorMessage(msg);

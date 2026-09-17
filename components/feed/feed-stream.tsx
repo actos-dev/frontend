@@ -1,22 +1,26 @@
 "use client";
 
+import { useInfiniteQuery } from "@tanstack/react-query";
 import type { Post } from "actos";
 import { MessageSquarePlus } from "lucide-react";
-import { useEffect, useState } from "react";
 import { PostCard } from "@/components/feed/post-card";
 import { LoadMore } from "@/components/pagination/load-more";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonPostCard } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
-import { syncCursorToUrl } from "@/lib/pagination";
+import { feedQueryOptions, normalizeFeedFilters } from "@/lib/query/queries";
+import type { FeedQueryPage } from "@/lib/query/types";
 import { useSessionStore } from "@/lib/stores/session-store";
-import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
+import type { VoteMap } from "@/lib/votes";
 
 export interface FeedStreamProps {
-  initialPosts: Post[];
-  initialNextCursor: string | null;
-  /** The signed-in viewer's votes for `initialPosts`, keyed by post id (ROADMAP.md P0-06). */
+  /** Compatibility inputs are useful for isolated embeds and component tests. */
+  initialPosts?: Post[];
+  initialNextCursor?: string | null;
   initialVotes?: VoteMap;
+  initialCursor?: string;
+  initialViewer?: "anonymous" | "authenticated";
+  initialViewerId?: string | null;
   sort?: string;
   window?: string;
   actorType?: string;
@@ -29,9 +33,12 @@ export interface FeedStreamProps {
 
 export function FeedStream({
   initialPosts,
-  initialNextCursor,
+  initialNextCursor = null,
   initialVotes,
-  sort = "hot",
+  initialCursor,
+  initialViewer = "anonymous",
+  initialViewerId = null,
+  sort,
   window: timeWindow,
   actorType,
   isFollowing = false,
@@ -40,81 +47,87 @@ export function FeedStream({
   emptyActionLabel = "Yeni Post Oluştur",
   emptyActionHref = "/new",
 }: FeedStreamProps) {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
-  const [votes, setVotes] = useState<VoteMap>(initialVotes ?? {});
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const authStatus = useSessionStore((state) => state.status);
+  const sessionUserId = useSessionStore((state) => state.user?.id ?? null);
+  const viewerId =
+    authStatus === "authenticated"
+      ? (sessionUserId ?? initialViewerId)
+      : authStatus === "unauthenticated"
+        ? null
+        : initialViewerId;
+  const viewer = viewerId
+    ? "authenticated"
+    : initialViewer === "authenticated" && authStatus !== "unauthenticated"
+      ? "authenticated"
+      : "anonymous";
+  const filters = normalizeFeedFilters({
+    sort,
+    window: timeWindow,
+    actorType,
+    following: isFollowing,
+    initialCursor,
+  });
+  const compatibilityInitialData =
+    initialPosts === undefined
+      ? undefined
+      : {
+          pages: [
+            {
+              items: initialPosts,
+              nextCursor: initialNextCursor,
+              votes: initialVotes ?? {},
+            } satisfies FeedQueryPage,
+          ],
+          pageParams: [initialCursor ?? null],
+        };
 
-  // Sync state when initial props change (e.g. tab / filter changed via RSC navigation)
-  useEffect(() => {
-    setPosts(initialPosts);
-    setNextCursor(initialNextCursor);
-    setVotes(initialVotes ?? {});
-  }, [initialPosts, initialNextCursor, initialVotes]);
+  const feed = useInfiniteQuery({
+    ...feedQueryOptions(filters, viewer, viewerId),
+    initialData: compatibilityInitialData,
+  });
+  const pages = feed.data?.pages ?? [];
+  const seen = new Set<string>();
+  const posts = pages.flatMap((page) =>
+    page.items.filter((post) => {
+      if (seen.has(post.id)) return false;
+      seen.add(post.id);
+      return true;
+    }),
+  );
+  const votes: VoteMap = Object.assign({}, ...pages.map((page) => page.votes));
 
-  const handleLoadMore = async (cursor: string) => {
-    if (isLoadingMore) return;
-    setIsLoadingMore(true);
-
+  const loadMore = async () => {
     try {
-      const params = new URLSearchParams();
-      if (sort) params.set("sort", sort);
-      if (timeWindow) params.set("window", timeWindow);
-      if (actorType) params.set("actor_type", actorType);
-      if (cursor) params.set("cursor", cursor);
-      if (isFollowing) params.set("following", "true");
-      params.set("limit", "25");
-
-      const endpoint = isFollowing ? "/api/feed/following" : "/api/feed";
-      const res = await fetch(`${endpoint}?${params.toString()}`);
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Daha fazla gönderi yüklenemedi.");
-        return;
-      }
-
-      const newItems: Post[] = data.items || [];
-      const newNextCursor: string | null = data.nextCursor ?? null;
-
-      setPosts((prev) => {
-        // Deduplicate items by ID
-        const existingIds = new Set(prev.map((p) => p.id));
-        const filteredNew = newItems.filter((p) => !existingIds.has(p.id));
-        return [...prev, ...filteredNew];
-      });
-
-      setNextCursor(newNextCursor);
-
-      // Keyset cursor URL query param'ı ile senkronize kalır (Plan §4.4)
-      syncCursorToUrl(newNextCursor, "push");
-
-      // P0-06: fetch the viewer's votes for the newly appended posts.
-      // Anonymous viewers never trigger this request.
-      if (authStatus === "authenticated" && newItems.length > 0) {
-        const newVotes = await fetchVoteMapClient(newItems.map((p) => p.id));
-        setVotes((prev) => ({ ...prev, ...newVotes }));
-      }
+      await feed.fetchNextPage();
     } catch {
-      toast.error("Bağlantı hatası: Sayfalama gerçekleştirilemedi.");
-    } finally {
-      setIsLoadingMore(false);
+      toast.error("Daha fazla gönderi yüklenemedi.");
     }
   };
 
-  // Boş durum (Empty State)
-  if (posts.length === 0 && !isLoadingMore) {
+  if (feed.isPending && posts.length === 0) {
+    return (
+      <div className="divide-y divide-border/50" aria-busy="true">
+        <SkeletonPostCard />
+        <SkeletonPostCard />
+      </div>
+    );
+  }
+
+  if (feed.isError && posts.length === 0) {
+    return (
+      <div role="alert" className="p-6 text-center text-sm text-muted-foreground">
+        Akış yüklenemedi. Sayfayı yenileyip tekrar deneyin.
+      </div>
+    );
+  }
+
+  if (posts.length === 0) {
     return (
       <div className="py-12 px-4 sm:px-6">
         <EmptyState
           title={emptyTitle}
           description={emptyDescription}
-          action={{
-            label: emptyActionLabel,
-            href: emptyActionHref,
-            icon: MessageSquarePlus,
-          }}
+          action={{ label: emptyActionLabel, href: emptyActionHref, icon: MessageSquarePlus }}
         />
       </div>
     );
@@ -122,26 +135,28 @@ export function FeedStream({
 
   return (
     <div className="divide-y divide-border/50">
-      {/* Gönderi Listesi */}
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} initialUserVote={votes[post.id] ?? 0} />
+        <PostCard
+          key={post.id}
+          post={post}
+          initialUserVote={votes[post.id] ?? 0}
+          initialViewerId={viewerId}
+        />
       ))}
 
-      {/* Yükleme Sırasında İskelet Kartlar */}
-      {isLoadingMore && (
+      {feed.isFetchingNextPage && (
         <div className="divide-y divide-border/50">
           <SkeletonPostCard />
           <SkeletonPostCard />
         </div>
       )}
 
-      {/* Sayfalama: Açık "Daha fazla" Butonu (Plan §4.4) */}
       <div className="p-4 sm:p-6 flex justify-center">
         <LoadMore
-          nextCursor={nextCursor}
-          isLoading={isLoadingMore}
-          onLoadMore={handleLoadMore}
-          syncUrl={false} // Handled inside handleLoadMore with push state
+          nextCursor={pages.at(-1)?.nextCursor ?? null}
+          isLoading={feed.isFetchingNextPage}
+          onLoadMore={loadMore}
+          syncUrl={false}
           label="Daha fazla"
           loadingLabel="Yükleniyor..."
           endMessage="Tüm akışın sonuna ulaştınız."

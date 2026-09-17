@@ -29,6 +29,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
+import { isAuthenticationProblem } from "@/lib/query/http";
+import { useContentInteraction, useDeleteCommentMutation } from "@/lib/query/mutations";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { formatRelativeTime } from "@/lib/utils";
 
@@ -72,12 +74,13 @@ export function CommentNodeComponent({
   const [editBody, setEditBody] = useState(comment.body || "");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // Voting state (optimistic)
-  const [userVote, setUserVote] = useState<-1 | 0 | 1>(0);
-  const [score, setScore] = useState<number>(comment.score ?? 0);
-  const [isVoting, setIsVoting] = useState(false);
+  const interaction = useContentInteraction(comment.id, {
+    score: comment.score ?? 0,
+    userVote: 0,
+  });
+  const { userVote, score, isVoting } = interaction;
+  const deleteComment = useDeleteCommentMutation(postId, comment.id);
+  const isDeleting = deleteComment.isPending;
 
   const isCollapsed = collapsedIds.has(comment.id);
   const isDeleted = Boolean(comment.deleted);
@@ -111,51 +114,18 @@ export function CommentNodeComponent({
       return;
     }
 
-    const previousVote = userVote;
-    const previousScore = score;
-    const nextVote = userVote === targetVote ? 0 : targetVote;
-    const scoreDiff = nextVote - previousVote;
-
-    setUserVote(nextVote);
-    setScore(previousScore + scoreDiff);
-    setIsVoting(true);
-
     try {
-      const res = await fetch("/api/actions/vote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentId: comment.id, value: nextVote }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        setUserVote(previousVote);
-        setScore(previousScore);
-
-        if (
-          res.status === 401 ||
-          data.code === "MISSING_CREDENTIALS" ||
-          data.code === "INVALID_KEY"
-        ) {
-          const currentPath =
-            typeof window !== "undefined"
-              ? window.location.pathname + window.location.search
-              : `/posts/${postId}`;
-          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
-          return;
-        }
-
-        toast.error(data.detail || data.title || "Oy kaydedilemedi.");
-        return;
+      await interaction.vote(targetVote);
+    } catch (error) {
+      if (isAuthenticationProblem(error)) {
+        const currentPath =
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : `/posts/${postId}`;
+        router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      } else {
+        toast.error((error as { detail?: string }).detail || "Oy kaydedilemedi.");
       }
-      if (data.data?.score !== undefined) {
-        setScore(data.data.score);
-      }
-    } catch {
-      setUserVote(previousVote);
-      setScore(previousScore);
-      toast.error("Bağlantı hatası: Oy verilemedi.");
-    } finally {
-      setIsVoting(false);
     }
   };
 
@@ -193,25 +163,22 @@ export function CommentNodeComponent({
 
   // Handle Delete
   const handleConfirmDelete = async () => {
-    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/comments/${comment.id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        toast.error(data?.detail || "Yorum silinemedi.");
-        return;
-      }
-
+      const deletedBody = `[${t("comments.deleted_comment") || "Bu yorum silindi"}]`;
+      await deleteComment.mutateAsync(deletedBody);
       setDeleteDialogOpen(false);
       onCommentDeleted?.(comment.id);
       toast.success(t("comments.deleted_success") || "Yorum silindi.");
-    } catch {
-      toast.error("Bağlantı hatası: Yorum silinemedi.");
-    } finally {
-      setIsDeleting(false);
+    } catch (error) {
+      if (isAuthenticationProblem(error)) {
+        const currentPath =
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : `/posts/${postId}`;
+        router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      } else {
+        toast.error((error as { detail?: string }).detail || "Yorum silinemedi.");
+      }
     }
   };
 
@@ -406,7 +373,7 @@ export function CommentNodeComponent({
                 <CodeBlockEnhancer>
                   <div
                     className="prose prose-comment"
-                    // biome-ignore lint/security/noDangerouslySetInnerHtml: rendered and sanitized by lib/render (rehype-sanitize)
+                    // biome-ignore lint/security/noDangerouslySetInnerHtml: rendered and sanitized by Markstone
                     dangerouslySetInnerHTML={{ __html: comment.bodyHtml }}
                   />
                 </CodeBlockEnhancer>
@@ -438,21 +405,19 @@ export function CommentNodeComponent({
                     isAuthor
                       ? "opacity-50 cursor-not-allowed text-muted-foreground"
                       : userVote === 1
-                        ? "text-orange-500 font-bold"
+                        ? "text-vote-up font-bold"
                         : "text-muted-foreground hover:text-foreground disabled:opacity-50"
                   }`}
                 >
-                  <ArrowBigUp
-                    className={`w-3.5 h-3.5 ${userVote === 1 ? "fill-orange-500" : ""}`}
-                  />
+                  <ArrowBigUp className="w-3.5 h-3.5" />
                 </button>
                 <span
                   data-testid="comment-score"
                   className={`px-1 font-mono text-[11px] font-semibold min-w-4 text-center ${
                     userVote === 1
-                      ? "text-orange-500"
+                      ? "text-vote-up"
                       : userVote === -1
-                        ? "text-blue-500"
+                        ? "text-vote-down"
                         : "text-foreground/80"
                   }`}
                 >
@@ -475,13 +440,11 @@ export function CommentNodeComponent({
                     isAuthor
                       ? "opacity-50 cursor-not-allowed text-muted-foreground"
                       : userVote === -1
-                        ? "text-blue-500 font-bold"
+                        ? "text-vote-down font-bold"
                         : "text-muted-foreground hover:text-foreground disabled:opacity-50"
                   }`}
                 >
-                  <ArrowBigDown
-                    className={`w-3.5 h-3.5 ${userVote === -1 ? "fill-blue-500" : ""}`}
-                  />
+                  <ArrowBigDown className="w-3.5 h-3.5" />
                 </button>
               </div>
 

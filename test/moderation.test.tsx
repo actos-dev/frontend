@@ -6,7 +6,7 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET as getActionsRoute } from "@/app/api/mod/actions/route";
 import { DELETE as deleteBanRoute } from "@/app/api/mod/bans/[username]/route";
-import { GET as getBansRoute, POST as postBanRoute } from "@/app/api/mod/bans/route";
+import { POST as postBanRoute } from "@/app/api/mod/bans/route";
 import { DELETE as deleteContentRoute } from "@/app/api/mod/contents/[id]/route";
 import { PATCH as patchReportRoute } from "@/app/api/mod/reports/[id]/route";
 import { GET as getReportsRoute } from "@/app/api/mod/reports/route";
@@ -191,9 +191,6 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
         { id: "r1", status: "pending", createdAt: new Date().toISOString() },
         { id: "r2", status: "pending", createdAt: new Date().toISOString() },
       ];
-      const mockBans = [
-        { username: "banned_1", reason: "spam", bannedAt: new Date().toISOString() },
-      ];
       const mockActions = [
         {
           id: "a1",
@@ -210,7 +207,6 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
         auth: { whoami: vi.fn().mockResolvedValue(mockAdminWhoami) },
         admin: {
           reports: { list: vi.fn().mockResolvedValue({ items: mockReports, nextCursor: null }) },
-          bans: vi.fn().mockResolvedValue(mockBans),
           actions: { list: vi.fn().mockResolvedValue({ items: mockActions, nextCursor: null }) },
         },
       } as unknown as actosLib.Actos);
@@ -219,7 +215,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       render(pageResult);
 
       expect(screen.getByTestId("pending-reports-count")).toHaveTextContent("2");
-      expect(screen.getByTestId("active-bans-count")).toHaveTextContent("1");
+      expect(screen.getByTestId("stat-ban-management")).toHaveTextContent("Listeleme API’si yok");
       expect(screen.getByTestId("recent-actions-count")).toHaveTextContent("1");
       expect(screen.getByTestId("quick-action-reports")).toBeInTheDocument();
       expect(screen.getByTestId("quick-action-bans")).toBeInTheDocument();
@@ -478,38 +474,34 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       expect(mockRemove).toHaveBeenCalledWith("spammer");
     });
 
-    it("BansManager ban listesini ve Banı Kaldır butonunu render eder", () => {
-      const sampleBan = {
-        username: "troll_1",
-        reason: "Sürekli spam",
-        bannedAt: new Date().toISOString(),
-        expiresAt: null,
-      };
+    it("BansManager API'nin listeleme desteği olmadığını ve kullanıcı adıyla kaldırmayı açıklar", () => {
+      render(<BansManager />);
 
-      render(<BansManager initialBans={[sampleBan]} />);
-
-      expect(screen.getByTestId("ban-row-troll_1")).toBeInTheDocument();
-      expect(screen.getByTestId("unban-btn-troll_1")).toBeInTheDocument();
-      expect(screen.getByText(/Kalıcı Ban/i)).toBeInTheDocument();
+      expect(screen.getByTestId("ban-list-unsupported")).toHaveTextContent(
+        "Actos API etkin banları listeleme ucu sunmuyor",
+      );
+      expect(screen.getByTestId("ban-remove-username-input")).toBeInTheDocument();
+      expect(screen.getByTestId("open-add-ban-dialog-button")).toBeInTheDocument();
     });
 
-    it("GET /api/mod/bans aktif banları listeler", async () => {
-      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
-        auth: { whoami: vi.fn().mockResolvedValue(mockModeratorWhoami) },
-        admin: {
-          bans: vi
-            .fn()
-            .mockResolvedValue([
-              { username: "b1", reason: "spam", bannedAt: "2026-09-01T00:00:00Z" },
-            ]),
-        },
-      } as unknown as actosLib.Actos);
+    it("BansManager girilen kullanıcı adına göre ban kaldırma isteği gönderir", async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ ok: true }),
+      } as Response);
+      render(<BansManager />);
 
-      const res = await getBansRoute();
-      expect(res.status).toBe(200);
-      const data = await res.json();
-      expect(data.ok).toBe(true);
-      expect(data.bans).toBeDefined();
+      fireEvent.change(screen.getByTestId("ban-remove-username-input"), {
+        target: { value: "@troll_1" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: /banı kaldır/i }));
+      fireEvent.click(await screen.findByTestId("confirm-unban-button"));
+
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith("/api/mod/bans/troll_1", {
+          method: "DELETE",
+        });
+      });
     });
 
     it("BanDialog modalını render eder", () => {
@@ -683,9 +675,6 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
     it("BansPage yetkili moderatörle başarıyla render olur", async () => {
       vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
         auth: { whoami: vi.fn().mockResolvedValue(mockModeratorWhoami) },
-        admin: {
-          bans: vi.fn().mockResolvedValue([]),
-        },
       } as unknown as actosLib.Actos);
 
       const page = await BansPage();

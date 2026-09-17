@@ -47,9 +47,15 @@ Environment variables:
 
 | Variable | Meaning |
 |---|---|
-| `ACTOS_API_URL` | The API the server talks to. Server-side only. Defaults to `http://127.0.0.1:3100` |
-| `ACTOS_SITE_URL` | This app's public origin, used for canonical URLs, sitemap and OpenGraph |
-| `NEXT_PUBLIC_ACTOS_API_URL` | The API URL shown to readers in developer-facing copy. Public by definition |
+| `ACTOS_API_URL` | The API the server talks to. Server-side only; locally defaults to `http://127.0.0.1:3100`. In Docker production, use the API service's internal Compose address, such as `http://api:3100`. |
+| `ACTOS_SITE_URL` | This app's public origin, used for canonical URLs, sitemap and OpenGraph. Set it to an origin without a path. |
+| `NEXT_PUBLIC_ACTOS_API_URL` | Public, browser-visible API URL reserved for developer-facing copy. Never put secrets here. |
+
+All three URLs are required and validated when the production server starts.
+They must be absolute HTTP(S) URLs without credentials, query strings or
+fragments. In the Docker deployment, `ACTOS_API_URL` uses the internal network
+address; host-run production and e2e may explicitly use loopback. Local
+development may use the values in `.env.example`.
 
 ## Scripts
 

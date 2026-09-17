@@ -1,3 +1,4 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Post } from "actos";
 import { ArrowRight, Bookmark, Compass, KeyRound } from "lucide-react";
 import type { Metadata } from "next";
@@ -7,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { savedQueryOptions } from "@/lib/query/queries";
+import { makeServerQueryClient, seedInfinitePage } from "@/lib/query/server";
+import type { SavedQueryPage } from "@/lib/query/types";
 import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
 export const metadata: Metadata = {
@@ -26,13 +30,14 @@ export default async function SavedPage(props: SavedPageProps) {
 
   const client = await getServerClient();
 
-  let isAuthenticated = false;
+  let viewerId: string | null = null;
   try {
     const whoami = await client.auth.whoami();
-    isAuthenticated = Boolean(whoami?.actor?.id);
+    viewerId = whoami?.actor?.id ?? null;
   } catch {
-    isAuthenticated = false;
+    viewerId = null;
   }
+  const isAuthenticated = viewerId !== null;
 
   // 1. Anonim Durum: Açıkça oturum açma kartı ve /login?returnUrl=/saved bağlantısı sunar (Plan §Faz 9)
   if (!isAuthenticated) {
@@ -107,6 +112,17 @@ export default async function SavedPage(props: SavedPageProps) {
         )
       : {};
 
+  const queryClient = makeServerQueryClient();
+  if (!loadError) {
+    const initialPage: SavedQueryPage = { items: posts, nextCursor, votes: voteMap };
+    seedInfinitePage(
+      queryClient,
+      savedQueryOptions(cursor, viewerId).queryKey,
+      initialPage,
+      cursor ?? null,
+    );
+  }
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] divide-y divide-border/60">
       <header className="sticky top-14 md:top-0 z-10 bg-background/90 backdrop-blur-md px-4 sm:px-6 py-3 border-b border-border/60 flex items-center justify-between">
@@ -129,7 +145,15 @@ export default async function SavedPage(props: SavedPageProps) {
         </div>
       ) : (
         /* Kaydedilenler Akışı, Boş Durum (EmptyState) ve Cursor Sayfalama */
-        <SavedStream initialPosts={posts} initialNextCursor={nextCursor} initialVotes={voteMap} />
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <SavedStream
+            initialPosts={posts}
+            initialNextCursor={nextCursor}
+            initialVotes={voteMap}
+            initialCursor={cursor}
+            initialViewerId={viewerId}
+          />
+        </HydrationBoundary>
       )}
     </div>
   );

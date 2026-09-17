@@ -1,12 +1,17 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { NotificationSummary } from "actos";
 import { ArrowRight, Bell, KeyRound } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { InboxFilterTab } from "@/components/inbox/inbox-view";
 import { InboxView } from "@/components/inbox/inbox-view";
 import { Button } from "@/components/ui/button";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { inboxQueryOptions } from "@/lib/query/queries";
+import { makeServerQueryClient, seedInfinitePage } from "@/lib/query/server";
+import type { InboxQueryPage } from "@/lib/query/types";
 
 export const metadata: Metadata = {
   title: "Bildirimler — Actos",
@@ -23,16 +28,18 @@ export default async function InboxPage(props: InboxPageProps) {
   const rawParams = props.searchParams ? await props.searchParams : {};
   const cursor = typeof rawParams.cursor === "string" ? rawParams.cursor : undefined;
   const unreadOnly = rawParams.unread === "true";
+  const initialFilter: InboxFilterTab = unreadOnly ? "unread" : "all";
 
   const client = await getServerClient();
 
-  let isAuthenticated = false;
+  let viewerId: string | null = null;
   try {
     const whoami = await client.auth.whoami();
-    isAuthenticated = Boolean(whoami?.actor?.id);
+    viewerId = whoami?.actor?.id ?? null;
   } catch {
-    isAuthenticated = false;
+    viewerId = null;
   }
+  const isAuthenticated = viewerId !== null;
 
   // 1. Anonim Durum: Giriş koruması [A] (Plan §Faz 13)
   // Açıkça oturum açma kartı ve /login?returnUrl=/inbox yönlendirmesi sunar
@@ -113,13 +120,28 @@ export default async function InboxPage(props: InboxPageProps) {
     );
   }
 
+  const queryClient = makeServerQueryClient();
+  const initialPage: InboxQueryPage = {
+    notifications,
+    nextCursor,
+    unreadCount,
+  };
+  seedInfinitePage(
+    queryClient,
+    inboxQueryOptions(initialFilter, cursor, viewerId).queryKey,
+    initialPage,
+    cursor ?? null,
+  );
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] py-6 sm:py-8 px-4 sm:px-6 max-w-4xl mx-auto">
-      <InboxView
-        initialNotifications={notifications}
-        initialNextCursor={nextCursor}
-        initialUnreadCount={unreadCount}
-      />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <InboxView
+          initialFilter={initialFilter}
+          initialCursor={cursor}
+          initialViewerId={viewerId}
+        />
+      </HydrationBoundary>
     </div>
   );
 }

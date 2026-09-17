@@ -4,6 +4,7 @@ import zlib from "node:zlib";
 import { describe, expect, it } from "vitest";
 import * as healthzRoute from "../app/healthz/route";
 import nextConfig from "../next.config";
+import packageJson from "../package.json";
 
 describe("Faz 19 — Performans ve Paketleme Test Paketi", () => {
   describe("1. Sağlık Kontrol Ucu (/healthz)", () => {
@@ -17,7 +18,7 @@ describe("Faz 19 — Performans ve Paketleme Test Paketi", () => {
       const body = await response.json();
       expect(body).toBeDefined();
       expect(body.status).toBe("ok");
-      expect(body.version).toBe("0.1.0");
+      expect(body.version).toBe(packageJson.version);
       expect(typeof body.uptime).toBe("number");
       expect(body.uptime).toBeGreaterThanOrEqual(0);
 

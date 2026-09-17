@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import type { Post } from "actos";
 import { GoneError, NotFoundError } from "actos";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,6 +11,7 @@ import { PostContent } from "@/components/post/post-content";
 import { PostHeader } from "@/components/post/post-header";
 import * as actosLib from "@/lib/actos";
 import { renderContent } from "@/lib/render/index";
+import { renderWithQueryClient as render } from "@/test/query-test-utils";
 
 // Mock next/navigation
 const mockPermanentRedirect = vi.fn((url: string) => {
@@ -281,7 +282,9 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
         fireEvent.click(upvoteBtn);
       });
 
-      expect(screen.getByTestId("post-score").textContent).toBe("143");
+      await waitFor(() => {
+        expect(screen.getByTestId("post-score").textContent).toBe("143");
+      });
       expect(mockFetch).toHaveBeenCalledWith(
         "/api/actions/vote",
         expect.objectContaining({

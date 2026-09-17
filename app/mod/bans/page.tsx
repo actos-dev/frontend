@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { BansManager } from "@/components/mod/bans-manager";
 import { requireModServer } from "@/lib/mod/auth";
-import { listBans } from "@/lib/mod/client-actions";
 
 export const metadata: Metadata = {
   title: "Ban Yönetimi — Moderasyon",
@@ -11,9 +10,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function BansPage() {
-  const { client } = await requireModServer();
-
-  const bans = await listBans(client).catch(() => []);
+  await requireModServer();
 
   return (
     <div className="space-y-6" data-testid="bans-manager-page">
@@ -26,7 +23,7 @@ export default async function BansPage() {
         </p>
       </div>
 
-      <BansManager initialBans={bans} />
+      <BansManager />
     </div>
   );
 }

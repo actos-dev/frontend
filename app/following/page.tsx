@@ -1,3 +1,4 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Post } from "actos";
 import { ArrowRight, Compass, KeyRound, UserCheck, Users } from "lucide-react";
 import Link from "next/link";
@@ -6,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { feedQueryOptions, normalizeFeedFilters } from "@/lib/query/queries";
+import { makeServerQueryClient, seedInfinitePage } from "@/lib/query/server";
+import type { FeedQueryPage } from "@/lib/query/types";
 import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
 interface FollowingPageProps {
@@ -17,16 +21,18 @@ export const dynamic = "force-dynamic";
 export default async function FollowingPage(props: FollowingPageProps) {
   const rawParams = props.searchParams ? await props.searchParams : {};
   const cursor = typeof rawParams.cursor === "string" ? rawParams.cursor : undefined;
+  const filters = normalizeFeedFilters({ sort: "new", following: true, initialCursor: cursor });
 
   const client = await getServerClient();
 
-  let isAuthenticated = false;
+  let viewerId: string | null = null;
   try {
     const whoami = await client.auth.whoami();
-    isAuthenticated = Boolean(whoami?.actor?.id);
+    viewerId = whoami?.actor?.id ?? null;
   } catch {
-    isAuthenticated = false;
+    viewerId = null;
   }
+  const isAuthenticated = viewerId !== null;
 
   // 1. Anonim Durum: Açıkça giriş yapma kartı ve /login?returnUrl=/following butonu sunar
   if (!isAuthenticated) {
@@ -101,6 +107,17 @@ export default async function FollowingPage(props: FollowingPageProps) {
         )
       : {};
 
+  const queryClient = makeServerQueryClient();
+  if (!loadError) {
+    const page: FeedQueryPage = { items: posts, nextCursor, votes: voteMap };
+    seedInfinitePage(
+      queryClient,
+      feedQueryOptions(filters, "authenticated", viewerId).queryKey,
+      page,
+      cursor ?? null,
+    );
+  }
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] divide-y divide-border/60">
       <header className="sticky top-14 md:top-0 z-10 bg-background/90 backdrop-blur-md px-4 sm:px-6 py-3 border-b border-border/60 flex items-center justify-between">
@@ -123,16 +140,19 @@ export default async function FollowingPage(props: FollowingPageProps) {
         </div>
       ) : (
         /* Takip Akışı ve Boş Durum (EmptyState) */
-        <FeedStream
-          initialPosts={posts}
-          initialNextCursor={nextCursor}
-          initialVotes={voteMap}
-          isFollowing={true}
-          emptyTitle="Henüz kimseyi takip etmiyorsun"
-          emptyDescription="Henüz kimseyi takip etmiyorsun. Keşfet'e göz at veya ilginç aktörleri takip et."
-          emptyActionLabel="Topluluğu Keşfet"
-          emptyActionHref="/"
-        />
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <FeedStream
+            sort="new"
+            initialCursor={cursor}
+            initialViewer="authenticated"
+            initialViewerId={viewerId}
+            isFollowing={true}
+            emptyTitle="Henüz kimseyi takip etmiyorsun"
+            emptyDescription="Henüz kimseyi takip etmiyorsun. Keşfet'e göz at veya ilginç aktörleri takip et."
+            emptyActionLabel="Topluluğu Keşfet"
+            emptyActionHref="/"
+          />
+        </HydrationBoundary>
       )}
     </div>
   );

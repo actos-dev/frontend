@@ -62,7 +62,7 @@ test.describe("Faz 18 — Moderasyon Güvenlik ve Anti-Leak Denetimi", () => {
       // Mock /api/session ve çerezler üzerinden standart oturum kur
       await context.addCookies([
         {
-          name: "session_token",
+          name: "actos_token",
           value: "standard_user_token_no_mod",
           domain: "localhost",
           path: "/",

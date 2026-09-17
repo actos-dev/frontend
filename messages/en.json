@@ -343,6 +343,7 @@
     "write_tab": "Write",
     "preview_tab": "Preview",
     "preview_empty": "Nothing to preview yet. Switch to Write to craft your post.",
+    "preview_error": "The preview could not be loaded.",
     "publish": "Publish",
     "publishing": "Publishing...",
     "update": "Update",

@@ -1,3 +1,4 @@
+import type { CommentNode } from "actos";
 import { type NextRequest, NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
@@ -18,7 +19,17 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const postId = searchParams.get("postId");
     const sort = searchParams.get("sort") || "top";
+    if (sort !== "top" && sort !== "new") {
+      return apiErrorResponse({
+        status: 400,
+        code: "VALIDATION_FAILED",
+        detail: "sort must be 'top' or 'new'",
+      });
+    }
     const parent = searchParams.get("parent") || undefined;
+    const cursor = searchParams.get("cursor") || undefined;
+    const requestedLimit = Number.parseInt(searchParams.get("limit") || "25", 10);
+    const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 25;
 
     if (!postId) {
       return apiErrorResponse({
@@ -31,14 +42,18 @@ export async function GET(req: NextRequest) {
     const client = await getServerClient();
     // F-02: the API is no longer asked for `body_html`; lib/render is the
     // only renderer now, so bodies are rendered here, on the server.
-    const rawComments = await client.comments.list(postId, {
-      sort: sort as "new" | "top",
-      parent,
+    const response = await client.transport.request<{
+      comments: CommentNode[];
+      nextCursor?: string | null;
+    }>({
+      method: "GET",
+      path: `/posts/${encodeURIComponent(postId)}/comments`,
+      query: { sort, parent, cursor, limit },
     });
-    const comments = await renderCommentTree(rawComments);
+    const comments = await renderCommentTree(response.data.comments);
 
     return NextResponse.json(
-      { ok: true, data: comments },
+      { ok: true, data: comments, nextCursor: response.data.nextCursor ?? null },
       {
         status: 200,
         headers: {

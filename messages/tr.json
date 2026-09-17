@@ -343,6 +343,7 @@
     "write_tab": "Yaz",
     "preview_tab": "Önizle",
     "preview_empty": "Önizlenecek bir içerik yok. Yaz sekmesine geçerek bir şeyler yazabilirsiniz.",
+    "preview_error": "Önizleme yüklenemedi.",
     "publish": "Yayınla",
     "publishing": "Yayınlanıyor...",
     "update": "Güncelle",

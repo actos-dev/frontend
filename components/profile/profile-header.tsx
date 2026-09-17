@@ -21,6 +21,7 @@ export interface ProfileHeaderProps {
    */
   followerCount?: number | string;
   followingCount?: number | string;
+  initialViewerId?: string | null;
   className?: string;
 }
 
@@ -38,6 +39,7 @@ export function ProfileHeader({
   stats,
   followerCount = 0,
   followingCount = 0,
+  initialViewerId,
   className,
 }: ProfileHeaderProps) {
   const { t } = useTranslation();
@@ -117,7 +119,12 @@ export function ProfileHeader({
               </Link>
             </Button>
           ) : (
-            <FollowButton username={username} size="default" className="w-full sm:w-auto" />
+            <FollowButton
+              username={username}
+              size="default"
+              className="w-full sm:w-auto"
+              initialViewerId={initialViewerId}
+            />
           )}
         </div>
       </div>

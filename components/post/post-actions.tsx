@@ -18,12 +18,15 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
+import { isAuthenticationProblem } from "@/lib/query/http";
+import { useContentInteraction, useDeletePostMutation } from "@/lib/query/mutations";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { cn, slugify } from "@/lib/utils";
 
 export interface PostActionsProps {
   post: Post;
   initialUserVote?: -1 | 0 | 1;
+  initialViewerId?: string | null;
   initialSaved?: boolean;
   isAuthor?: boolean;
   className?: string;
@@ -33,7 +36,8 @@ export interface PostActionsProps {
 export function PostActions({
   post,
   initialUserVote = 0,
-  initialSaved = false,
+  initialViewerId,
+  initialSaved,
   isAuthor = false,
   className,
   saveAriaLabel,
@@ -42,18 +46,31 @@ export function PostActions({
   const { t } = useTranslation();
   const user = useSessionStore((state) => state.user);
   const status = useSessionStore((state) => state.status);
+  const viewerId =
+    status === "authenticated"
+      ? (user?.id ?? initialViewerId ?? null)
+      : status === "unauthenticated"
+        ? null
+        : (initialViewerId ?? null);
+  const initialStateMatchesViewer = initialViewerId === undefined || initialViewerId === viewerId;
 
-  const [userVote, setUserVote] = useState<-1 | 0 | 1>(initialUserVote);
-  const [score, setScore] = useState<number>(post.score ?? 0);
-  const [isVoting, setIsVoting] = useState(false);
-
-  const [saved, setSaved] = useState<boolean>(initialSaved);
-  const [isSaving, setIsSaving] = useState(false);
+  const interaction = useContentInteraction(
+    post.id,
+    {
+      score: post.score ?? 0,
+      userVote: initialStateMatchesViewer ? initialUserVote : 0,
+      saved: initialStateMatchesViewer ? initialSaved : undefined,
+    },
+    viewerId,
+  );
+  const { userVote, score, isVoting, isSaving } = interaction;
+  const saved = interaction.saved ?? false;
+  const deletePost = useDeletePostMutation(post.id);
 
   const [reportOpen, setReportOpen] = useState(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const isDeleting = deletePost.isPending;
 
   const isUserAuthor =
     isAuthor ||
@@ -80,55 +97,18 @@ export function PostActions({
       return;
     }
 
-    const previousVote = userVote;
-    const previousScore = score;
-
-    const nextVote = userVote === targetVote ? 0 : targetVote;
-    const scoreDiff = nextVote - previousVote;
-    const nextScore = previousScore + scoreDiff;
-
-    setUserVote(nextVote);
-    setScore(nextScore);
-    setIsVoting(true);
-
     try {
-      const res = await fetch("/api/actions/vote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentId: post.id, value: nextVote }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        setUserVote(previousVote);
-        setScore(previousScore);
-
-        if (
-          res.status === 401 ||
-          data.code === "MISSING_CREDENTIALS" ||
-          data.code === "INVALID_KEY"
-        ) {
-          const currentPath =
-            typeof window !== "undefined"
-              ? window.location.pathname + window.location.search
-              : postHref;
-          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
-          return;
-        }
-
-        toast.error(data.detail || data.title || "Oy kaydedilemedi.");
-        return;
+      await interaction.vote(targetVote);
+    } catch (error) {
+      if (isAuthenticationProblem(error)) {
+        const currentPath =
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : postHref;
+        router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      } else {
+        toast.error((error as { detail?: string }).detail || "Oy kaydedilemedi.");
       }
-
-      if (data.data?.score !== undefined) {
-        setScore(data.data.score);
-      }
-    } catch {
-      setUserVote(previousVote);
-      setScore(previousScore);
-      toast.error("Bağlantı hatası: Oy verilemedi.");
-    } finally {
-      setIsVoting(false);
     }
   };
 
@@ -145,49 +125,21 @@ export function PostActions({
       return;
     }
 
-    const previousSaved = saved;
-    const nextSaved = !previousSaved;
-
-    setSaved(nextSaved);
-    setIsSaving(true);
+    const nextSaved = !saved;
 
     try {
-      const res = await fetch("/api/actions/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contentId: post.id,
-          action: nextSaved ? "add" : "remove",
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        setSaved(previousSaved);
-
-        if (
-          res.status === 401 ||
-          data.code === "MISSING_CREDENTIALS" ||
-          data.code === "INVALID_KEY"
-        ) {
-          const currentPath =
-            typeof window !== "undefined"
-              ? window.location.pathname + window.location.search
-              : postHref;
-          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
-          return;
-        }
-
-        toast.error(data.detail || data.title || "Kayıt işlemi gerçekleştirilemedi.");
-        return;
-      }
-
+      await interaction.save(nextSaved);
       toast.success(nextSaved ? "Post kaydedildi!" : "Kayıt kaldırıldı.");
-    } catch {
-      setSaved(previousSaved);
-      toast.error("Bağlantı hatası: Post kaydedilemedi.");
-    } finally {
-      setIsSaving(false);
+    } catch (error) {
+      if (isAuthenticationProblem(error)) {
+        const currentPath =
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : postHref;
+        router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      } else {
+        toast.error((error as { detail?: string }).detail || "Kayıt işlemi gerçekleştirilemedi.");
+      }
     }
   };
 
@@ -216,23 +168,21 @@ export function PostActions({
 
   // Delete Handler (P0-12): author-only, confirmed via dialog, redirects to feed on success.
   const handleConfirmDelete = async () => {
-    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/posts/${post.id}`, { method: "DELETE" });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        toast.error(data?.detail || data?.title || t("states.postDeleteFailed"));
-        return;
-      }
-
+      await deletePost.mutateAsync();
       setDeleteDialogOpen(false);
       toast.success(t("states.postDeleted"));
       router.push("/");
-    } catch {
-      toast.error(t("states.postDeleteFailed"));
-    } finally {
-      setIsDeleting(false);
+    } catch (error) {
+      if (isAuthenticationProblem(error)) {
+        const currentPath =
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : postHref;
+        router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      } else {
+        toast.error((error as { detail?: string }).detail || t("states.postDeleteFailed"));
+      }
     }
   };
 

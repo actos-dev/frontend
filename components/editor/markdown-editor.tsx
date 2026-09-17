@@ -16,13 +16,10 @@ export interface MarkdownEditorProps {
   className?: string;
 }
 
-type PreviewRenderer = (markdown: string) => string;
+type PreviewRenderer = (markdown: string) => Promise<string>;
 
-// Loaded once per page, on demand, and shared by every editor instance on
-// it. The preview pipeline (lib/render/preview.ts — remark, rehype, the
-// sanitize schema, the whole unified chain) is real weight, so someone who
-// opens the composer to type never pays for it; it only reaches the
-// browser the first time the Preview tab is actually activated.
+// Loaded once per page, on demand, and shared by every editor instance. The
+// Markstone WASM renderer only reaches the browser when Preview is opened.
 let previewRendererPromise: Promise<PreviewRenderer> | null = null;
 function loadPreviewRenderer(): Promise<PreviewRenderer> {
   if (!previewRendererPromise) {
@@ -47,6 +44,8 @@ export function MarkdownEditor({
   // of this — it only feeds `value` in as a plain string.
   const [previewHtml, setPreviewHtml] = React.useState("");
   const [previewLoading, setPreviewLoading] = React.useState(false);
+  const [previewError, setPreviewError] = React.useState(false);
+  const [previewAttempt, setPreviewAttempt] = React.useState(0);
   const renderRef = React.useRef<PreviewRenderer | null>(null);
 
   React.useEffect(() => {
@@ -57,24 +56,36 @@ export function MarkdownEditor({
       return;
     }
 
-    if (renderRef.current) {
-      setPreviewHtml(renderRef.current(value));
-      return;
-    }
-
     let cancelled = false;
     setPreviewLoading(true);
-    loadPreviewRenderer().then((render) => {
-      if (cancelled) return;
-      renderRef.current = render;
-      setPreviewHtml(render(value));
-      setPreviewLoading(false);
-    });
+    setPreviewError(false);
+    if (previewAttempt > 0) setPreviewHtml("");
+    const renderPromise = renderRef.current
+      ? Promise.resolve(renderRef.current)
+      : loadPreviewRenderer().then((render) => {
+          renderRef.current = render;
+          return render;
+        });
+
+    renderPromise
+      .then((render) => render(value))
+      .then((html) => {
+        if (!cancelled) setPreviewHtml(html);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPreviewHtml("");
+          setPreviewError(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false);
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [activeTab, value]);
+  }, [activeTab, value, previewAttempt]);
 
   const applyFormatting = (
     formatType: "bold" | "italic" | "heading" | "link" | "code" | "quote" | "list",
@@ -305,11 +316,22 @@ export function MarkdownEditor({
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>{t("editor.preview_loading") || "Loading preview…"}</span>
               </div>
+            ) : previewError ? (
+              <div className="flex flex-col items-center gap-3 py-8 text-center text-sm text-muted-foreground">
+                <p>{t("editor.preview_error")}</p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setPreviewAttempt((attempt) => attempt + 1)}
+                >
+                  {t("common.retry")}
+                </Button>
+              </div>
             ) : previewHtml ? (
               <div
                 data-testid="preview-reading-prose"
                 className="prose selection:bg-primary/10"
-                // biome-ignore lint/security/noDangerouslySetInnerHtml: safe escaped client markdown renderer
+                // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized by Markstone's browser WASM renderer
                 dangerouslySetInnerHTML={{ __html: previewHtml }}
               />
             ) : (

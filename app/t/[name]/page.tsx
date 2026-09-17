@@ -64,6 +64,7 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
   let totalCount: number = 0;
   let loadError: unknown = null;
   let voteMap: VoteMap = {};
+  let viewerId: string | null = null;
 
   try {
     const client = await getServerClient();
@@ -90,7 +91,14 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
 
     // P0-06: the viewer's own votes never live in a cached, shared list
     // response, so fetch them separately and only when signed in.
-    if (posts.length > 0 && (await hasSessionCookie())) {
+    if (await hasSessionCookie()) {
+      try {
+        viewerId = (await client.auth.whoami())?.actor?.id ?? null;
+      } catch {
+        viewerId = null;
+      }
+    }
+    if (posts.length > 0 && viewerId) {
       voteMap = await fetchVoteMap(
         client,
         posts.map((p) => p.id),
@@ -156,6 +164,7 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
         initialPosts={posts}
         initialNextCursor={nextCursor}
         initialVotes={voteMap}
+        initialViewerId={viewerId}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Post } from "actos";
 import { FeedNav } from "@/components/feed/feed-nav";
 import { FeedStream } from "@/components/feed/feed-stream";
@@ -5,6 +6,9 @@ import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient, hasSessionCookie } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
 import { isFeedActorType, isFeedSort, isFeedWindow } from "@/lib/feed-params";
+import { feedQueryOptions, normalizeFeedFilters } from "@/lib/query/queries";
+import { makeServerQueryClient, seedInfinitePage } from "@/lib/query/server";
+import type { FeedQueryPage } from "@/lib/query/types";
 import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
 interface HomePageProps {
@@ -23,9 +27,19 @@ export default async function HomePage(props: HomePageProps) {
   const actorType = isFeedActorType(actorTypeRaw) ? actorTypeRaw : undefined;
 
   const cursor = typeof rawParams.cursor === "string" ? rawParams.cursor : undefined;
+  const filters = normalizeFeedFilters({ sort, window, actorType, initialCursor: cursor });
 
   // 1. Veri erişimi (RSC, Plan §6.1)
   const client = await getServerClient();
+  let viewerId: string | null = null;
+  if (await hasSessionCookie()) {
+    try {
+      viewerId = (await client.auth.whoami())?.actor?.id ?? null;
+    } catch {
+      viewerId = null;
+    }
+  }
+  const viewer = viewerId ? "authenticated" : "anonymous";
 
   let posts: Post[] = [];
   let nextCursor: string | null = null;
@@ -52,10 +66,21 @@ export default async function HomePage(props: HomePageProps) {
   // /api/feed response, so fetch them separately, straight through the SDK,
   // and only when a session cookie is actually present.
   let voteMap: VoteMap = {};
-  if (posts.length > 0 && (await hasSessionCookie())) {
+  if (posts.length > 0 && viewer === "authenticated") {
     voteMap = await fetchVoteMap(
       client,
       posts.map((p) => p.id),
+    );
+  }
+
+  const queryClient = makeServerQueryClient();
+  if (!loadError) {
+    const page: FeedQueryPage = { items: posts, nextCursor, votes: voteMap };
+    seedInfinitePage(
+      queryClient,
+      feedQueryOptions(filters, viewer, viewerId).queryKey,
+      page,
+      cursor ?? null,
     );
   }
 
@@ -70,18 +95,20 @@ export default async function HomePage(props: HomePageProps) {
           <ErrorStateRetry {...describeError(loadError)} />
         </div>
       ) : (
-        <FeedStream
-          initialPosts={posts}
-          initialNextCursor={nextCursor}
-          initialVotes={voteMap}
-          sort={sort}
-          window={window}
-          actorType={actorType}
-          emptyTitle="Henüz gönderi yok"
-          emptyDescription="İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!"
-          emptyActionLabel="Yeni Post Oluştur"
-          emptyActionHref="/new"
-        />
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <FeedStream
+            sort={sort}
+            window={window}
+            actorType={actorType}
+            initialCursor={cursor}
+            initialViewer={viewer}
+            initialViewerId={viewerId}
+            emptyTitle="Henüz gönderi yok"
+            emptyDescription="İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!"
+            emptyActionLabel="Yeni Post Oluştur"
+            emptyActionHref="/new"
+          />
+        </HydrationBoundary>
       )}
     </div>
   );

@@ -7,6 +7,7 @@ import { SessionProvider } from "@/components/session-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DEFAULT_LOCALE, I18nProvider, isLocale, LOCALE_COOKIE, type Locale } from "@/lib/i18n";
+import { QueryProvider } from "@/lib/query/provider";
 import { DEFAULT_THEME, isValidTheme, type ThemeName, themeAttribute } from "@/lib/themes";
 import "./globals.css";
 
@@ -91,7 +92,9 @@ export default async function RootLayout({
         <TooltipProvider delayDuration={200}>
           <I18nProvider initialLocale={locale}>
             <SessionProvider>
-              <AppShell rightRail={rightrail}>{children}</AppShell>
+              <QueryProvider>
+                <AppShell rightRail={rightrail}>{children}</AppShell>
+              </QueryProvider>
             </SessionProvider>
             <Toaster />
           </I18nProvider>

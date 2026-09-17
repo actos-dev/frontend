@@ -1,8 +1,10 @@
 // @vitest-environment happy-dom
 
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, fireEvent, render as rtlRender, screen, waitFor } from "@testing-library/react";
 import { GoneError } from "actos";
 import { NextRequest } from "next/server";
+import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as readRoute from "@/app/api/inbox/[id]/read/route";
 import PostDetailPage from "@/app/posts/[id]/[[...slug]]/page";
@@ -16,6 +18,11 @@ import * as actosLib from "@/lib/actos";
 import { useInboxPoll } from "@/lib/hooks/use-inbox-poll";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { MOCK_USERS } from "@/test/fixtures/users";
+
+function render(ui: ReactNode) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return rtlRender(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
 
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
@@ -646,6 +653,19 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
         },
       ];
 
+      global.fetch = vi.fn().mockImplementation(
+        async () =>
+          new Response(
+            JSON.stringify({
+              ok: true,
+              notifications: [mockItems[0]],
+              nextCursor: null,
+              unreadCount: 2,
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+      );
+
       render(
         <InboxView
           initialNotifications={mockItems}
@@ -662,10 +682,15 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       await act(async () => {
         fireEvent.click(repliesTab);
       });
+      expect(global.fetch).toHaveBeenCalled();
 
-      // Yalnızca 1 yanıt öğesi kalmalı
-      expect(screen.getAllByTestId("notification-card").length).toBe(1);
-      expect(screen.getByText("Yanıt metni")).toBeDefined();
+      // Yalnızca API'den dönen yanıt bildirimi görünür kalmalı.
+      await waitFor(() => {
+        expect(screen.getAllByTestId("notification-card")).toHaveLength(1);
+        expect(screen.getByTestId("notification-card").getAttribute("data-notification-id")).toBe(
+          "n_rep_1",
+        );
+      });
     });
   });
 });

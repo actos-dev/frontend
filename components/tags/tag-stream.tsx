@@ -17,6 +17,7 @@ export interface TagStreamProps {
   initialNextCursor: string | null;
   /** The signed-in viewer's votes for `initialPosts`, keyed by post id (ROADMAP.md P0-06). */
   initialVotes?: VoteMap;
+  initialViewerId?: string | null;
 }
 
 export function TagStream({
@@ -24,18 +25,45 @@ export function TagStream({
   initialPosts,
   initialNextCursor,
   initialVotes,
+  initialViewerId = null,
 }: TagStreamProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
   const [votes, setVotes] = useState<VoteMap>(initialVotes ?? {});
+  const [votesPrincipalId, setVotesPrincipalId] = useState<string | null>(initialViewerId);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const authStatus = useSessionStore((state) => state.status);
+  const sessionUserId = useSessionStore((state) => state.user?.id ?? null);
+  const viewerId =
+    authStatus === "authenticated"
+      ? sessionUserId
+      : authStatus === "unauthenticated"
+        ? null
+        : initialViewerId;
 
   useEffect(() => {
     setPosts(initialPosts);
     setNextCursor(initialNextCursor);
     setVotes(initialVotes ?? {});
-  }, [initialPosts, initialNextCursor, initialVotes]);
+    setVotesPrincipalId(initialViewerId);
+  }, [initialPosts, initialNextCursor, initialVotes, initialViewerId]);
+
+  useEffect(() => {
+    if (authStatus !== "authenticated" || !viewerId || votesPrincipalId === viewerId) return;
+    let active = true;
+    void fetchVoteMapClient(posts.map((post) => post.id))
+      .then((nextVotes) => {
+        if (!active || useSessionStore.getState().user?.id !== viewerId) return;
+        setVotes(nextVotes);
+        setVotesPrincipalId(viewerId);
+      })
+      .catch(() => {
+        // Keep vote controls neutral until this viewer's state can be loaded.
+      });
+    return () => {
+      active = false;
+    };
+  }, [authStatus, posts, viewerId, votesPrincipalId]);
 
   const handleLoadMore = async (cursor: string) => {
     if (isLoadingMore) return;
@@ -71,7 +99,10 @@ export function TagStream({
       // P0-06: fetch the viewer's votes for the newly appended posts.
       if (authStatus === "authenticated" && newItems.length > 0) {
         const newVotes = await fetchVoteMapClient(newItems.map((p) => p.id));
-        setVotes((prev) => ({ ...prev, ...newVotes }));
+        if (useSessionStore.getState().user?.id === viewerId) {
+          setVotes((prev) => ({ ...prev, ...newVotes }));
+          setVotesPrincipalId(viewerId);
+        }
       }
     } catch {
       toast.error("Bağlantı hatası: Gönderiler yüklenemedi.");
@@ -100,7 +131,12 @@ export function TagStream({
   return (
     <div className="divide-y divide-border/40">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} initialUserVote={votes[post.id] ?? 0} />
+        <PostCard
+          key={post.id}
+          post={post}
+          initialUserVote={votesPrincipalId === viewerId ? (votes[post.id] ?? 0) : 0}
+          initialViewerId={viewerId}
+        />
       ))}
 
       <LoadMore

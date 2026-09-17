@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render as rtlRender, screen, waitFor } from "@testing-library/react";
 import type { Post } from "actos";
+import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import FollowingPage from "@/app/following/page";
 import HomePage from "@/app/page";
@@ -9,6 +11,11 @@ import { FeedNav } from "@/components/feed/feed-nav";
 import { PostCard } from "@/components/feed/post-card";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import * as actosLib from "@/lib/actos";
+
+function render(ui: ReactNode) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return rtlRender(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -154,12 +161,15 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       fireEvent.click(upvoteBtn);
 
       // İyimser güncelleme: skor anında 43 olmalı
-      expect(screen.getByText("43")).toBeDefined();
-      expect(upvoteBtn.getAttribute("aria-pressed")).toBe("true");
+      await waitFor(() => {
+        expect(screen.getByText("43")).toBeDefined();
+        expect(upvoteBtn.getAttribute("aria-pressed")).toBe("true");
+      });
 
       await waitFor(() => {
         expect(globalThis.fetch).toHaveBeenCalledWith("/api/actions/vote", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contentId: "c_test_1", value: 1 }),
         });
@@ -178,11 +188,14 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       fireEvent.click(saveBtn);
 
       // İyimser durum: aria-label güncellenir
-      expect(screen.getByRole("button", { name: "Kaydedilenlerden çıkar" })).toBeDefined();
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Kaydedilenlerden çıkar" })).toBeDefined(),
+      );
 
       await waitFor(() => {
         expect(globalThis.fetch).toHaveBeenCalledWith("/api/actions/save", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contentId: "c_test_1", action: "add" }),
         });

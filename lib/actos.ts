@@ -2,7 +2,6 @@ import { Actos } from "actos";
 import { cookies } from "next/headers";
 
 export const ACTOS_TOKEN_COOKIE = "actos_token";
-export const SESSION_TOKEN_COOKIE = "session_token";
 
 export function getActosApiUrl(): string {
   return process.env.ACTOS_API_URL || "http://127.0.0.1:3100";
@@ -11,7 +10,7 @@ export function getActosApiUrl(): string {
 /**
  * Server-only Actos SDK client factory.
  *
- * Reads `actos_token` (or fallback `session_token`) from request cookies.
+ * Reads `actos_token` from request cookies.
  * - If a token exists: instantiates an authenticated Actos client with apiKey.
  * - If no token exists: instantiates an anonymous Actos client for public reads.
  *
@@ -28,8 +27,7 @@ export async function getServerClient(apiKeyOverride?: string): Promise<Actos> {
   let token: string | undefined;
   try {
     const cookieStore = await cookies();
-    token =
-      cookieStore.get(ACTOS_TOKEN_COOKIE)?.value || cookieStore.get(SESSION_TOKEN_COOKIE)?.value;
+    token = cookieStore.get(ACTOS_TOKEN_COOKIE)?.value;
   } catch {
     // cookies() can throw if called outside of request context (e.g. static gen or test)
   }
@@ -59,9 +57,7 @@ export function getAnonymousClient(): Actos {
 export async function hasSessionCookie(): Promise<boolean> {
   try {
     const cookieStore = await cookies();
-    return Boolean(
-      cookieStore.get(ACTOS_TOKEN_COOKIE)?.value || cookieStore.get(SESSION_TOKEN_COOKIE)?.value,
-    );
+    return Boolean(cookieStore.get(ACTOS_TOKEN_COOKIE)?.value);
   } catch {
     // cookies() can throw outside of request context (e.g. static gen or test)
     return false;

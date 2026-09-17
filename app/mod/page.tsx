@@ -3,24 +3,22 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { requireModServer } from "@/lib/mod/auth";
-import { listAuditLogs, listBans, listReports } from "@/lib/mod/client-actions";
+import { listAuditLogs, listReports } from "@/lib/mod/client-actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function ModSummaryPage() {
   const { client, isAdmin } = await requireModServer();
 
-  const [reportsPage, bans, actionsPage] = await Promise.all([
+  const [reportsPage, actionsPage] = await Promise.all([
     listReports(client, { status: "pending", limit: 100 }).catch(() => ({
       items: [],
       nextCursor: null,
     })),
-    listBans(client).catch(() => []),
     listAuditLogs(client, { limit: 50 }).catch(() => ({ items: [], nextCursor: null })),
   ]);
 
   const pendingReportsCount = reportsPage.items.length;
-  const activeBansCount = bans.length;
 
   const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
   const last24hActionsCount = actionsPage.items.filter(
@@ -70,28 +68,25 @@ export default async function ModSummaryPage() {
           </div>
         </Link>
 
-        {/* Aktif Banlar */}
+        {/* Ban Yönetimi */}
         <Link
           href="/mod/bans"
-          data-testid="stat-active-bans"
+          data-testid="stat-ban-management"
           className="group p-5 rounded-2xl bg-card border border-border/80 shadow-xs hover:border-primary/50 transition-all space-y-3 block"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase font-mono tracking-wider">
-              Aktif Yasaklamalar
+              Ban Yönetimi
             </span>
             <div className="w-8 h-8 rounded-xl bg-surface-2 text-foreground flex items-center justify-center">
               <Ban className="w-4 h-4" />
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span
-              data-testid="active-bans-count"
-              className="text-3xl font-bold font-mono text-foreground"
-            >
-              {activeBansCount}
+          <div className="flex items-end justify-between gap-3">
+            <span className="text-xs leading-relaxed text-muted-foreground">
+              Listeleme API’si yok; ban ekleme ve kullanıcı adıyla kaldırma kullanılabilir.
             </span>
-            <span className="text-xs text-primary group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-medium">
+            <span className="shrink-0 text-xs text-primary group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-medium">
               Yönet <ArrowRight className="w-3 h-3" />
             </span>
           </div>

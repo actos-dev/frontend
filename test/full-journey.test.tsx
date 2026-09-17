@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import "@testing-library/jest-dom/vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import type { Comment, Post } from "actos";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CommentTree } from "@/components/comments/comment-tree";
@@ -19,6 +19,7 @@ import { useEditorDraftStore } from "@/lib/stores/editor-draft";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { syncThemeToDom, useThemeStore } from "@/lib/stores/theme-store";
 import { DEFAULT_THEME, isValidTheme, THEME_NAMES } from "@/lib/themes";
+import { renderWithQueryClient as render } from "@/test/query-test-utils";
 
 // Mock next/navigation
 const mockPush = vi.fn();

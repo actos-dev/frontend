@@ -2,11 +2,12 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import type { CommentNode, Post } from "actos";
 import * as React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { CommentNodeComponent } from "@/components/comments/comment-node";
+import { renderWithQueryClient as render } from "@/test/query-test-utils";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({

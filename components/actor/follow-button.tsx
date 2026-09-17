@@ -2,16 +2,18 @@
 
 import { Loader2, UserCheck, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
+import { isAuthenticationProblem } from "@/lib/query/http";
+import { useFollowMutation } from "@/lib/query/mutations";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { cn } from "@/lib/utils";
 
 export interface FollowButtonProps {
   username: string;
   initialFollowing?: boolean;
+  initialViewerId?: string | null;
   variant?: "default" | "outline" | "secondary" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
@@ -30,6 +32,7 @@ export interface FollowButtonProps {
 export function FollowButton({
   username,
   initialFollowing = false,
+  initialViewerId,
   variant,
   size = "sm",
   className,
@@ -40,9 +43,17 @@ export function FollowButton({
   const { t } = useTranslation();
   const user = useSessionStore((state) => state.user);
   const status = useSessionStore((state) => state.status);
-
-  const [following, setFollowing] = useState<boolean>(initialFollowing);
-  const [isPending, setIsPending] = useState<boolean>(false);
+  const viewerId =
+    status === "authenticated"
+      ? (user?.id ?? initialViewerId ?? null)
+      : status === "unauthenticated"
+        ? null
+        : (initialViewerId ?? null);
+  const initialStateMatchesViewer = initialViewerId === undefined || initialViewerId === viewerId;
+  const viewerInitialFollowing = initialStateMatchesViewer ? initialFollowing : false;
+  const followMutation = useFollowMutation(username, viewerInitialFollowing, viewerId);
+  const following = followMutation.following ?? viewerInitialFollowing;
+  const isPending = followMutation.isPending;
 
   // Kendi profili kontrolü (Plan §Faz 9)
   const isSelf = Boolean(user?.username && user.username.toLowerCase() === username.toLowerCase());
@@ -83,42 +94,10 @@ export function FollowButton({
       return;
     }
 
-    const previous = following;
-    const next = !previous;
-
-    // İyimser güncelleme
-    setFollowing(next);
-    setIsPending(true);
+    const next = !following;
 
     try {
-      const res = await fetch("/api/actions/follow", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          action: next ? "follow" : "unfollow",
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        // Rollback
-        setFollowing(previous);
-
-        if (
-          res.status === 401 ||
-          data.code === "MISSING_CREDENTIALS" ||
-          data.code === "INVALID_KEY"
-        ) {
-          const currentPath =
-            typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
-          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
-          return;
-        }
-
-        toast.error(data.detail || data.title || "Takip işlemi gerçekleştirilemedi.");
-        return;
-      }
+      await followMutation.toggle(next);
 
       const successMsg = next
         ? t("interactions.followed")?.replace("{username}", username) ||
@@ -128,12 +107,15 @@ export function FollowButton({
 
       toast.success(successMsg);
       onFollowChange?.(next);
-    } catch {
-      // Revert on network error
-      setFollowing(previous);
-      toast.error("Bağlantı hatası: Takip işlemi gerçekleştirilemedi.");
-    } finally {
-      setIsPending(false);
+    } catch (error) {
+      if (isAuthenticationProblem(error)) {
+        const currentPath =
+          typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
+        router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      } else {
+        const detail = (error as { detail?: string; message?: string }).detail;
+        toast.error(detail || (error as Error).message || "Takip işlemi gerçekleştirilemedi.");
+      }
     }
   };
 

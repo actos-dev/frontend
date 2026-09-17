@@ -229,9 +229,9 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
       expect(handleChange).toHaveBeenCalledWith(expect.stringContaining("- liste öğesi"));
     });
 
-    it("renderPreview fonksiyonu güvenli HTML üretmeli ve raw script injection'ı engellemelidir", () => {
+    it("renderPreview fonksiyonu güvenli HTML üretmeli ve raw script injection'ı engellemelidir", async () => {
       const malicious = `<script>alert('xss')</script>\n# Güvenli Başlık\n- Madde 1\n> Bir alıntı`;
-      const html = renderPreview(malicious);
+      const html = await renderPreview(malicious);
 
       // Raw HTML (the whole <script> block) is dropped outright, not just
       // escaped-and-displayed — lib/render never enables

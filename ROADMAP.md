@@ -19,7 +19,7 @@
 
 ## 0.0 State of play — read this first
 
-*Updated 2026-09-16. Keep this section current: it is the handover between
+*Updated 2026-09-17. Keep this section current: it is the handover between
 sessions.*
 
 **Branch:** all work lands on `overhaul` in this repository. `main` still
@@ -40,19 +40,21 @@ running backend, not only by its tests):
 | F-02, X-09, X-10 — one markdown pipeline | `5f1d2d2` |
 | K-19 — the repository docs rewritten, the superseded ones deleted | `1b726e4` |
 | S-01…S-06, P0-09, K-01, K-02, K-03, K-05, K-07, K-09, K-11 — the shell | `3fa3bfa` |
+| F-01, F-03, F-07, F-08 and the published Markstone renderer | working tree checkpoint |
 
 Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(488), `pnpm check:contrast` (3/3), `pnpm build`, and `pnpm test:e2e:real`
-(40 across desktop and mobile) all pass. A manual pass at 1440, 1100 and
-390 px, signed out and signed in, in both themes, shows no console errors,
-no failed requests and no horizontal overflow.
+(499), `pnpm check:contrast` (3/3), the client-secret bundle audit,
+`next build --webpack`, and the production-browser Markstone WASM test all
+pass. The previous real-backend suite remains at 40 passing journeys; rerun
+it after the Phase 3 visual work against a running API.
 
-**In flight:** nothing. This is a clean checkpoint: no worktree holds
-uncommitted work, and `overhaul` passes every gate.
+**In flight:** Phase 3. Its isolated, responsive prototype is in
+`prototype/phase-3/`; P-01 through P-07 now move that design into the live
+components. List responses still omit attachments, so P-01 deliberately has
+no thumbnails until B-04 lands rather than making N+1 detail requests.
 
-**Next:** F-03 (client data layer), F-07 (env validation), F-08 (dead code),
-then Phase 3, which rebuilds the feed row and the post page — the centre
-column is still the old design. F-01 is blocked on the owner, see below.
+**Next:** P-01 feed row, P-02 compact density, P-03 feed controls and P-04
+automatic pagination, followed by the post and tag surfaces (P-05…P-07).
 
 ### Running the thing locally
 
@@ -77,14 +79,6 @@ the `actos_token` cookie to its key from `.e2e-real/keys.json`.
 
 ### Waiting on the owner
 
-- **F-01 / B-10.** `@actos-dev/actos@0.2.0` is committed and versioned
-  locally in `../node` (`1a0676d`, on `main`) but not pushed or published.
-  npm still serves `0.1.0`, which is pre-refactor. Until this ships, the
-  frontend depends on `link:../node` and **neither CI nor the Docker build
-  can install**. The publish is one command from the repository root:
-  `git push origin main && gh workflow run publish.yml -f dry_run=false`.
-  This session could not run it: pushing is blocked by the sandbox, and the
-  owner runs it.
 - **D-07.** The legal texts themselves.
 - **D-12.** The staging hostname and how it is protected.
 
@@ -571,7 +565,7 @@ although `posts.delete()` exists. Add both, with confirmation.
 
 ## Phase 1 — Foundations
 
-**F-01 · SDK from the registry (deployment blocker).**
+**F-01 · SDK from the registry (deployment blocker).** ✅ 2026-09-17
 `"actos": "link:../node"` breaks CI (`.github/workflows/ci.yml:29`) and the
 Docker build (`Dockerfile:24`) on a clean checkout. The 0.2.0 SDK exists only
 on the unmerged `node` branch `sync/backend-0.2.0`, and npm has only
@@ -615,7 +609,7 @@ Add to either path:
 - heading anchors
 - table overflow scroll
 
-**F-03 · Client data layer.**
+**F-03 · Client data layer.** ✅ 2026-09-17
 Adopt TanStack Query v5 for client lists and mutations:
 
 - infinite queries for feeds, comments and inbox
@@ -663,7 +657,7 @@ Phases 2–6 anyway, and a new product should not launch on the previous major.
 - `ErrorState`: message, retry, request id.
 - `/design` is deleted. Component tests cover the primitives (K-04).
 
-**F-07 · Env and runtime.**
+**F-07 · Env and runtime.** ✅ 2026-09-17
 
 - Validate `ACTOS_API_URL`, `ACTOS_SITE_URL` and `NEXT_PUBLIC_ACTOS_API_URL`
   at startup, and fail fast in production.
@@ -673,7 +667,7 @@ Phases 2–6 anyway, and a new product should not launch on the previous major.
 - Server-side, `ACTOS_API_URL` points at the internal docker network
   address.
 
-**F-08 · Dead code pass.**
+**F-08 · Dead code pass.** ✅ 2026-09-17
 
 - `lib/mod/client-actions.ts`: the speculative flat-SDK branches behind
   `as unknown as Record<string, unknown>` (lines 25, 59, 92, 122, 154, 171,
@@ -1212,8 +1206,8 @@ the interim behavior.
 | B-07 | A popularity window on `GET /tags` if the UI should say "trending" | Right rail wording | Labeled "Popular tags" |
 | B-08 | Username availability check with its own small rate limit | U-03 | `GET /actors/{u}` returning 404 |
 | B-09 | Always include `id` in sparse fieldset responses | Defense against P0-01-class bugs in every client | — |
-| B-10 | Publish `@actos-dev/actos@0.2.0` (merge the `node` branch) | F-01, all CI and deploy | — |
-| B-11 | Publish markstone to npm; remove `body_html` only after F-02 switches | F-02 | `body_html` on detail pages |
+| B-10 | ✅ Published `@actos-dev/actos@0.2.0`; frontend installs the registry alias | F-01, all CI and deploy | Resolved 2026-09-17 |
+| B-11 | ✅ Published Markstone 0.1.0; server uses native rendering and preview uses browser WASM | F-02 | Resolved 2026-09-17 |
 | B-12 | Communities API (§7.3) | Phase 7 | Slots behind the flag |
 | B-13 | Honour `Idempotency-Key` on `POST /posts/{id}/comments`, as `POST /posts` already does | P0-11's server half | The client sends the key; a double submit can still duplicate |
 
@@ -1255,7 +1249,6 @@ Each one can be overridden, but each has a reason.
 
 ### Needs the owner
 
-- **Publishing the SDK (B-10).** It is an irreversible external action.
 - **Legal text content (D-07).**
 - **Staging access method and hostname (D-12).**
 - Veto on any decision above before Phase 1 starts.
@@ -1266,7 +1259,7 @@ Each one can be overridden, but each has a reason.
 
 ```
 Phase 0 (P0-01…P0-12)
-  └─ Phase 1: F-01 (needs B-10) → F-04 → F-05/F-06 → F-02, F-03, F-07, F-08, T-01
+  └─ Phase 1: F-01 → F-04 → F-05/F-06 → F-02, F-03, F-07, F-08, T-01
        ├─ Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
        └─ Phase 8 track (D-01…D-12) in parallel, D-13 at the end
 Phase 7 screens: as backend community phases 1–5 ship

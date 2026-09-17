@@ -1,84 +1,90 @@
 "use client";
 
+import { useInfiniteQuery } from "@tanstack/react-query";
 import type { Post } from "actos";
 import { Bookmark } from "lucide-react";
-import { useEffect, useState } from "react";
 import { PostCard } from "@/components/feed/post-card";
 import { LoadMore } from "@/components/pagination/load-more";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonPostCard } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
-import { syncCursorToUrl } from "@/lib/pagination";
+import { savedQueryOptions } from "@/lib/query/queries";
+import type { SavedQueryPage } from "@/lib/query/types";
 import { useSessionStore } from "@/lib/stores/session-store";
-import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
+import type { VoteMap } from "@/lib/votes";
 
 export interface SavedStreamProps {
-  initialPosts: Post[];
-  initialNextCursor: string | null;
-  /** The signed-in viewer's votes for `initialPosts`, keyed by post id (ROADMAP.md P0-06). */
+  initialPosts?: Post[];
+  initialNextCursor?: string | null;
   initialVotes?: VoteMap;
+  initialCursor?: string;
+  initialViewerId?: string | null;
 }
 
-export function SavedStream({ initialPosts, initialNextCursor, initialVotes }: SavedStreamProps) {
+export function SavedStream({
+  initialPosts,
+  initialNextCursor = null,
+  initialVotes,
+  initialCursor,
+  initialViewerId,
+}: SavedStreamProps) {
   const { t } = useTranslation();
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
-  const [votes, setVotes] = useState<VoteMap>(initialVotes ?? {});
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const authStatus = useSessionStore((state) => state.status);
+  const sessionUserId = useSessionStore((state) => state.user?.id ?? null);
+  const viewerId =
+    authStatus === "authenticated"
+      ? (sessionUserId ?? initialViewerId ?? null)
+      : authStatus === "unauthenticated"
+        ? null
+        : (initialViewerId ?? null);
+  const initialStateMatchesViewer = initialViewerId === undefined || initialViewerId === viewerId;
+  const compatibilityInitialData =
+    initialPosts === undefined
+      ? undefined
+      : {
+          pages: [
+            {
+              items: initialPosts,
+              nextCursor: initialNextCursor,
+              votes: initialVotes ?? {},
+            } satisfies SavedQueryPage,
+          ],
+          pageParams: [initialCursor ?? null],
+        };
+  const saved = useInfiniteQuery({
+    ...savedQueryOptions(initialCursor, viewerId),
+    initialData: initialStateMatchesViewer ? compatibilityInitialData : undefined,
+  });
+  const pages = saved.data?.pages ?? [];
+  const seen = new Set<string>();
+  const posts = pages.flatMap((page) =>
+    page.items.filter((post) => {
+      if (seen.has(post.id)) return false;
+      seen.add(post.id);
+      return true;
+    }),
+  );
+  const votes = Object.assign({}, ...pages.map((page) => page.votes)) as VoteMap;
 
-  useEffect(() => {
-    setPosts(initialPosts);
-    setNextCursor(initialNextCursor);
-    setVotes(initialVotes ?? {});
-  }, [initialPosts, initialNextCursor, initialVotes]);
+  if (saved.isPending && posts.length === 0) {
+    return (
+      <div className="divide-y divide-border/50" aria-busy="true">
+        <SkeletonPostCard />
+        <SkeletonPostCard />
+      </div>
+    );
+  }
 
-  const handleLoadMore = async (cursor: string) => {
-    if (isLoadingMore) return;
-    setIsLoadingMore(true);
+  if (saved.isError && posts.length === 0) {
+    return (
+      <div role="alert" className="p-6 text-center text-sm text-muted-foreground">
+        {t("states.savedLoadFailed") || "Kaydedilenler yüklenemedi. Yeniden deneyin."}
+      </div>
+    );
+  }
 
-    try {
-      const res = await fetch(`/api/saved?cursor=${encodeURIComponent(cursor)}&limit=25`);
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Daha fazla kaydedilen gönderi yüklenemedi.");
-        return;
-      }
-
-      const newItems: Post[] = data.items || [];
-      const newNextCursor: string | null = data.nextCursor ?? null;
-
-      setPosts((prev) => {
-        const existingIds = new Set(prev.map((p) => p.id));
-        const filteredNew = newItems.filter((p) => !existingIds.has(p.id));
-        return [...prev, ...filteredNew];
-      });
-
-      setNextCursor(newNextCursor);
-      syncCursorToUrl(newNextCursor, "push");
-
-      // P0-06: fetch the viewer's votes for the newly appended posts.
-      if (authStatus === "authenticated" && newItems.length > 0) {
-        const newVotes = await fetchVoteMapClient(newItems.map((p) => p.id));
-        setVotes((prev) => ({ ...prev, ...newVotes }));
-      }
-    } catch {
-      toast.error("Bağlantı hatası: Sayfalama gerçekleştirilemedi.");
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
-
-  const handleSaveSuccess = (contentId: string, isSaved: boolean) => {
-    if (!isSaved) {
-      // Remove un-saved item from view
-      setPosts((prev) => prev.filter((p) => p.id !== contentId));
-    }
-  };
-
-  if (posts.length === 0 && !isLoadingMore) {
+  if (posts.length === 0) {
     return (
       <div className="py-12 px-4 sm:px-6" data-testid="saved-empty-state">
         <EmptyState
@@ -99,31 +105,35 @@ export function SavedStream({ initialPosts, initialNextCursor, initialVotes }: S
 
   return (
     <div className="divide-y divide-border/50" data-testid="saved-stream">
-      {/* Kaydedilen Gönderiler Listesi */}
       {posts.map((post) => (
         <PostCard
           key={post.id}
           post={post}
           initialSaved={true}
           initialUserVote={votes[post.id] ?? 0}
-          onSaveSuccess={handleSaveSuccess}
+          initialViewerId={viewerId}
         />
       ))}
-
-      {/* Yükleme Sırasında İskelet Kartlar */}
-      {isLoadingMore && (
+      {saved.isFetchingNextPage && (
         <div className="divide-y divide-border/50">
           <SkeletonPostCard />
           <SkeletonPostCard />
         </div>
       )}
-
-      {/* Sayfalama: Açık "Daha fazla" Butonu (Plan §4.4 & §Faz 9) */}
+      {saved.isFetchNextPageError && (
+        <p role="alert" className="p-4 text-center text-sm text-destructive">
+          Kaydedilenler yüklenemedi.
+        </p>
+      )}
       <div className="p-4 sm:p-6 flex justify-center">
         <LoadMore
-          nextCursor={nextCursor}
-          isLoading={isLoadingMore}
-          onLoadMore={handleLoadMore}
+          nextCursor={pages.at(-1)?.nextCursor ?? null}
+          isLoading={saved.isFetchingNextPage}
+          onLoadMore={async () => {
+            const result = await saved.fetchNextPage();
+            if (result.isFetchNextPageError)
+              toast.error("Daha fazla kaydedilen gönderi yüklenemedi.");
+          }}
           syncUrl={false}
           label="Daha fazla"
           loadingLabel="Yükleniyor..."

@@ -1,10 +1,8 @@
 "use client";
 
-import type { Ban } from "actos";
-import { AlertTriangle, Calendar, Clock, Plus, ShieldCheck, UserX } from "lucide-react";
+import { AlertTriangle, Plus, ShieldCheck, UserX } from "lucide-react";
 import { useState } from "react";
 import { BanDialog } from "@/components/mod/ban-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,24 +12,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
 
-interface BansManagerProps {
-  initialBans?: Ban[];
-}
-
-export function BansManager({ initialBans = [] }: BansManagerProps) {
-  const [bans, setBans] = useState<Ban[]>(initialBans);
+export function BansManager() {
   const [banDialogOpen, setBanDialogOpen] = useState(false);
-
-  // Unban confirmation dialog state
+  const [username, setUsername] = useState("");
   const [unbanTarget, setUnbanTarget] = useState<string | null>(null);
   const [isUnbanning, setIsUnbanning] = useState(false);
-
-  const handleBanCreated = (newBan: Ban) => {
-    setBans((prev) => [newBan, ...prev.filter((b) => b.username !== newBan.username)]);
-  };
 
   const handleConfirmUnban = async () => {
     if (!unbanTarget) return;
@@ -47,8 +36,8 @@ export function BansManager({ initialBans = [] }: BansManagerProps) {
         throw new Error(data.error || "Ban kaldırılırken bir hata oluştu.");
       }
 
-      toast.success(`@${unbanTarget} kullanıcısının banı başarıyla kaldırıldı.`);
-      setBans((prev) => prev.filter((b) => b.username !== unbanTarget));
+      toast.success(`@${unbanTarget} kullanıcısının banı kaldırıldı.`);
+      setUsername("");
       setUnbanTarget(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Sunucu hatası";
@@ -60,12 +49,11 @@ export function BansManager({ initialBans = [] }: BansManagerProps) {
 
   return (
     <div className="space-y-6">
-      {/* Üst Eylem Çubuğu: Başlık ve Ban Ekle Butonu */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-border/80">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/80 pb-4">
         <div>
-          <h2 className="text-base font-bold text-foreground">Aktif Yasaklamalar (Banlar)</h2>
-          <p className="text-xs text-muted-foreground">
-            Platform kurallarını ihlal eden hesapların erişim kısıtlamaları.
+          <h2 className="text-base font-semibold text-foreground">Ban işlemleri</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Hesapları süreli veya kalıcı olarak kısıtlayın.
           </p>
         </div>
 
@@ -74,101 +62,55 @@ export function BansManager({ initialBans = [] }: BansManagerProps) {
           size="sm"
           data-testid="open-add-ban-dialog-button"
           onClick={() => setBanDialogOpen(true)}
-          className="gap-1.5 rounded-xl text-xs font-semibold"
+          className="gap-1.5"
         >
-          <Plus className="w-4 h-4" />
-          <span>Yeni Ban Ekle</span>
+          <Plus className="h-4 w-4" />
+          <span>Ban ekle</span>
         </Button>
       </div>
 
-      {/* Ban Listesi */}
-      {bans.length === 0 ? (
-        <EmptyState
-          icon={ShieldCheck}
-          title="Aktif ban bulunmuyor"
-          description="Şu anda sistemde kısıtlanmış veya yasaklanmış kullanıcı hesabı yok."
-        />
-      ) : (
-        <div className="space-y-3" data-testid="bans-list">
-          {bans.map((ban) => {
-            const isPermanent = !ban.expiresAt;
-
-            return (
-              <div
-                key={ban.username}
-                data-testid={`ban-row-${ban.username}`}
-                className="p-4 rounded-2xl bg-card border border-border/80 shadow-xs hover:border-border transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                {/* Sol Bilgiler: Kullanıcı, Sebep, Tarihler */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm text-foreground">
-                      @{ban.username}
-                    </span>
-                    <Badge
-                      variant={isPermanent ? "destructive" : "secondary"}
-                      size="sm"
-                      className="text-[10px] font-mono uppercase"
-                    >
-                      {isPermanent ? "Kalıcı Ban" : "Süreli Ban"}
-                    </Badge>
-                  </div>
-
-                  <div className="text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">Gerekçe: </span>
-                    <span>{ban.reason}</span>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground font-mono">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      Başlangıç: {new Date(ban.bannedAt).toLocaleDateString("tr-TR")}
-                    </span>
-
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      Bitiş:{" "}
-                      {ban.expiresAt
-                        ? new Date(ban.expiresAt).toLocaleDateString("tr-TR", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "Süresiz"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Sağ: Ban Kaldırma Eylemi */}
-                <div className="shrink-0">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    data-testid={`unban-btn-${ban.username}`}
-                    onClick={() => setUnbanTarget(ban.username)}
-                    className="gap-1.5 text-xs rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40"
-                  >
-                    <UserX className="w-3.5 h-3.5" />
-                    <span>Banı Kaldır</span>
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+      <div
+        role="status"
+        data-testid="ban-list-unsupported"
+        className="flex gap-3 border border-border bg-surface-2/50 p-4"
+      >
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">Aktif ban listesi kullanılamıyor</p>
+          <p className="text-sm text-muted-foreground">
+            Actos API etkin banları listeleme ucu sunmuyor. Ban ekleyebilir veya kullanıcı adını
+            yazarak bir banı kaldırabilirsiniz.
+          </p>
         </div>
-      )}
+      </div>
 
-      {/* Yeni Ban Ekle Dialog */}
-      <BanDialog
-        open={banDialogOpen}
-        onOpenChange={setBanDialogOpen}
-        onSuccess={handleBanCreated}
-      />
+      <form
+        className="max-w-md space-y-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const target = username.trim().replace(/^@/, "");
+          if (target) setUnbanTarget(target);
+        }}
+      >
+        <div className="space-y-1.5">
+          <Label htmlFor="ban-remove-username">Banı kullanıcı adına göre kaldır</Label>
+          <Input
+            id="ban-remove-username"
+            data-testid="ban-remove-username-input"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            autoComplete="off"
+            placeholder="kullanıcı adı"
+          />
+        </div>
+        <Button type="submit" variant="outline" size="sm" disabled={!username.trim()}>
+          <UserX className="mr-1.5 h-4 w-4" />
+          Banı kaldır
+        </Button>
+      </form>
 
-      {/* Ban Kaldırma Onay Dialog */}
+      <BanDialog open={banDialogOpen} onOpenChange={setBanDialogOpen} />
+
       <Dialog
         open={Boolean(unbanTarget)}
         onOpenChange={(open) => {
@@ -178,16 +120,17 @@ export function BansManager({ initialBans = [] }: BansManagerProps) {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-warning" />
-              <span>Banı Kaldır</span>
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              <span>Banı kaldır</span>
             </DialogTitle>
             <DialogDescription>
-              <span className="font-mono font-bold text-foreground">@{unbanTarget}</span>{" "}
-              kullanıcısının hesabındaki ban kısıtlamasını sonlandırmak istediğinize emin misiniz?
+              <span className="font-mono font-semibold text-foreground">@{unbanTarget}</span> için
+              ban kaldırma isteği gönderilsin mi? Kullanıcı şu anda banlı değilse API işlemi
+              değişiklik yapmadan tamamlar.
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="gap-2 sm:gap-0 pt-2">
+          <DialogFooter className="gap-2 pt-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
@@ -205,7 +148,7 @@ export function BansManager({ initialBans = [] }: BansManagerProps) {
               disabled={isUnbanning}
               onClick={handleConfirmUnban}
             >
-              {isUnbanning ? "Kaldırılıyor..." : "Banı Kaldır"}
+              {isUnbanning ? "Kaldırılıyor..." : "Banı kaldır"}
             </Button>
           </DialogFooter>
         </DialogContent>

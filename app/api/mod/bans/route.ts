@@ -1,30 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { apiErrorResponse } from "@/lib/errors";
 import { requireModApi } from "@/lib/mod/auth";
-import { banActor, listBans } from "@/lib/mod/client-actions";
+import { banActor } from "@/lib/mod/client-actions";
 
 export const dynamic = "force-dynamic";
-
-/**
- * GET /api/mod/bans
- * Lists active bans.
- */
-export async function GET() {
-  const auth = await requireModApi();
-  if (auth instanceof NextResponse) {
-    return auth;
-  }
-
-  try {
-    const bans = await listBans(auth.client);
-    return NextResponse.json({
-      ok: true,
-      bans,
-    });
-  } catch (error) {
-    return apiErrorResponse(error);
-  }
-}
 
 /**
  * POST /api/mod/bans

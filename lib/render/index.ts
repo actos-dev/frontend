@@ -1,22 +1,7 @@
-/**
- * markstone swap note (ROADMAP F-02, B-11; markstone/PLAN.md §11):
- *
- * Once markstone publishes to npm, `renderContent` below is replaced by its
- * Node native path and `renderPreview` (lib/render/preview.ts) is replaced
- * by its WASM path. Both call the Actos family (the mention/tag-aware
- * build), not the generic one, so `lib/render/mentions-tags.ts` and this
- * file's sanitize/Shiki/link/table enrichment become markstone's job in one
- * module each. `excerpt` (lib/render/excerpt.ts) is untouched by the swap:
- * it works from the Markdown source, not from either rendered form.
- *
- * This is the only place that still knows the API used to return
- * `body_html`, and it doesn't — this pipeline renders straight from `body`.
- */
 import "server-only";
 
-import rehypeStringify from "rehype-stringify";
-import { createBasePipeline } from "./pipeline";
-import { rehypeHighlightCode } from "./shiki";
+import { actos } from "markstone";
+import { enrichServerHtml } from "./enrich-html-server";
 import { escapeHtml, stripInvisibleAndBidi } from "./text-sanitize";
 
 export type RenderFormat = "markdown" | "plain";
@@ -37,9 +22,10 @@ function renderPlain(cleaned: string): string {
 }
 
 /**
- * Renders a post or comment body to sanitized HTML. Server only: this is
- * where Shiki runs, at render time, so no syntax highlighter ever ships to
- * the browser.
+ * Renders a post or comment body to sanitized HTML. Markstone's native Node
+ * path owns Markdown parsing, sanitization and Actos extensions; the web
+ * layer then adds headings, external-link policy, table overflow and Shiki.
+ * Server only, so no syntax highlighter reaches the browser bundle.
  */
 export async function renderContent(
   markdown: string | null | undefined,
@@ -54,9 +40,5 @@ export async function renderContent(
     return renderPlain(cleaned);
   }
 
-  const file = await createBasePipeline()
-    .use(rehypeHighlightCode)
-    .use(rehypeStringify)
-    .process(cleaned);
-  return String(file);
+  return enrichServerHtml(actos.toHtml(cleaned));
 }

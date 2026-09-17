@@ -1,12 +1,6 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  ACTOS_TOKEN_COOKIE,
-  Actos,
-  getActosApiUrl,
-  getServerClient,
-  SESSION_TOKEN_COOKIE,
-} from "@/lib/actos";
+import { ACTOS_TOKEN_COOKIE, Actos, getActosApiUrl, getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
@@ -81,19 +75,6 @@ export async function POST(req: NextRequest) {
 
     cookieStore.set(ACTOS_TOKEN_COOKIE, apiKey, cookieOptions);
 
-    // Clean up fallback session cookie if it was present
-    try {
-      cookieStore.set(SESSION_TOKEN_COOKIE, "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax" as const,
-        path: "/",
-        maxAge: 0,
-      });
-    } catch {
-      // ignore
-    }
-
     return NextResponse.json(
       { ok: true, user },
       {
@@ -117,7 +98,7 @@ export async function POST(req: NextRequest) {
  * A signed-out visitor (no cookie, or a cookie the backend rejects) is not
  * an error: it returns 200 with `{ ok: true, user: null }` so the browser
  * never logs a console error on every anonymous page load (P0-07). An
- * invalid or revoked token still clears the cookies, as before.
+ * invalid or revoked token still clears the authentication cookie.
  */
 export async function GET() {
   const noStoreHeaders = {
@@ -125,8 +106,7 @@ export async function GET() {
   };
 
   const cookieStore = await cookies();
-  const token =
-    cookieStore.get(ACTOS_TOKEN_COOKIE)?.value || cookieStore.get(SESSION_TOKEN_COOKIE)?.value;
+  const token = cookieStore.get(ACTOS_TOKEN_COOKIE)?.value;
 
   if (!token) {
     return NextResponse.json({ ok: true, user: null }, { headers: noStoreHeaders });
@@ -147,21 +127,13 @@ export async function GET() {
       path: "/",
       maxAge: 0,
     });
-    cookieStore.set(SESSION_TOKEN_COOKIE, "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: 0,
-    });
-
     return NextResponse.json({ ok: true, user: null }, { headers: noStoreHeaders });
   }
 }
 
 /**
  * DELETE /api/session
- * Logs out the user by wiping the session cookies.
+ * Logs out the user by wiping the authentication cookie.
  */
 export async function DELETE() {
   const cookieStore = await cookies();
@@ -173,15 +145,6 @@ export async function DELETE() {
     path: "/",
     maxAge: 0,
   });
-
-  cookieStore.set(SESSION_TOKEN_COOKIE, "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge: 0,
-  });
-
   return NextResponse.json(
     { ok: true },
     {

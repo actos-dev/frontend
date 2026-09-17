@@ -216,7 +216,15 @@ test.describe("Faz 18 — Tam Kullanıcı Yolculuğu E2E Senaryosu", () => {
     await titleInput.fill("E2E Yolculuk Test Gönderisi");
 
     const bodyEditor = page.locator("textarea").first();
-    await bodyEditor.fill("Playwright ile oluşturulmuş uçtan uca gönderi gövdesi.");
+    await bodyEditor.fill("**Playwright** ile oluşturulmuş uçtan uca gönderi gövdesi.");
+
+    // The production client bundle must fetch and initialize Markstone's
+    // browser WASM path, not silently fall back to the Node addon.
+    await page.getByRole("tab", { name: /Önizle|Preview/i }).click();
+    const preview = page.getByTestId("preview-reading-prose");
+    await expect(preview).toBeVisible();
+    await expect(preview.locator("strong")).toHaveText("Playwright");
+    await page.getByRole("tab", { name: /Yaz|Write/i }).click();
 
     // Etiket ekle
     const tagsInput = page.getByPlaceholder(/Etiket ekle/i);

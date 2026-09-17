@@ -34,6 +34,10 @@ export function SearchView() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [votes, setVotes] = useState<VoteMap>({});
+  const [votesPrincipalId, setVotesPrincipalId] = useState<string | null>(null);
+  const authStatus = useSessionStore((state) => state.status);
+  const sessionUserId = useSessionStore((state) => state.user?.id ?? null);
+  const viewerId = authStatus === "authenticated" ? sessionUserId : null;
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -54,67 +58,74 @@ export function SearchView() {
   }, [searchParams]);
 
   // Execute search request with AbortController
-  const performSearch = useCallback(async (queryText: string, tab: SearchTabType) => {
-    const trimmed = queryText.trim();
-    if (!trimmed) {
-      setResults([]);
-      setNextCursor(null);
-      setIsLoading(false);
-      return;
-    }
-
-    // 1. İptal edilebilir istek: Abort previous request (Plan §Faz 12)
-    abortControllerRef.current?.abort();
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    setIsLoading(true);
-
-    try {
-      const params = new URLSearchParams();
-      params.set("q", trimmed);
-      params.set("type", tab);
-      params.set("limit", "25");
-
-      const res = await fetch(`/api/search?${params.toString()}`, {
-        signal: controller.signal,
-      });
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        if (!controller.signal.aborted) {
-          toast.error(data.detail || data.title || "Arama gerçekleştirilemedi.");
-        }
+  const performSearch = useCallback(
+    async (queryText: string, tab: SearchTabType) => {
+      const trimmed = queryText.trim();
+      if (!trimmed) {
+        setResults([]);
+        setNextCursor(null);
+        setIsLoading(false);
         return;
       }
 
-      if (!controller.signal.aborted) {
-        const items: Array<Post | Actor> = data.items || [];
-        setResults(items);
-        setNextCursor(data.nextCursor ?? null);
-        setSubmittedQuery(trimmed);
+      // 1. İptal edilebilir istek: Abort previous request (Plan §Faz 12)
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
-        // P0-06: a fresh search replaces the vote map wholesale rather than
-        // merging, since the previous results are gone. Anonymous viewers
-        // never trigger this request.
-        if (tab === "post" && useSessionStore.getState().status === "authenticated") {
-          const ids = (items as Post[]).map((post) => post.id);
-          const newVotes = await fetchVoteMapClient(ids);
-          if (!controller.signal.aborted) setVotes(newVotes);
-        } else if (tab !== "post") {
-          setVotes({});
+      setIsLoading(true);
+
+      try {
+        const params = new URLSearchParams();
+        params.set("q", trimmed);
+        params.set("type", tab);
+        params.set("limit", "25");
+
+        const res = await fetch(`/api/search?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          if (!controller.signal.aborted) {
+            toast.error(data.detail || data.title || "Arama gerçekleştirilemedi.");
+          }
+          return;
+        }
+
+        if (!controller.signal.aborted) {
+          const items: Array<Post | Actor> = data.items || [];
+          setResults(items);
+          setNextCursor(data.nextCursor ?? null);
+          setSubmittedQuery(trimmed);
+
+          // P0-06: a fresh search replaces the vote map wholesale rather than
+          // merging, since the previous results are gone. Anonymous viewers
+          // never trigger this request.
+          if (tab === "post" && viewerId && useSessionStore.getState().user?.id === viewerId) {
+            const ids = (items as Post[]).map((post) => post.id);
+            const newVotes = await fetchVoteMapClient(ids);
+            if (!controller.signal.aborted && useSessionStore.getState().user?.id === viewerId) {
+              setVotes(newVotes);
+              setVotesPrincipalId(viewerId);
+            }
+          } else if (tab !== "post") {
+            setVotes({});
+            setVotesPrincipalId(null);
+          }
+        }
+      } catch (err: unknown) {
+        if ((err as Error).name !== "AbortError") {
+          toast.error("Bağlantı hatası: Arama tamamlanamadı.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
         }
       }
-    } catch (err: unknown) {
-      if ((err as Error).name !== "AbortError") {
-        toast.error("Bağlantı hatası: Arama tamamlanamadı.");
-      }
-    } finally {
-      if (!controller.signal.aborted) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
+    },
+    [viewerId],
+  );
 
   // Initial load if query is in URL
   useEffect(() => {
@@ -347,7 +358,8 @@ export function SearchView() {
                   <PostCard
                     key={post.id}
                     post={post}
-                    initialUserVote={votes[post.id] ?? 0}
+                    initialUserVote={votesPrincipalId === viewerId ? (votes[post.id] ?? 0) : 0}
+                    initialViewerId={viewerId}
                     highlightQuery={submittedQuery || inputQuery}
                   />
                 ))}

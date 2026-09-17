@@ -1,17 +1,24 @@
 "use client";
 
+import { type InfiniteData, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import type { Comment, CommentNode as CommentNodeType } from "actos";
 import { ArrowDownUp, MessageSquare, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { CommentForm } from "@/components/comments/comment-form";
 import { CommentNodeComponent } from "@/components/comments/comment-node";
+import { LoadMore } from "@/components/pagination/load-more";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
+import { queryKeys } from "@/lib/query/keys";
+import { commentQueryOptions } from "@/lib/query/queries";
+import type { CommentQueryPage } from "@/lib/query/types";
 
 export interface CommentTreeProps {
   postId: string;
-  initialComments: CommentNodeType[];
+  initialComments?: CommentNodeType[];
+  initialNextCursor?: string | null;
+  initialCursor?: string;
   postSlug?: string;
   className?: string;
 }
@@ -93,12 +100,54 @@ function appendReplyToTree(
   });
 }
 
-export function CommentTree({ postId, initialComments, className = "" }: CommentTreeProps) {
+export function CommentTree({
+  postId,
+  initialComments,
+  initialNextCursor = null,
+  initialCursor,
+  className = "",
+}: CommentTreeProps) {
   const { t } = useTranslation();
-  const [comments, setComments] = useState<CommentNodeType[]>(initialComments);
+  const queryClient = useQueryClient();
   const [sort, setSort] = useState<"top" | "new">("top");
-  const [isLoadingSort, setIsLoadingSort] = useState(false);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+
+  const compatibilityInitialData =
+    initialComments === undefined
+      ? undefined
+      : {
+          pages: [
+            {
+              items: initialComments,
+              nextCursor: initialNextCursor,
+            } satisfies CommentQueryPage,
+          ],
+          pageParams: [initialCursor ?? null],
+        };
+  const commentsQuery = useInfiniteQuery({
+    ...commentQueryOptions(postId, sort, initialCursor),
+    initialData: sort === "top" ? compatibilityInitialData : undefined,
+  });
+  const comments = commentsQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const isLoadingSort = commentsQuery.isFetching && !commentsQuery.isFetchingNextPage;
+
+  const updateCachedComments = useCallback(
+    (updater: (nodes: CommentNodeType[]) => CommentNodeType[], firstPageOnly = false) => {
+      const matches = queryClient.getQueriesData<InfiniteData<CommentQueryPage, string | null>>({
+        queryKey: queryKeys.comments.all,
+      });
+      for (const [key, cached] of matches) {
+        if (!cached || key[2] !== postId) continue;
+        queryClient.setQueryData<InfiniteData<CommentQueryPage, string | null>>(key, {
+          ...cached,
+          pages: cached.pages.map((page, index) =>
+            firstPageOnly && index > 0 ? page : { ...page, items: updater(page.items) },
+          ),
+        });
+      }
+    },
+    [postId, queryClient],
+  );
 
   // Plan §4.5: Katlı durum sayfa oturumu boyunca tutulur
   useEffect(() => {
@@ -118,23 +167,9 @@ export function CommentTree({ postId, initialComments, className = "" }: Comment
     });
   }, []);
 
-  // Sıralama Değiştirme
-  const handleSortChange = async (newSort: "top" | "new") => {
+  const handleSortChange = (newSort: "top" | "new") => {
     if (newSort === sort || isLoadingSort) return;
     setSort(newSort);
-    setIsLoadingSort(true);
-
-    try {
-      const res = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}&sort=${newSort}`);
-      const data = await res.json();
-      if (res.ok && data.ok && Array.isArray(data.data)) {
-        setComments(data.data);
-      }
-    } catch {
-      toast.error("Yorumlar sıralanırken bir hata oluştu.");
-    } finally {
-      setIsLoadingSort(false);
-    }
   };
 
   // Yeni Üst Düzey Yorum Eklendiğinde
@@ -143,17 +178,20 @@ export function CommentTree({ postId, initialComments, className = "" }: Comment
       ...newComment,
       replies: [],
     };
-    setComments((prev) => [newNode, ...prev]);
+    updateCachedComments(
+      (prev) => (prev.some((node) => node.id === newNode.id) ? prev : [newNode, ...prev]),
+      true,
+    );
   };
 
   // Alt Yanıt Eklendiğinde
   const handleReplyAdded = (parentId: string, reply: Comment) => {
-    setComments((prev) => appendReplyToTree(prev, parentId, reply));
+    updateCachedComments((prev) => appendReplyToTree(prev, parentId, reply));
   };
 
   // Yorum Güncellendiğinde
   const handleCommentUpdated = (commentId: string, newBody: string) => {
-    setComments((prev) =>
+    updateCachedComments((prev) =>
       updateCommentInTree(prev, commentId, (node) => ({
         ...node,
         body: newBody,
@@ -165,7 +203,7 @@ export function CommentTree({ postId, initialComments, className = "" }: Comment
 
   // Yorum Silindiğinde (YAPILACAKLAR.md §3: deleted boolean bayrağı, çocuklar kopmaz!)
   const handleCommentDeleted = (commentId: string) => {
-    setComments((prev) =>
+    updateCachedComments((prev) =>
       updateCommentInTree(prev, commentId, (node) => ({
         ...node,
         deleted: true,
@@ -258,6 +296,29 @@ export function CommentTree({ postId, initialComments, className = "" }: Comment
           ))}
         </div>
       )}
+
+      {commentsQuery.isError && comments.length > 0 && (
+        <p role="alert" className="text-sm text-destructive">
+          Yorumlar güncellenemedi. Yeniden deneyin.
+        </p>
+      )}
+      {commentsQuery.isError && comments.length === 0 && (
+        <Button type="button" variant="outline" onClick={() => commentsQuery.refetch()}>
+          Yorumlar yüklenemedi — yeniden dene
+        </Button>
+      )}
+      <LoadMore
+        nextCursor={commentsQuery.data?.pages.at(-1)?.nextCursor ?? null}
+        isLoading={commentsQuery.isFetchingNextPage}
+        onLoadMore={async () => {
+          const result = await commentsQuery.fetchNextPage();
+          if (result.isFetchNextPageError) toast.error("Daha fazla yorum yüklenemedi.");
+        }}
+        syncUrl={false}
+        label="Daha fazla yorum"
+        loadingLabel="Yorumlar yükleniyor..."
+        endMessage={null}
+      />
     </section>
   );
 }

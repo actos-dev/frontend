@@ -6,11 +6,11 @@ const ABSOLUTE_HTTP = /^https?:\/\//i;
 /**
  * ROADMAP §1.5 X-10: external links in a rendered body open in a new tab,
  * never pass link-ranking weight or a referrer, and show the destination
- * domain on hover. Relative links (including the `mention`/`tag` links
- * `remarkMentionsAndTags` produces) are left exactly as rendered.
+ * domain on hover. Relative links (including the mention/tag links Markstone
+ * produces) are left exactly as rendered.
  *
- * Runs after `rehype-sanitize`: it only adds fixed, trusted attributes, so
- * it never needs to be sanitized itself.
+ * Markstone has already sanitized the document. This pass only adds fixed,
+ * trusted attributes.
  */
 export function rehypeExternalLinks() {
   return (tree: Root) => {

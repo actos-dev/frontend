@@ -1,12 +1,6 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  ACTOS_TOKEN_COOKIE,
-  Actos,
-  getActosApiUrl,
-  getAnonymousClient,
-  SESSION_TOKEN_COOKIE,
-} from "@/lib/actos";
+import { ACTOS_TOKEN_COOKIE, Actos, getActosApiUrl, getAnonymousClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +34,7 @@ export async function POST(req: NextRequest) {
       recoveryCode,
     });
 
-    // Write new token into session cookie
+    // Store the recovered API key in the authentication cookie.
     const cookieStore = await cookies();
     const cookieOptions = {
       httpOnly: true,
@@ -51,14 +45,6 @@ export async function POST(req: NextRequest) {
     };
 
     cookieStore.set(ACTOS_TOKEN_COOKIE, recoverResult.apiKey, cookieOptions);
-    cookieStore.set(SESSION_TOKEN_COOKIE, "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: 0,
-    });
-
     // Retrieve actor details for the recovered user
     let user = null;
     try {

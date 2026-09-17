@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import { ACTOS_TOKEN_COOKIE, getServerClient, SESSION_TOKEN_COOKIE } from "@/lib/actos";
+import { ACTOS_TOKEN_COOKIE, getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
@@ -70,14 +70,6 @@ export async function DELETE(req: NextRequest) {
       path: "/",
       maxAge: 0,
     });
-    cookieStore.set(SESSION_TOKEN_COOKIE, "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax" as const,
-      path: "/",
-      maxAge: 0,
-    });
-
     return NextResponse.json(
       { ok: true },
       {

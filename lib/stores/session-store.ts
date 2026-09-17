@@ -34,10 +34,11 @@ export const useSessionStore = create<SessionState>((set) => ({
   status: "idle",
   unreadCount: 0,
   setUser: (user) =>
-    set({
+    set((state) => ({
       user,
       status: user ? "authenticated" : "unauthenticated",
-    }),
+      unreadCount: state.user?.id === user?.id ? state.unreadCount : 0,
+    })),
   setUnreadCount: (count) => set({ unreadCount: count }),
 
   checkSession: async () => {
@@ -55,14 +56,18 @@ export const useSessionStore = create<SessionState>((set) => ({
       if (res.ok) {
         const data = await res.json();
         if (data.ok && data.user) {
-          set({ user: data.user, status: "authenticated" });
+          set((state) => ({
+            user: data.user,
+            status: "authenticated",
+            unreadCount: state.user?.id === data.user.id ? state.unreadCount : 0,
+          }));
           return data.user;
         }
       }
-      set({ user: null, status: "unauthenticated" });
+      set({ user: null, status: "unauthenticated", unreadCount: 0 });
       return null;
     } catch {
-      set({ user: null, status: "unauthenticated" });
+      set({ user: null, status: "unauthenticated", unreadCount: 0 });
       return null;
     }
   },
@@ -78,17 +83,21 @@ export const useSessionStore = create<SessionState>((set) => ({
 
       const data = await res.json();
       if (res.ok && data.ok && data.user) {
-        set({ user: data.user, status: "authenticated" });
+        set((state) => ({
+          user: data.user,
+          status: "authenticated",
+          unreadCount: state.user?.id === data.user.id ? state.unreadCount : 0,
+        }));
         return { ok: true, user: data.user };
       }
 
-      set({ user: null, status: "unauthenticated" });
+      set({ user: null, status: "unauthenticated", unreadCount: 0 });
       return {
         ok: false,
         error: data.detail || data.title || "Giriş yapılamadı.",
       };
     } catch (err) {
-      set({ user: null, status: "unauthenticated" });
+      set({ user: null, status: "unauthenticated", unreadCount: 0 });
       return {
         ok: false,
         error: err instanceof Error ? err.message : "Bağlantı hatası.",

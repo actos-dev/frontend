@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render as rtlRender, screen, waitFor } from "@testing-library/react";
 import type { CommentNode } from "actos";
+import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import DeepCommentPage from "@/app/posts/[id]/comments/[commentId]/page";
 import { CommentForm } from "@/components/comments/comment-form";
@@ -10,6 +12,11 @@ import { CommentTree } from "@/components/comments/comment-tree";
 import * as actosLib from "@/lib/actos";
 import { getDraft, saveDraft } from "@/lib/drafts";
 import { useSessionStore } from "@/lib/stores/session-store";
+
+function render(ui: ReactNode) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return rtlRender(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
 
 // Mock Next.js navigation
 const mockPush = vi.fn();

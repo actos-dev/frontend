@@ -7,12 +7,7 @@ import * as followRoute from "@/app/api/actions/follow/route";
 import * as reportRoute from "@/app/api/actions/report/route";
 import * as saveRoute from "@/app/api/actions/save/route";
 import * as voteRoute from "@/app/api/actions/vote/route";
-import {
-  ACTOS_TOKEN_COOKIE,
-  getAnonymousClient,
-  getServerClient,
-  SESSION_TOKEN_COOKIE,
-} from "@/lib/actos";
+import { ACTOS_TOKEN_COOKIE, getAnonymousClient, getServerClient } from "@/lib/actos";
 import {
   ACTOS_ERROR_CODES,
   apiErrorResponse,
@@ -63,18 +58,18 @@ describe("Faz 4 — Veri Katmanı ve i18n Altyapısı", () => {
       expect(client.transport.apiKey).toBe("token_actos_123");
     });
 
-    it("session_token fallback çerezini desteklemelidir", async () => {
+    it("legacy session_token çerezini kimlik bilgisi olarak kullanmamalıdır", async () => {
       const { cookies } = await import("next/headers");
       vi.mocked(cookies).mockResolvedValue({
         get: vi.fn().mockImplementation((name: string) => {
-          if (name === SESSION_TOKEN_COOKIE) return { value: "session_token_xyz" };
+          if (name === "session_token") return { value: "legacy_token_xyz" };
           return undefined;
         }),
       } as unknown as Awaited<ReturnType<typeof cookies>>);
 
       const client = await getServerClient();
       expect(client).toBeInstanceOf(Actos);
-      expect(client.transport.apiKey).toBe("session_token_xyz");
+      expect(client.transport.apiKey).toBeNull();
     });
 
     it("özel apiKey parametresi ile istemci ezilebilmelidir", async () => {

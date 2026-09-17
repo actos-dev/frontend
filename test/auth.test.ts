@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as recoverRoute from "@/app/api/recover/route";
 import * as registerRoute from "@/app/api/register/route";
 import * as sessionRoute from "@/app/api/session/route";
-import { ACTOS_TOKEN_COOKIE, SESSION_TOKEN_COOKIE } from "@/lib/actos";
+import { ACTOS_TOKEN_COOKIE } from "@/lib/actos";
 import {
   clearDraft,
   createLoginRedirectUrl,
@@ -240,6 +240,23 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
         expect(body.user).toBeNull();
       });
 
+      it("legacy session_token çerezini oturum olarak kabul etmemelidir", async () => {
+        const { cookies } = await import("next/headers");
+        mockCookieStore.get.mockImplementation((name: string) =>
+          name === "session_token" ? { value: "legacy_token" } : undefined,
+        );
+        vi.mocked(cookies).mockResolvedValue(
+          mockCookieStore as unknown as Awaited<ReturnType<typeof cookies>>,
+        );
+        const request = vi.spyOn(Transport.prototype, "request");
+
+        const res = await sessionRoute.GET();
+
+        expect(res.status).toBe(200);
+        await expect(res.json()).resolves.toMatchObject({ ok: true, user: null });
+        expect(request).not.toHaveBeenCalled();
+      });
+
       it("geçerli çerez olduğunda oturum açmış kullanıcıyı doğrulamalıdır", async () => {
         const { cookies } = await import("next/headers");
         mockCookieStore.get.mockImplementation((name: string) => {
@@ -296,7 +313,7 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
     });
 
     describe("DELETE /api/session (Çıkış İşlemi)", () => {
-      it("çıkış yapıldığında oturum çerezlerini maxAge: 0 ile silmelidir", async () => {
+      it("çıkış yapıldığında actos_token çerezini maxAge: 0 ile silmelidir", async () => {
         const { cookies } = await import("next/headers");
         vi.mocked(cookies).mockResolvedValue(
           mockCookieStore as unknown as Awaited<ReturnType<typeof cookies>>,
@@ -310,11 +327,6 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
 
         expect(mockCookieStore.set).toHaveBeenCalledWith(
           ACTOS_TOKEN_COOKIE,
-          "",
-          expect.objectContaining({ maxAge: 0 }),
-        );
-        expect(mockCookieStore.set).toHaveBeenCalledWith(
-          SESSION_TOKEN_COOKIE,
           "",
           expect.objectContaining({ maxAge: 0 }),
         );

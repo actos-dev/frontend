@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import "@testing-library/jest-dom/vitest";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import type { Actor, ActorProfile, ApiKey } from "actos";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "@/app/u/[username]/page";
@@ -14,6 +14,7 @@ import { toast } from "@/components/ui/toast";
 import * as actosLib from "@/lib/actos";
 import * as recoveryFileLib from "@/lib/recovery-file";
 import { useSessionStore } from "@/lib/stores/session-store";
+import { renderWithQueryClient as render } from "@/test/query-test-utils";
 
 // Mock next/navigation
 const mockPush = vi.fn();

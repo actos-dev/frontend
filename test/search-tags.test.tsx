@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import "@testing-library/jest-dom/vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import type { Actor, Post, Tag } from "actos";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SearchPage from "@/app/search/page";
@@ -15,6 +15,7 @@ import { TagStream } from "@/components/tags/tag-stream";
 import { TagsDirectory } from "@/components/tags/tags-directory";
 import { Highlight } from "@/components/ui/highlight";
 import * as actosLib from "@/lib/actos";
+import { renderWithQueryClient as render } from "@/test/query-test-utils";
 
 // Mock next/navigation
 let currentMockParams = new URLSearchParams();

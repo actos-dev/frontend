@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ErrorPage from "@/app/error";
 import NotFound from "@/app/not-found";
@@ -21,6 +21,7 @@ import { Gone } from "@/components/ui/gone";
 import { getDictionary } from "@/lib/i18n";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { MOCK_USERS } from "@/test/fixtures/users";
+import { renderWithQueryClient as render } from "@/test/query-test-utils";
 
 // Next.js navigation mock
 vi.mock("next/navigation", () => ({

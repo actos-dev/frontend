@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import packageJson from "../../package.json";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -8,7 +9,7 @@ export async function GET() {
     status: "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    version: "0.1.0",
+    version: packageJson.version,
   };
 
   return NextResponse.json(payload, {

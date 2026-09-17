@@ -45,6 +45,7 @@ export function useInboxPoll(options?: UseInboxPollOptions) {
   } = options || {};
 
   const user = useSessionStore((state) => state.user);
+  const userId = user?.id ?? null;
   const setUnreadCount = useSessionStore((state) => state.setUnreadCount);
 
   const isEnabled = enabled !== undefined ? enabled : Boolean(user);
@@ -88,7 +89,7 @@ export function useInboxPoll(options?: UseInboxPollOptions) {
                 ? data.unreadCount
                 : 0;
 
-          if (!isDisposed) {
+          if (!isDisposed && useSessionStore.getState().user?.id === userId) {
             setUnreadCount(count);
             onCountUpdatedRef.current?.(count);
           }
@@ -149,5 +150,5 @@ export function useInboxPoll(options?: UseInboxPollOptions) {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
       }
     };
-  }, [isEnabled, activeInterval, hiddenInterval, setUnreadCount]);
+  }, [isEnabled, userId, activeInterval, hiddenInterval, setUnreadCount]);
 }

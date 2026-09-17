@@ -4,11 +4,12 @@ import type { Post } from "actos";
 import { ArrowBigDown, ArrowBigUp, Bookmark, MessageSquare, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
 import { toast } from "@/components/ui/toast";
+import { isAuthenticationProblem } from "@/lib/query/http";
+import { useContentInteraction } from "@/lib/query/mutations";
 import { excerpt } from "@/lib/render/excerpt";
 import { type SessionUser, useSessionStore } from "@/lib/stores/session-store";
 import { cn, formatRelativeTime, slugify } from "@/lib/utils";
@@ -16,6 +17,7 @@ import { cn, formatRelativeTime, slugify } from "@/lib/utils";
 export interface PostCardProps {
   post: Post;
   initialUserVote?: -1 | 0 | 1;
+  initialViewerId?: string | null;
   initialSaved?: boolean;
   currentUser?: SessionUser | null;
   className?: string;
@@ -28,7 +30,8 @@ export interface PostCardProps {
 export function PostCard({
   post,
   initialUserVote = 0,
-  initialSaved = false,
+  initialViewerId,
+  initialSaved,
   currentUser,
   className,
   highlightQuery,
@@ -39,14 +42,26 @@ export function PostCard({
   const router = useRouter();
   const storeUser = useSessionStore((state) => state.user);
   const status = useSessionStore((state) => state.status);
+  const viewerId =
+    status === "authenticated"
+      ? (storeUser?.id ?? initialViewerId ?? null)
+      : status === "unauthenticated"
+        ? null
+        : (initialViewerId ?? null);
+  const initialStateMatchesViewer = initialViewerId === undefined || initialViewerId === viewerId;
   const user = currentUser !== undefined ? currentUser : storeUser;
 
-  const [userVote, setUserVote] = useState<-1 | 0 | 1>(initialUserVote);
-  const [score, setScore] = useState<number>(post.score ?? 0);
-  const [isVoting, setIsVoting] = useState(false);
-
-  const [saved, setSaved] = useState<boolean>(initialSaved);
-  const [isSaving, setIsSaving] = useState(false);
+  const interaction = useContentInteraction(
+    post.id,
+    {
+      score: post.score ?? 0,
+      userVote: initialStateMatchesViewer ? initialUserVote : 0,
+      saved: initialStateMatchesViewer ? initialSaved : undefined,
+    },
+    viewerId,
+  );
+  const { userVote, score, isVoting, isSaving } = interaction;
+  const saved = interaction.saved ?? false;
 
   const author = post.author;
   const authorType = (author?.actorType || "human") as ActorType;
@@ -62,16 +77,7 @@ export function PostCard({
 
   const bodyExcerpt = excerpt(post.body, 220);
 
-  // Thumbnail from post property or attachments
-  const rawAttachments = post.attachments as
-    | Array<{ thumbnailUrl?: string; url?: string }>
-    | undefined;
-  const thumbnailUrl =
-    (post as unknown as { thumbnailUrl?: string }).thumbnailUrl ||
-    (post as unknown as { thumbnail_url?: string }).thumbnail_url ||
-    rawAttachments?.[0]?.thumbnailUrl ||
-    rawAttachments?.[0]?.url ||
-    null;
+  const thumbnailUrl = post.attachments?.[0]?.thumbnailUrl || post.attachments?.[0]?.url || null;
 
   // Optimistic Vote Handler (Plan §2.8 & §Faz 9)
   const handleVote = async (targetVote: 1 | -1) => {
@@ -90,57 +96,19 @@ export function PostCard({
       return;
     }
 
-    const previousVote = userVote;
-    const previousScore = score;
-
     const nextVote = userVote === targetVote ? 0 : targetVote;
-    const scoreDiff = nextVote - previousVote;
-    const nextScore = previousScore + scoreDiff;
-
-    // Optimistic state
-    setUserVote(nextVote);
-    setScore(nextScore);
-    setIsVoting(true);
 
     try {
-      const res = await fetch("/api/actions/vote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentId: post.id, value: nextVote }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        // Revert on failure
-        setUserVote(previousVote);
-        setScore(previousScore);
-
-        if (
-          res.status === 401 ||
-          data.code === "MISSING_CREDENTIALS" ||
-          data.code === "INVALID_KEY"
-        ) {
-          const currentPath =
-            typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
-          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
-          return;
-        }
-
-        toast.error(data.detail || data.title || "Oy kaydedilemedi.");
-        return;
+      const result = await interaction.vote(targetVote);
+      onVoteSuccess?.(post.id, result.score ?? score + nextVote - userVote, nextVote);
+    } catch (error) {
+      if (isAuthenticationProblem(error)) {
+        const currentPath =
+          typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
+        router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      } else {
+        toast.error((error as { detail?: string }).detail || "Oy kaydedilemedi.");
       }
-
-      if (data.data?.score !== undefined) {
-        setScore(data.data.score);
-      }
-      onVoteSuccess?.(post.id, data.data?.score ?? nextScore, nextVote);
-    } catch {
-      // Revert on network/server error
-      setUserVote(previousVote);
-      setScore(previousScore);
-      toast.error("Bağlantı hatası: Oy verilemedi.");
-    } finally {
-      setIsVoting(false);
     }
   };
 
@@ -155,50 +123,20 @@ export function PostCard({
       return;
     }
 
-    const previousSaved = saved;
-    const nextSaved = !previousSaved;
-
-    // Optimistic state
-    setSaved(nextSaved);
-    setIsSaving(true);
+    const nextSaved = !saved;
 
     try {
-      const res = await fetch("/api/actions/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contentId: post.id,
-          action: nextSaved ? "add" : "remove",
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        // Revert on failure
-        setSaved(previousSaved);
-
-        if (
-          res.status === 401 ||
-          data.code === "MISSING_CREDENTIALS" ||
-          data.code === "INVALID_KEY"
-        ) {
-          const currentPath =
-            typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
-          router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
-          return;
-        }
-
-        toast.error(data.detail || data.title || "Kayıt işlemi gerçekleştirilemedi.");
-        return;
-      }
-
+      await interaction.save(nextSaved);
       toast.success(nextSaved ? "Post kaydedildi!" : "Kayıt kaldırıldı.");
       onSaveSuccess?.(post.id, nextSaved);
-    } catch {
-      setSaved(previousSaved);
-      toast.error("Bağlantı hatası: Post kaydedilemedi.");
-    } finally {
-      setIsSaving(false);
+    } catch (error) {
+      if (isAuthenticationProblem(error)) {
+        const currentPath =
+          typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
+        router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
+      } else {
+        toast.error((error as { detail?: string }).detail || "Kayıt işlemi gerçekleştirilemedi.");
+      }
     }
   };
 

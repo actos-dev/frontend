@@ -1,8 +1,10 @@
 // @vitest-environment happy-dom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render as rtlRender, screen, waitFor } from "@testing-library/react";
 import type { Post } from "actos";
 import { NextRequest } from "next/server";
+import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as savedRoute from "@/app/api/saved/route";
 import SavedPage from "@/app/saved/page";
@@ -13,7 +15,20 @@ import { REPORT_REASONS, ReportDialog } from "@/components/post/report-dialog";
 import { SavedStream } from "@/components/saved/saved-stream";
 import { toast } from "@/components/ui/toast";
 import * as actosLib from "@/lib/actos";
+import { queryKeys } from "@/lib/query/keys";
+import { normalizeFeedFilters } from "@/lib/query/queries";
 import { useSessionStore } from "@/lib/stores/session-store";
+
+function render(ui: ReactNode) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const result = rtlRender(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+  return {
+    ...result,
+    queryClient,
+    rerender: (nextUi: ReactNode) =>
+      result.rerender(<QueryClientProvider client={queryClient}>{nextUi}</QueryClientProvider>),
+  };
+}
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -136,12 +151,15 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       fireEvent.click(upvoteBtn);
 
       // İyimser güncelleme: skor anında 11 olmalı
-      expect(screen.getByText("11")).toBeDefined();
-      expect(upvoteBtn.getAttribute("aria-pressed")).toBe("true");
+      await waitFor(() => {
+        expect(screen.getByText("11")).toBeDefined();
+        expect(upvoteBtn.getAttribute("aria-pressed")).toBe("true");
+      });
 
       await waitFor(() => {
         expect(globalThis.fetch).toHaveBeenCalledWith("/api/actions/vote", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contentId: "c_post_other", value: 1 }),
         });
@@ -160,12 +178,15 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       fireEvent.click(downvoteBtn);
 
       // İyimser güncelleme: skor anında 9 olmalı
-      expect(screen.getByText("9")).toBeDefined();
-      expect(downvoteBtn.getAttribute("aria-pressed")).toBe("true");
+      await waitFor(() => {
+        expect(screen.getByText("9")).toBeDefined();
+        expect(downvoteBtn.getAttribute("aria-pressed")).toBe("true");
+      });
 
       await waitFor(() => {
         expect(globalThis.fetch).toHaveBeenCalledWith("/api/actions/vote", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contentId: "c_post_other", value: -1 }),
         });
@@ -187,12 +208,15 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       fireEvent.click(upvoteBtn);
 
       // Geri çekme: skor 11'den 10'a inmeli
-      expect(screen.getByText("10")).toBeDefined();
-      expect(upvoteBtn.getAttribute("aria-pressed")).toBe("false");
+      await waitFor(() => {
+        expect(screen.getByText("10")).toBeDefined();
+        expect(upvoteBtn.getAttribute("aria-pressed")).toBe("false");
+      });
 
       await waitFor(() => {
         expect(globalThis.fetch).toHaveBeenCalledWith("/api/actions/vote", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contentId: "c_post_other", value: 0 }),
         });
@@ -215,13 +239,92 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       const upvoteBtn = screen.getByRole("button", { name: "Yukarı oy ver" });
       fireEvent.click(upvoteBtn);
 
-      // Başlangıçta anlık iyimser olarak artar
-      expect(screen.getByText("11")).toBeDefined();
-
       // Hata sonrasında eski haline (10) dönmeli
       await waitFor(() => {
         expect(screen.getByText("10")).toBeDefined();
         expect(toast.error).toHaveBeenCalled();
+      });
+    });
+
+    it("geç başarısız bir oyun rollback'i başka gönderideki daha yeni başarılı oyu geri almamalıdır", async () => {
+      let finishFailedVote: (response: Response) => void = () => {};
+      const failedRequest = new Promise<Response>((resolve) => {
+        finishFailedVote = resolve;
+      });
+      vi.mocked(globalThis.fetch).mockImplementation((_input, init) => {
+        const payload = JSON.parse(String(init?.body)) as { contentId: string };
+        if (payload.contentId === sampleOtherPost.id) return failedRequest;
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ ok: true, data: { score: 21, value: 1 } }),
+        } as Response);
+      });
+
+      const secondPost = {
+        ...sampleOtherPost,
+        id: "c_post_second",
+        title: "İkinci gönderi",
+        score: 20,
+      };
+      const { queryClient } = render(
+        <>
+          <PostCard post={sampleOtherPost} initialUserVote={0} />
+          <PostCard post={secondPost} initialUserVote={0} />
+        </>,
+      );
+      const feedKey = queryKeys.feeds.list(
+        normalizeFeedFilters({ sort: "hot" }),
+        "authenticated",
+        "usr_me",
+      );
+      queryClient.setQueryData(feedKey, {
+        pages: [{ items: [sampleOtherPost, secondPost], nextCursor: null, votes: {} }],
+        pageParams: [null],
+      });
+
+      const upvoteButtons = screen.getAllByRole("button", { name: "Yukarı oy ver" });
+      fireEvent.click(upvoteButtons[0]);
+      fireEvent.click(upvoteButtons[1]);
+
+      await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(2));
+      await waitFor(() => {
+        const cache = queryClient.getQueryData<{ pages: Array<{ items: Post[] }> }>(feedKey);
+        expect(cache?.pages[0]?.items.find((item) => item.id === secondPost.id)?.score).toBe(21);
+      });
+
+      finishFailedVote({
+        ok: false,
+        status: 500,
+        json: async () => ({ ok: false, detail: "İlk oy başarısız oldu" }),
+      } as Response);
+
+      await waitFor(() => {
+        const cache = queryClient.getQueryData<{ pages: Array<{ items: Post[] }> }>(feedKey);
+        expect(cache?.pages[0]?.items.find((item) => item.id === sampleOtherPost.id)?.score).toBe(
+          10,
+        );
+        expect(cache?.pages[0]?.items.find((item) => item.id === secondPost.id)?.score).toBe(21);
+      });
+    });
+
+    it("önceki interaction snapshot'ı yoksa başarısız oy optimistic query'sini kaldırmalıdır", async () => {
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ ok: false, detail: "Oy kaydedilemedi" }),
+      } as Response);
+
+      const { queryClient } = render(<PostCard post={sampleOtherPost} initialUserVote={0} />);
+      const interactionKey = queryKeys.interactions.content(sampleOtherPost.id, "usr_me");
+      queryClient.removeQueries({ queryKey: interactionKey, exact: true });
+
+      fireEvent.click(screen.getByRole("button", { name: "Yukarı oy ver" }));
+
+      await waitFor(() => {
+        expect(screen.getByText("10")).toBeDefined();
+        expect(queryClient.getQueryCache().find({ queryKey: interactionKey, exact: true })).toBe(
+          undefined,
+        );
       });
     });
 
@@ -319,11 +422,14 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       const saveBtn = screen.getByRole("button", { name: "Kaydet" });
       fireEvent.click(saveBtn);
 
-      expect(screen.getByRole("button", { name: "Kaydedilenlerden çıkar" })).toBeDefined();
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: "Kaydedilenlerden çıkar" })).toBeDefined(),
+      );
 
       await waitFor(() => {
         expect(globalThis.fetch).toHaveBeenCalledWith("/api/actions/save", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contentId: "c_post_other", action: "add" }),
         });
@@ -342,11 +448,12 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       const unsaveBtn = screen.getByRole("button", { name: "Kaydedilenlerden çıkar" });
       fireEvent.click(unsaveBtn);
 
-      expect(screen.getByRole("button", { name: "Kaydet" })).toBeDefined();
+      await waitFor(() => expect(screen.getByRole("button", { name: "Kaydet" })).toBeDefined());
 
       await waitFor(() => {
         expect(globalThis.fetch).toHaveBeenCalledWith("/api/actions/save", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contentId: "c_post_other", action: "remove" }),
         });
@@ -369,6 +476,27 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       await waitFor(() => {
         expect(screen.getByRole("button", { name: "Kaydet" })).toBeDefined();
         expect(toast.error).toHaveBeenCalled();
+      });
+    });
+
+    it("önceki interaction snapshot'ı yoksa başarısız kaydetme optimistic query'sini kaldırmalıdır", async () => {
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ ok: false, detail: "Kayıt eklenemedi" }),
+      } as Response);
+
+      const { queryClient } = render(<PostCard post={sampleOtherPost} initialSaved={false} />);
+      const interactionKey = queryKeys.interactions.content(sampleOtherPost.id, "usr_me");
+      queryClient.removeQueries({ queryKey: interactionKey, exact: true });
+
+      fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "Kaydet" })).toBeDefined();
+        expect(queryClient.getQueryCache().find({ queryKey: interactionKey, exact: true })).toBe(
+          undefined,
+        );
       });
     });
 
@@ -470,11 +598,12 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       fireEvent.click(btn);
 
       // İyimser güncelleme
-      expect(screen.getByText(/takip ediliyor/i)).toBeDefined();
+      await waitFor(() => expect(screen.getByText(/takip ediliyor/i)).toBeDefined());
 
       await waitFor(() => {
         expect(globalThis.fetch).toHaveBeenCalledWith("/api/actions/follow", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: "alice", action: "follow" }),
         });
@@ -496,11 +625,12 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
 
       fireEvent.click(btn);
 
-      expect(screen.getByText(/takip et/i)).toBeDefined();
+      await waitFor(() => expect(screen.getByText(/takip et/i)).toBeDefined());
 
       await waitFor(() => {
         expect(globalThis.fetch).toHaveBeenCalledWith("/api/actions/follow", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: "alice", action: "unfollow" }),
         });

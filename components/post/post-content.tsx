@@ -27,7 +27,7 @@ export function PostContent({ post, bodyHtml, className }: PostContentProps) {
           <div
             data-testid="post-body"
             className="prose selection:bg-primary/10"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: rendered and sanitized by lib/render (rehype-sanitize), not raw API HTML
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: rendered and sanitized by Markstone, not raw API HTML
             dangerouslySetInnerHTML={{ __html: bodyHtml }}
           />
         </CodeBlockEnhancer>
