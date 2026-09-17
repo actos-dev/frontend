@@ -13,13 +13,21 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function TagsPage() {
-  let popularTags: Tag[] = [];
+  const popularTags: Tag[] = [];
   let loadError: unknown = null;
 
   try {
     const client = await getServerClient();
-    const page = await client.tags.popular({ limit: 100 });
-    popularTags = page.items;
+    let cursor: string | undefined;
+    // The API has no total count. Walk its cursor so A–Z is a directory, not
+    // merely a re-sort of the first popular page. The ceiling prevents a
+    // malformed cursor cycle from making the request unbounded.
+    for (let pageNumber = 0; pageNumber < 20; pageNumber += 1) {
+      const page = await client.tags.popular({ limit: 100, cursor });
+      popularTags.push(...page.items);
+      if (!page.nextCursor || page.nextCursor === cursor) break;
+      cursor = page.nextCursor;
+    }
   } catch (error) {
     // No fabricated tags (ROADMAP.md P0-02, decision 7): render an error
     // state with retry instead.

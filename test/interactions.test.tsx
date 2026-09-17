@@ -759,6 +759,7 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
     it("PostActions üzerindeki şikayet butonuna basıldığında ReportDialog açılmalıdır", () => {
       render(<PostActions post={sampleOtherPost} />);
 
+      fireEvent.click(screen.getByRole("button", { name: "Diğer işlemler" }));
       const reportBtn = screen.getByTestId("post-report-button");
       fireEvent.click(reportBtn);
 

@@ -2,9 +2,12 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { Post } from "actos";
-import { MessageSquarePlus } from "lucide-react";
+import { ArrowUp, MessageSquarePlus } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PostCard } from "@/components/feed/post-card";
 import { LoadMore } from "@/components/pagination/load-more";
+import { useInfiniteSentinel } from "@/components/pagination/use-infinite-sentinel";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonPostCard } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
@@ -29,6 +32,7 @@ export interface FeedStreamProps {
   emptyDescription?: string;
   emptyActionLabel?: string;
   emptyActionHref?: string;
+  density?: "card" | "compact";
 }
 
 export function FeedStream({
@@ -46,6 +50,7 @@ export function FeedStream({
   emptyDescription = "İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!",
   emptyActionLabel = "Yeni Post Oluştur",
   emptyActionHref = "/new",
+  density = "card",
 }: FeedStreamProps) {
   const authStatus = useSessionStore((state) => state.status);
   const sessionUserId = useSessionStore((state) => state.user?.id ?? null);
@@ -81,11 +86,53 @@ export function FeedStream({
           pageParams: [initialCursor ?? null],
         };
 
+  const queryOptions = feedQueryOptions(filters, viewer, viewerId);
+  const feedIdentity = JSON.stringify(queryOptions.queryKey);
   const feed = useInfiniteQuery({
-    ...feedQueryOptions(filters, viewer, viewerId),
+    ...queryOptions,
     initialData: compatibilityInitialData,
+    refetchOnWindowFocus: true,
+    refetchInterval: () =>
+      typeof document !== "undefined" && document.visibilityState === "visible" ? 60_000 : false,
+    refetchIntervalInBackground: false,
   });
-  const pages = feed.data?.pages ?? [];
+  const [displayedData, setDisplayedData] = useState<typeof feed.data>(feed.data);
+  const [pendingNewData, setPendingNewData] = useState<typeof feed.data>();
+  const [pendingNewCount, setPendingNewCount] = useState(0);
+  const displayedIdentity = useRef(feedIdentity);
+
+  useEffect(() => {
+    if (!feed.data || feed.data === displayedData) return;
+    if (displayedIdentity.current !== feedIdentity) {
+      displayedIdentity.current = feedIdentity;
+      setDisplayedData(feed.data);
+      setPendingNewData(undefined);
+      setPendingNewCount(0);
+      return;
+    }
+    if (!displayedData) {
+      setDisplayedData(feed.data);
+      return;
+    }
+
+    const displayedIds = new Set(
+      displayedData.pages.flatMap((page) => page.items.map((post) => post.id)),
+    );
+    const updatedHead = feed.data.pages[0]?.items ?? [];
+    const newPosts = updatedHead.filter((post) => !displayedIds.has(post.id));
+
+    if (newPosts.length > 0 && window.scrollY > 240) {
+      setPendingNewData(feed.data);
+      setPendingNewCount(newPosts.length);
+      return;
+    }
+
+    setDisplayedData(feed.data);
+    setPendingNewData(undefined);
+    setPendingNewCount(0);
+  }, [feed.data, displayedData, feedIdentity]);
+
+  const pages = displayedData?.pages ?? feed.data?.pages ?? [];
   const seen = new Set<string>();
   const posts = pages.flatMap((page) =>
     page.items.filter((post) => {
@@ -96,13 +143,25 @@ export function FeedStream({
   );
   const votes: VoteMap = Object.assign({}, ...pages.map((page) => page.votes));
 
-  const loadMore = async () => {
+  const loadLock = useRef(false);
+  const loadMore = useCallback(async () => {
+    if (loadLock.current || !feed.hasNextPage || feed.isFetching || pendingNewData) return;
+
+    loadLock.current = true;
     try {
-      await feed.fetchNextPage();
+      const result = await feed.fetchNextPage({ cancelRefetch: false });
+      if (result.isFetchNextPageError) toast.error("Daha fazla gönderi yüklenemedi.");
     } catch {
       toast.error("Daha fazla gönderi yüklenemedi.");
+    } finally {
+      loadLock.current = false;
     }
-  };
+  }, [feed.fetchNextPage, feed.hasNextPage, feed.isFetching, pendingNewData]);
+
+  const sentinelRef = useInfiniteSentinel({
+    enabled: Boolean(feed.hasNextPage && !feed.isFetching && !pendingNewData),
+    onIntersect: loadMore,
+  });
 
   if (feed.isPending && posts.length === 0) {
     return (
@@ -135,12 +194,33 @@ export function FeedStream({
 
   return (
     <div className="divide-y divide-border/50">
+      {pendingNewData && (
+        <div className="sticky top-14 md:top-0 z-20 flex justify-center px-4 py-2 pointer-events-none">
+          <Button
+            type="button"
+            variant="secondary"
+            className="pointer-events-auto rounded-full shadow-md"
+            onClick={() => {
+              setDisplayedData(pendingNewData);
+              setPendingNewData(undefined);
+              setPendingNewCount(0);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label={`Yeni gönderileri göster: ${pendingNewCount}`}
+          >
+            <ArrowUp className="mr-2 h-4 w-4" aria-hidden="true" />
+            {pendingNewCount} yeni gönderi
+          </Button>
+        </div>
+      )}
+
       {posts.map((post) => (
         <PostCard
           key={post.id}
           post={post}
           initialUserVote={votes[post.id] ?? 0}
           initialViewerId={viewerId}
+          density={density}
         />
       ))}
 
@@ -162,6 +242,15 @@ export function FeedStream({
           endMessage="Tüm akışın sonuna ulaştınız."
         />
       </div>
+
+      {pages.at(-1)?.nextCursor && (
+        <div
+          ref={sentinelRef}
+          aria-hidden="true"
+          className="h-px w-full"
+          data-testid="feed-load-sentinel"
+        />
+      )}
     </div>
   );
 }

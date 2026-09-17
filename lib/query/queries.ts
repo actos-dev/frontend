@@ -155,9 +155,10 @@ export function normalizeFeedFilters(input: {
   following?: boolean;
   initialCursor?: string;
 }): FeedFilters {
+  const sort = input.following ? "new" : (input.sort ?? "hot");
   return {
-    sort: input.sort ?? (input.following ? "new" : "hot"),
-    window: input.window,
+    sort,
+    window: sort === "top" ? input.window : undefined,
     actorType: input.actorType,
     following: input.following ?? false,
     initialCursor: input.initialCursor,

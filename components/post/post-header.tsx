@@ -1,7 +1,7 @@
 import type { Post } from "actos";
-import { Clock, History } from "lucide-react";
+import { History } from "lucide-react";
 import Link from "next/link";
-import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ActorAvatar } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
@@ -39,26 +39,22 @@ export function PostHeader({ post, className }: PostHeaderProps) {
     : null;
 
   return (
-    <header
-      data-testid="post-header"
-      className={cn("border-b border-border/60 pb-5 mb-6 space-y-4", className)}
-    >
+    <header data-testid="post-header" className={cn("mb-6", className)}>
       {/* 1. Yazar ve Tarih Satırı */}
       <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
-          {/* Avatar & Actor Type Badge */}
           <Link
             href={`/u/${username}`}
-            className="relative shrink-0 group focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-full"
+            className="shrink-0 rounded-full focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
             aria-label={`${displayName} (@${username}) profili`}
           >
-            <Avatar className="h-11 w-11 transition-transform group-hover:scale-105 border-border/80">
-              <AvatarImage src={author?.avatarUrl || undefined} alt={displayName} />
-              <AvatarFallback className="text-sm font-semibold">
-                {displayName.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <AvatarActorBadge actorType={authorType} size="default" />
+            <ActorAvatar
+              actorType={authorType}
+              username={username}
+              displayName={displayName}
+              src={author?.avatarUrl}
+              size={40}
+            />
           </Link>
 
           {/* İsimler ve Plan §7.3 Glif + Etiket Rozeti */}
@@ -77,7 +73,6 @@ export function PostHeader({ post, className }: PostHeaderProps) {
                 @{username}
               </Link>
 
-              {/* Plan §7.3 Kuralı: Post sayfasında Glif + Etiket birlikte görünür */}
               <ActorBadge
                 data-testid="post-actor-badge"
                 actorType={authorType}
@@ -86,17 +81,15 @@ export function PostHeader({ post, className }: PostHeaderProps) {
               />
             </div>
 
-            {/* Tarih ve Düzenlenme Bilgisi */}
+            {/* Community slot lands here when the backend exposes communities. */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
               <time
                 dateTime={post.createdAt}
                 title={fullCreatedDate}
-                className="flex items-center gap-1 hover:text-foreground transition-colors"
+                className="hover:text-foreground transition-colors"
                 suppressHydrationWarning
               >
-                <Clock className="w-3 h-3" />
-                <span>{fullCreatedDate}</span>
-                <span className="text-muted-foreground/60">({relativeCreatedAt})</span>
+                {relativeCreatedAt}
               </time>
 
               {/* Düzenlenmiş İçerik Göstergesi */}
@@ -112,7 +105,7 @@ export function PostHeader({ post, className }: PostHeaderProps) {
                     <span>düzenlendi</span>
                     {relativeEditedAt && (
                       <span className="text-muted-foreground/80 font-normal">
-                        ({relativeEditedAt})
+                        {relativeEditedAt}
                       </span>
                     )}
                   </span>
@@ -121,21 +114,6 @@ export function PostHeader({ post, className }: PostHeaderProps) {
             </div>
           </div>
         </div>
-
-        {/* Etiketler */}
-        {post.tags && post.tags.length > 0 && (
-          <nav className="flex items-center gap-1.5 flex-wrap" aria-label="Etiketler">
-            {post.tags.map((tag) => (
-              <Link
-                key={tag}
-                href={`/t/${tag}`}
-                className="inline-flex items-center font-mono text-xs text-muted-foreground hover:text-primary hover:bg-surface-2 bg-surface-2/60 border border-border/50 px-2 py-0.5 rounded-md transition-colors"
-              >
-                #{tag}
-              </Link>
-            ))}
-          </nav>
-        )}
       </div>
     </header>
   );

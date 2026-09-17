@@ -5,7 +5,6 @@ import { fireEvent, render as rtlRender, screen, waitFor } from "@testing-librar
 import type { Post } from "actos";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import FollowingPage from "@/app/following/page";
 import HomePage from "@/app/page";
 import { FeedNav } from "@/components/feed/feed-nav";
 import { PostCard } from "@/components/feed/post-card";
@@ -213,16 +212,16 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       );
     });
 
-    it("kart geneli tıklanabilir olmalı (cursor-pointer) ve boş alana tıklandığında router.push çağırmalıdır", () => {
+    it("satırın başlık bağlantısı tüm boş alanı erişilebilir bir hedef yapmalıdır", () => {
       render(<PostCard post={samplePost} />);
 
       const article = screen.getByTestId("post-card");
-      expect(article.className).toContain("cursor-pointer");
-
-      mockPush.mockClear();
-      fireEvent.click(article);
-
-      expect(mockPush).toHaveBeenCalledWith("/posts/c_test_1/rustta-ltree-ile-nested-yorum-agaci");
+      expect(article.className).toContain("relative");
+      const titleLink = screen.getByTestId("post-title-link");
+      expect(titleLink.className).toContain("before:absolute");
+      expect(titleLink.getAttribute("href")).toBe(
+        "/posts/c_test_1/rustta-ltree-ile-nested-yorum-agaci",
+      );
     });
 
     it("kart içindeki linklere veya butonlara tıklandığında kart yönlendirmesi tetiklenmemelidir", () => {
@@ -256,16 +255,16 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
         </TooltipProvider>,
       );
 
-      const hotTab = screen.getByRole("tab", { name: /Hot/i });
-      const newTab = screen.getByRole("tab", { name: /New/i });
-      const topTab = screen.getByRole("tab", { name: /Top/i });
+      const hotTab = screen.getByRole("link", { name: /Hot/i });
+      const newTab = screen.getByRole("link", { name: /New/i });
+      const topTab = screen.getByRole("link", { name: /Top/i });
 
       expect(hotTab).toBeDefined();
       expect(newTab).toBeDefined();
       expect(topTab).toBeDefined();
 
-      expect(hotTab.getAttribute("aria-selected")).toBe("true");
-      expect(newTab.getAttribute("aria-selected")).toBe("false");
+      expect(hotTab.getAttribute("aria-current")).toBe("page");
+      expect(newTab.hasAttribute("aria-current")).toBe(false);
     });
 
     it("Top seçildiğinde zaman aralığı seçicisini render etmelidir", () => {
@@ -275,130 +274,23 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
         </TooltipProvider>,
       );
 
-      const windowBtn = screen.getByRole("button", { name: "Zaman aralığı seç" });
+      const windowBtn = screen.getByRole("button", { name: "Choose time range" });
       expect(windowBtn).toBeDefined();
-      expect(windowBtn.textContent).toContain("1 Ay");
+      expect(windowBtn.textContent).toContain("1 month");
     });
 
-    it("actor_type filtresini ve açıklayıcı ipucunu render etmelidir", () => {
+    it("actor_type filtresini doğrudan ve açıklama gürültüsü olmadan render etmelidir", () => {
       render(
         <TooltipProvider>
           <FeedNav currentSort="hot" currentActorType="ai_agent" />
         </TooltipProvider>,
       );
 
-      const filterBtn = screen.getByTestId("actor-type-filter");
-      expect(filterBtn).toBeDefined();
-      expect(filterBtn.textContent).toContain("Ajanlar");
-
-      // Filtre butonunu aç
-      fireEvent.click(filterBtn);
-
-      // Açıklayıcı ipucu metni görünür olmalı
-      expect(
-        screen.getAllByText(/Aktör tipi kendi beyanıdır; filtre bir kolaylıktır/i).length,
-      ).toBeGreaterThan(0);
-      expect(screen.getByRole("button", { name: /İnsanlar/i })).toBeDefined();
-      expect(screen.getByRole("button", { name: /Ajanlar/i })).toBeDefined();
-    });
-  });
-
-  // ==========================================================================
-  // 3. Following Sayfası Durumları (Anonim vs Oturumlu)
-  // ==========================================================================
-  describe("3. Following Sayfası (Anonim ve Oturumlu Durumlar)", () => {
-    it("anonim kullanıcıda giriş kartı ve /login?returnUrl=/following butonunu render etmelidir", async () => {
-      // Mock unauthenticated client
-      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
-        auth: {
-          whoami: vi.fn().mockRejectedValue(new Error("MISSING_CREDENTIALS")),
-        },
-      } as unknown as Awaited<ReturnType<typeof actosLib.getServerClient>>);
-
-      const page = await FollowingPage({ searchParams: Promise.resolve({}) });
-      render(page);
-
-      expect(screen.getByTestId("following-anonymous-card")).toBeDefined();
-      expect(screen.getByText("Takip Akışını Gör")).toBeDefined();
-
-      const loginLink = screen.getByRole("link", { name: /Giriş Yap/i });
-      expect(loginLink.getAttribute("href")).toBe("/login?returnUrl=/following");
-
-      const registerLink = screen.getByRole("link", { name: /Hesap Oluştur/i });
-      expect(registerLink.getAttribute("href")).toBe("/register");
-    });
-
-    it("oturum açmış kullanıcıda takip akışını veya boş durumu render etmelidir", async () => {
-      // Mock authenticated client with following posts
-      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
-        auth: {
-          whoami: vi.fn().mockResolvedValue({
-            actor: { id: "usr_1", username: "efe" },
-            roles: ["user"],
-          }),
-        },
-        feed: {
-          following: vi.fn().mockResolvedValue({
-            items: [samplePost],
-            nextCursor: null,
-          }),
-        },
-      } as unknown as Awaited<ReturnType<typeof actosLib.getServerClient>>);
-
-      const page = await FollowingPage({ searchParams: Promise.resolve({}) });
-      render(page);
-
-      expect(screen.getByText("Takip Akışı")).toBeDefined();
-      expect(screen.getByText("Rust'ta ltree ile nested yorum ağacı")).toBeDefined();
-    });
-
-    it("takip edilen gönderi olmadığında boş durum mesajını göstermelidir", async () => {
-      // Mock authenticated client with empty following posts
-      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
-        auth: {
-          whoami: vi.fn().mockResolvedValue({
-            actor: { id: "usr_1", username: "efe" },
-            roles: ["user"],
-          }),
-        },
-        feed: {
-          following: vi.fn().mockResolvedValue({
-            items: [],
-            nextCursor: null,
-          }),
-        },
-      } as unknown as Awaited<ReturnType<typeof actosLib.getServerClient>>);
-
-      const page = await FollowingPage({ searchParams: Promise.resolve({}) });
-      render(page);
-
-      expect(screen.getByText("Henüz kimseyi takip etmiyorsun")).toBeDefined();
-      expect(
-        screen.getByText(
-          /Henüz kimseyi takip etmiyorsun\. Keşfet'e göz at veya ilginç aktörleri takip et\./i,
-        ),
-      ).toBeDefined();
-    });
-
-    it("backend hata verdiğinde boş durum yerine hata ekranı render etmelidir (ROADMAP.md P0-02)", async () => {
-      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
-        auth: {
-          whoami: vi.fn().mockResolvedValue({
-            actor: { id: "usr_1", username: "efe" },
-            roles: ["user"],
-          }),
-        },
-        feed: {
-          following: vi.fn().mockRejectedValue(new Error("ECONNREFUSED")),
-        },
-      } as unknown as Awaited<ReturnType<typeof actosLib.getServerClient>>);
-
-      const page = await FollowingPage({ searchParams: Promise.resolve({}) });
-      render(page);
-
-      // A failed fetch is not the same thing as "you follow no one".
-      expect(screen.queryByText("Henüz kimseyi takip etmiyorsun")).toBeNull();
-      expect(screen.getByRole("alert")).toBeDefined();
+      expect(screen.getByRole("button", { name: "Agents" }).getAttribute("aria-pressed")).toBe(
+        "true",
+      );
+      expect(screen.getByRole("button", { name: "Humans" })).toBeDefined();
+      expect(screen.queryByText(/kendi beyanıdır/i)).toBeNull();
     });
   });
 

@@ -1,7 +1,17 @@
 "use client";
 
 import type { Post } from "actos";
-import { ArrowBigDown, ArrowBigUp, Bookmark, Flag, Pencil, Share2, Trash2 } from "lucide-react";
+import {
+  ArrowBigDown,
+  ArrowBigUp,
+  Bookmark,
+  Flag,
+  MessageSquare,
+  MoreHorizontal,
+  Pencil,
+  Share2,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
 import { isAuthenticationProblem } from "@/lib/query/http";
@@ -68,6 +79,7 @@ export function PostActions({
   const deletePost = useDeletePostMutation(post.id);
 
   const [reportOpen, setReportOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const isDeleting = deletePost.isPending;
@@ -194,83 +206,82 @@ export function PostActions({
         className,
       )}
     >
-      {/* Sol Grup: Oy Sistemi */}
-      <div className="inline-flex items-center rounded-xl bg-surface-2/90 border border-border/80 p-1 shadow-2xs">
-        <button
-          type="button"
-          onClick={() => handleVote(1)}
-          disabled={isVoting || isUserAuthor}
-          title={
-            isUserAuthor
-              ? "Kendi içeriğinize oy veremezsiniz"
-              : userVote === 1
-                ? "Oyu geri çek"
-                : "Yukarı oy ver"
-          }
-          aria-label="Yukarı oy ver"
-          aria-pressed={userVote === 1}
-          className={`p-1.5 rounded-lg transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background ${
-            isUserAuthor
-              ? "opacity-50 cursor-not-allowed text-muted-foreground"
-              : userVote === 1
-                ? "text-vote-up bg-vote-up/10 font-bold cursor-pointer"
-                : "text-muted-foreground hover:text-foreground hover:bg-card cursor-pointer"
-          }`}
-        >
-          <ArrowBigUp className="w-5 h-5" />
-        </button>
+      <div className="flex min-w-0 items-center gap-1 sm:gap-3">
+        <div className="inline-flex items-center">
+          <button
+            type="button"
+            onClick={() => handleVote(1)}
+            disabled={isVoting || isUserAuthor}
+            title={
+              isUserAuthor
+                ? "Kendi içeriğinize oy veremezsiniz"
+                : userVote === 1
+                  ? "Oyu geri çek"
+                  : "Yukarı oy ver"
+            }
+            aria-label="Yukarı oy ver"
+            aria-pressed={userVote === 1}
+            className={`p-2 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring ${
+              isUserAuthor
+                ? "opacity-50 cursor-not-allowed text-muted-foreground"
+                : userVote === 1
+                  ? "text-vote-up font-bold cursor-pointer"
+                  : "text-muted-foreground hover:text-foreground cursor-pointer"
+            }`}
+          >
+            <ArrowBigUp className="w-5 h-5" />
+          </button>
 
-        <span
-          data-testid="post-score"
-          className={`px-2.5 font-bold text-sm sm:text-base font-mono select-none ${
-            userVote === 1 ? "text-vote-up" : userVote === -1 ? "text-vote-down" : "text-foreground"
-          }`}
-        >
-          {score}
-        </span>
+          <span
+            data-testid="post-score"
+            className={`px-1 font-mono text-sm font-semibold tabular-nums select-none ${
+              userVote === 1
+                ? "text-vote-up"
+                : userVote === -1
+                  ? "text-vote-down"
+                  : "text-foreground"
+            }`}
+          >
+            {score}
+          </span>
 
-        <button
-          type="button"
-          onClick={() => handleVote(-1)}
-          disabled={isVoting || isUserAuthor}
-          title={
-            isUserAuthor
-              ? "Kendi içeriğinize oy veremezsiniz"
-              : userVote === -1
-                ? "Oyu geri çek"
-                : "Aşağı oy ver"
-          }
-          aria-label="Aşağı oy ver"
-          aria-pressed={userVote === -1}
-          className={`p-1.5 rounded-lg transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background ${
-            isUserAuthor
-              ? "opacity-50 cursor-not-allowed text-muted-foreground"
-              : userVote === -1
-                ? "text-vote-down bg-vote-down/10 font-bold cursor-pointer"
-                : "text-muted-foreground hover:text-foreground hover:bg-card cursor-pointer"
-          }`}
+          <button
+            type="button"
+            onClick={() => handleVote(-1)}
+            disabled={isVoting || isUserAuthor}
+            title={
+              isUserAuthor
+                ? "Kendi içeriğinize oy veremezsiniz"
+                : userVote === -1
+                  ? "Oyu geri çek"
+                  : "Aşağı oy ver"
+            }
+            aria-label="Aşağı oy ver"
+            aria-pressed={userVote === -1}
+            className={`p-2 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring ${
+              isUserAuthor
+                ? "opacity-50 cursor-not-allowed text-muted-foreground"
+                : userVote === -1
+                  ? "text-vote-down font-bold cursor-pointer"
+                  : "text-muted-foreground hover:text-foreground cursor-pointer"
+            }`}
+          >
+            <ArrowBigDown className="w-5 h-5" />
+          </button>
+        </div>
+
+        <Link
+          href={`${postHref}#comments`}
+          className="inline-flex min-h-10 items-center gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
         >
-          <ArrowBigDown className="w-5 h-5" />
-        </button>
+          <MessageSquare className="h-4 w-4" />
+          <span>{post.commentCount ?? 0}</span>
+          <span className="hidden sm:inline">yorum</span>
+        </Link>
       </div>
 
       {/* Sağ Grup: Kaydet, Paylaş, Rapor Et ve Düzenle */}
       <div className="flex items-center gap-1.5">
-        {/* Yazar Düzenle Butonu */}
-        {isUserAuthor && (
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="gap-1.5 rounded-xl border-border hover:bg-surface-2"
-          >
-            <Link href={`/posts/${post.id}/edit`} data-testid="post-edit-button">
-              <Pencil className="w-3.5 h-3.5" />
-              <span className="text-xs">Düzenle</span>
-            </Link>
-          </Button>
-        )}
-
         {/* Kaydet Butonu */}
         <Button
           type="button"
@@ -281,9 +292,7 @@ export function PostActions({
           title={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Gönderiyi kaydet")}
           aria-label={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Kaydet")}
           aria-pressed={saved}
-          className={`gap-1.5 rounded-xl ${
-            saved ? "text-primary bg-primary/10 hover:bg-primary/20" : ""
-          }`}
+          className={`min-h-10 gap-1.5 ${saved ? "text-accent-text" : ""}`}
         >
           <Bookmark className={`w-4 h-4 ${saved ? "fill-current" : ""}`} />
           <span className="text-xs hidden sm:inline">{saved ? "Kaydedildi" : "Kaydet"}</span>
@@ -296,41 +305,60 @@ export function PostActions({
           size="sm"
           onClick={handleShare}
           aria-label="Paylaş"
-          className="gap-1.5 rounded-xl"
+          className="min-h-10 gap-1.5"
         >
           <Share2 className="w-4 h-4" />
           <span className="text-xs hidden sm:inline">Paylaş</span>
         </Button>
 
-        {/* Şikayet Butonu */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setReportOpen(true)}
-          aria-label="Şikayet et"
-          data-testid="post-report-button"
-          className="rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-        >
-          <Flag className="w-4 h-4" />
-          <span className="sr-only">Şikayet Et</span>
-        </Button>
-
-        {/* Yazar Sil Butonu (P0-12) */}
-        {isUserAuthor && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setDeleteDialogOpen(true)}
-            aria-label={t("common.delete")}
-            data-testid="post-delete-button"
-            className="rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span className="text-xs hidden sm:inline">{t("common.delete")}</span>
-          </Button>
-        )}
+        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Diğer işlemler"
+              className="min-h-10"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-44 p-1">
+            {isUserAuthor ? (
+              <Link
+                href={`/posts/${post.id}/edit`}
+                data-testid="post-edit-button"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-bg-subtle"
+              >
+                <Pencil className="h-4 w-4" /> Düzenle
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                setReportOpen(true);
+              }}
+              data-testid="post-report-button"
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-bg-subtle"
+            >
+              <Flag className="h-4 w-4" /> Şikayet et
+            </button>
+            {isUserAuthor ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setDeleteDialogOpen(true);
+                }}
+                data-testid="post-delete-button"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-danger hover:bg-bg-subtle"
+              >
+                <Trash2 className="h-4 w-4" /> {t("common.delete")}
+              </button>
+            ) : null}
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Şikayet Modalı */}

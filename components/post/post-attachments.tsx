@@ -1,7 +1,7 @@
 "use client";
 
 import type { Attachment } from "actos";
-import { Download, ExternalLink, ImageIcon, Maximize2, X } from "lucide-react";
+import { ExternalLink, Maximize2, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,14 +17,6 @@ export interface PostAttachmentsProps {
   attachments?: Attachment[] | null;
   thumbnailUrl?: string | null;
   className?: string;
-}
-
-function formatBytes(bytes?: number): string {
-  if (!bytes || bytes <= 0) return "";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / k ** i).toFixed(1)} ${sizes[i]}`;
 }
 
 export function PostAttachments({ attachments, thumbnailUrl, className }: PostAttachmentsProps) {
@@ -49,101 +41,66 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
   return (
     <section
       data-testid="post-attachments"
-      aria-label="Görsel Ekleri"
-      className={cn("space-y-3 pt-4 pb-2", className)}
+      aria-label="Gönderi görselleri"
+      className={cn("pt-2 pb-2", className)}
     >
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-        <ImageIcon className="w-3.5 h-3.5 text-primary" />
-        <span>Ekler ({hasOnlyThumbnail ? 1 : imageAttachments.length})</span>
-      </div>
-
       {/* Standalone Thumbnail */}
       {hasOnlyThumbnail && thumbnailUrl && (
-        <div className="relative group overflow-hidden rounded-2xl border border-border bg-surface-2/40 shadow-xs max-w-xl">
+        <button
+          type="button"
+          onClick={() => setSelectedImage(thumbnailUrl)}
+          className="group relative block w-full max-w-xl overflow-hidden rounded-lg border border-border bg-bg-subtle text-left"
+          aria-label="Görseli büyüt"
+        >
           {/* biome-ignore lint/performance/noImgElement: user image upload */}
           <img
             src={thumbnailUrl}
             alt="İçerik görseli"
-            className="w-full h-auto max-h-[480px] object-cover rounded-2xl transition-transform duration-200 group-hover:scale-[1.01]"
+            className="max-h-[520px] w-full object-cover"
             loading="lazy"
           />
-          <button
-            type="button"
-            onClick={() => setSelectedImage(thumbnailUrl)}
-            aria-label="Görseli büyüt"
-            className="absolute top-3 right-3 p-2 rounded-xl bg-overlay/60 backdrop-blur-xs text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-overlay/80 cursor-pointer"
-          >
+          <span className="absolute right-3 top-3 rounded-md bg-overlay/70 p-2 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
             <Maximize2 className="w-4 h-4" />
-          </button>
-        </div>
+          </span>
+        </button>
       )}
 
       {/* Attachments Grid / Single Image */}
       {!hasOnlyThumbnail && imageAttachments.length > 0 && (
         <div
           className={`grid gap-3 ${
-            imageAttachments.length === 1
-              ? "grid-cols-1 max-w-xl"
-              : imageAttachments.length === 2
-                ? "grid-cols-1 sm:grid-cols-2"
-                : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+            imageAttachments.length === 1 ? "grid-cols-1 max-w-xl" : "grid-cols-2"
           }`}
         >
-          {imageAttachments.map((att, index) => {
+          {imageAttachments.slice(0, 4).map((att, index) => {
             const displayUrl = att.url || att.thumbnailUrl;
-            const sizeLabel = formatBytes(att.byteSize);
-            const dimensionLabel = att.width && att.height ? `${att.width}×${att.height}` : null;
 
             return (
-              <div
+              <button
+                type="button"
                 key={att.id || index}
                 data-testid="attachment-item"
-                className="group relative flex flex-col rounded-2xl border border-border bg-surface-2/40 overflow-hidden shadow-xs hover:border-border-strong transition-colors"
-              >
-                <div className="relative aspect-video sm:aspect-4/3 w-full overflow-hidden bg-surface-3/50 flex items-center justify-center">
-                  {/* biome-ignore lint/performance/noImgElement: attachment preview */}
-                  <img
-                    src={att.thumbnailUrl || att.url}
-                    alt=""
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-overlay/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedImage(displayUrl)}
-                      aria-label="Görseli büyüt"
-                      className="p-2 rounded-xl bg-card/90 text-foreground hover:bg-card transition-colors shadow-xs cursor-pointer"
-                    >
-                      <Maximize2 className="w-4 h-4" />
-                    </button>
-                    {att.url && (
-                      <a
-                        href={att.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label="Orijinal görseli yeni sekmede aç"
-                        className="p-2 rounded-xl bg-card/90 text-foreground hover:bg-card transition-colors shadow-xs cursor-pointer"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                {/* Ek Detayları: Boyut ve Format */}
-                {(sizeLabel || dimensionLabel || att.mimeType) && (
-                  <div className="flex items-center justify-between px-3 py-1.5 text-[11px] text-muted-foreground border-t border-border/50 bg-surface-2/60">
-                    <span className="font-mono">
-                      {att.mimeType?.replace("image/", "") || "webp"}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {dimensionLabel && <span>{dimensionLabel}</span>}
-                      {sizeLabel && <span className="font-mono">{sizeLabel}</span>}
-                    </div>
-                  </div>
+                onClick={() => setSelectedImage(displayUrl)}
+                className={cn(
+                  "group relative overflow-hidden border border-border bg-bg-subtle text-left",
+                  imageAttachments.length === 1
+                    ? "aspect-video rounded-lg"
+                    : "aspect-square rounded-md",
+                  imageAttachments.length === 3 && index === 0 ? "row-span-2 aspect-auto" : "",
                 )}
-              </div>
+                aria-label={`Görsel ${index + 1}'i büyüt`}
+              >
+                {/* biome-ignore lint/performance/noImgElement: attachment preview */}
+                <img
+                  src={att.thumbnailUrl || att.url}
+                  alt=""
+                  className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                  loading="lazy"
+                />
+                <span className="absolute inset-0 grid place-items-center bg-overlay/25 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                  <Maximize2 className="h-5 w-5 text-white" />
+                </span>
+              </button>
             );
           })}
         </div>
@@ -154,7 +111,7 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
         open={Boolean(selectedImage)}
         onOpenChange={(open) => !open && setSelectedImage(null)}
       >
-        <DialogContent className="max-w-4xl p-2 border-border/80 bg-background/95 backdrop-blur-md overflow-hidden rounded-2xl">
+        <DialogContent className="max-w-5xl border-border bg-background p-3">
           <div className="sr-only">
             <DialogTitle>Görsel Önizleme</DialogTitle>
             <DialogDescription>Büyütülmüş içerik görseli önizlemesi</DialogDescription>
@@ -165,21 +122,21 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
               <img
                 src={selectedImage}
                 alt="Büyütülmüş içerik görseli"
-                className="max-h-[80vh] w-auto object-contain rounded-xl shadow-card"
+                className="max-h-[82vh] w-auto object-contain"
               />
             )}
             <div className="flex items-center justify-between w-full px-2 pt-2 text-xs text-muted-foreground">
-              {selectedImage && (
+              {selectedImage ? (
                 <a
                   href={selectedImage}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Orijinalini İndir / Aç</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Orijinali aç</span>
                 </a>
-              )}
+              ) : null}
               <DialogClose asChild>
                 <Button variant="ghost" size="sm" className="h-7 px-2">
                   <X className="w-3.5 h-3.5 mr-1" />

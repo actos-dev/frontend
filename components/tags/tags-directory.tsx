@@ -1,7 +1,7 @@
 "use client";
 
 import type { Tag } from "actos";
-import { Hash, Loader2, Search, Tag as TagIcon, X } from "lucide-react";
+import { Hash, Loader2, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Tag[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [sort, setSort] = useState<"popular" | "alphabetical">("popular");
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Debounced search against /api/tags/search when typing
@@ -51,7 +52,7 @@ export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
             );
             return {
               name: item.name,
-              postCount: item.postCount ?? foundInInitial?.postCount ?? 1,
+              postCount: item.postCount ?? foundInInitial?.postCount,
               createdAt: foundInInitial?.createdAt || new Date().toISOString(),
             };
           });
@@ -79,14 +80,28 @@ export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
   // Determine displayed tags: search results if active query, else initialTags
   const displayedTags = useMemo(() => {
     if (searchResults !== null) {
-      return searchResults;
+      return [...searchResults].sort((a, b) =>
+        sort === "alphabetical"
+          ? a.name.localeCompare(b.name)
+          : (b.postCount ?? 0) - (a.postCount ?? 0),
+      );
     }
     const trimmed = query.trim().toLowerCase();
     if (!trimmed) {
-      return initialTags;
+      return [...initialTags].sort((a, b) =>
+        sort === "alphabetical"
+          ? a.name.localeCompare(b.name)
+          : (b.postCount ?? 0) - (a.postCount ?? 0),
+      );
     }
-    return initialTags.filter((t) => t.name.toLowerCase().includes(trimmed));
-  }, [searchResults, query, initialTags]);
+    return initialTags
+      .filter((t) => t.name.toLowerCase().includes(trimmed))
+      .sort((a, b) =>
+        sort === "alphabetical"
+          ? a.name.localeCompare(b.name)
+          : (b.postCount ?? 0) - (a.postCount ?? 0),
+      );
+  }, [searchResults, query, initialTags, sort]);
 
   const handleClear = () => {
     setQuery("");
@@ -97,62 +112,86 @@ export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
   return (
     <div className="space-y-6">
       {/* Arama & Filtreleme Kutusu */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <Input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Etiket ara veya filtrele..."
-          className="pl-10 pr-10 h-10 rounded-xl bg-surface-2 border-border/70 focus-visible:ring-primary"
-          aria-label="Etiket ara"
-        />
-        {isSearching && (
-          <div className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
-          </div>
-        )}
-        {query && (
-          <Button
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative w-full max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Etiket ara veya filtrele..."
+            className="pl-10 pr-10 h-10 rounded-xl bg-surface-2 border-border/70 focus-visible:ring-primary"
+            aria-label="Etiket ara"
+          />
+          {isSearching && (
+            <div className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {query && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+              aria-label="Aramayı temizle"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+        <fieldset className="flex items-center gap-4 text-sm">
+          <legend className="sr-only">Etiket sıralaması</legend>
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-            aria-label="Aramayı temizle"
+            onClick={() => setSort("popular")}
+            aria-pressed={sort === "popular"}
+            className={
+              sort === "popular"
+                ? "font-semibold text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }
           >
-            <X className="w-4 h-4" />
-          </Button>
-        )}
+            Popüler
+          </button>
+          <button
+            type="button"
+            onClick={() => setSort("alphabetical")}
+            aria-pressed={sort === "alphabetical"}
+            className={
+              sort === "alphabetical"
+                ? "font-semibold text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }
+          >
+            A–Z
+          </button>
+        </fieldset>
       </div>
 
       {/* Etiket Kartları Grid Düzeni */}
       {displayedTags.length > 0 ? (
         <div
           data-testid="tags-grid"
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5"
+          className="divide-y divide-border border-y border-border sm:grid sm:grid-cols-2 sm:divide-y-0"
         >
           {displayedTags.map((tag) => (
             <Link
               key={tag.name}
               href={`/t/${encodeURIComponent(tag.name)}`}
               data-testid={`tag-card-${tag.name}`}
-              className="group flex flex-col justify-between p-4 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-surface-2/40 transition-all shadow-2xs"
+              className="group flex items-center justify-between gap-4 px-1 py-3 sm:border-b sm:border-border sm:pr-6"
             >
-              <div className="flex items-start justify-between gap-2">
-                <span className="font-mono text-base font-semibold text-foreground group-hover:text-primary transition-colors flex items-center gap-1">
-                  <span className="text-primary font-bold">#</span>
-                  <span>{tag.name}</span>
+              <span className="font-mono text-sm font-semibold text-foreground group-hover:text-accent-text">
+                <span aria-hidden="true">#</span>
+                <span>{tag.name}</span>
+              </span>
+              {tag.postCount !== undefined ? (
+                <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                  {tag.postCount} gönderi
                 </span>
-                <TagIcon className="w-4 h-4 text-muted-foreground/50 group-hover:text-primary/70 transition-colors shrink-0 mt-0.5" />
-              </div>
-
-              <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-medium">{tag.postCount ?? 0} gönderi</span>
-                <span className="text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                  Göz at →
-                </span>
-              </div>
+              ) : null}
             </Link>
           ))}
         </div>

@@ -4,12 +4,17 @@ import { render } from "@testing-library/react";
 import type { ActorProfile, Post } from "actos";
 import { GoneError } from "actos";
 import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import OpenGraphImage, { size as globalOgSize } from "@/app/opengraph-image";
 import { generateMetadata as generatePostMetadata } from "@/app/posts/[id]/[[...slug]]/page";
+import PostOpenGraphImage, { size as postOgSize } from "@/app/posts/[id]/opengraph-image";
 import robots from "@/app/robots";
-import sitemap from "@/app/sitemap";
+import { GET as sitemapIndex } from "@/app/sitemap.xml/route";
+import { GET as postSitemap } from "@/app/sitemaps/posts.xml/route";
+import { GET as staticSitemap } from "@/app/sitemaps/static.xml/route";
+import { GET as tagSitemap } from "@/app/sitemaps/tags.xml/route";
 import TagOpenGraphImage, { size as tagOgSize } from "@/app/t/[name]/opengraph-image";
 import { generateMetadata as generateTagMetadata } from "@/app/t/[name]/page";
 import ProfileOpenGraphImage, { size as profileOgSize } from "@/app/u/[username]/opengraph-image";
@@ -23,6 +28,8 @@ import {
   buildTagCanonicalUrl,
   getSiteUrl,
 } from "@/lib/seo";
+import { OgActorMark } from "@/lib/seo/og-template";
+import { collectCursorPages, SITEMAP_MAX_ITEMS, SITEMAP_PAGE_SIZE } from "@/lib/sitemap";
 
 // Mock next/og ImageResponse to avoid external font fetching in test environment
 vi.mock("next/og", () => ({
@@ -88,78 +95,116 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
   });
 
   // ==========================================================================
-  // 2. Sitemap.ts Rota ve Öncelik Doğrulaması
+  // 2. Sitemap index and cursor-paginated child sitemaps
   // ==========================================================================
-  describe("2. sitemap.ts Rota ve Öncelik Doğrulaması", () => {
-    it("statik sayfaları, popüler etiketleri ve son gönderileri doğru öncelik ve frekansla içermelidir", async () => {
-      const mockClient = {
-        tags: {
-          popular: vi.fn().mockResolvedValue({
-            items: [
-              { name: "rust", postCount: 42, createdAt: "2026-09-01T00:00:00Z" },
-              { name: "ai", postCount: 28, createdAt: "2026-09-01T00:00:00Z" },
-            ],
-          }),
-        },
-        feed: {
-          list: vi.fn().mockResolvedValue({
-            items: [
-              {
-                id: "p_101",
-                title: "Postgres ltree Yorum Ağaçları",
-                createdAt: "2026-09-02T10:00:00Z",
-                editedAt: "2026-09-02T12:00:00Z",
-              },
-            ],
-          }),
-        },
-      };
+  describe("2. Sitemap index and cursor pagination", () => {
+    it("serves a real index with separate static, post, and tag sitemap URLs", async () => {
+      const response = sitemapIndex();
+      const xml = await response.text();
 
-      vi.spyOn(actosLib, "getServerClient").mockResolvedValue(
-        mockClient as unknown as actosLib.Actos,
-      );
-
-      const items = await sitemap();
-      expect(Array.isArray(items)).toBe(true);
-
-      // Statik rotalar
-      const home = items.find((i) => i.url === "https://actos.com.tr/");
-      expect(home).toBeDefined();
-      expect(home?.priority).toBe(1.0);
-      expect(home?.changeFrequency).toBe("hourly");
-
-      const about = items.find((i) => i.url === "https://actos.com.tr/about");
-      expect(about).toBeDefined();
-      expect(about?.priority).toBe(0.5);
-
-      const tags = items.find((i) => i.url === "https://actos.com.tr/tags");
-      expect(tags).toBeDefined();
-      expect(tags?.priority).toBe(0.8);
-
-      // Dinamik etiket rotaları
-      const rustTag = items.find((i) => i.url === "https://actos.com.tr/t/rust");
-      expect(rustTag).toBeDefined();
-      expect(rustTag?.priority).toBe(0.7);
-      expect(rustTag?.changeFrequency).toBe("daily");
-
-      // Dinamik gönderi rotaları
-      const postItem = items.find((i) => i.url.includes("/posts/p_101/"));
-      expect(postItem).toBeDefined();
-      expect(postItem?.priority).toBe(0.8);
-      expect(postItem?.changeFrequency).toBe("weekly");
-      expect(postItem?.url).toBe("https://actos.com.tr/posts/p_101/postgres-ltree-yorum-agaclari");
+      expect(response.headers.get("content-type")).toContain("application/xml");
+      expect(xml).toContain("<sitemapindex");
+      expect(xml).toContain("https://actos.com.tr/sitemaps/static.xml");
+      expect(xml).toContain("https://actos.com.tr/sitemaps/posts.xml");
+      expect(xml).toContain("https://actos.com.tr/sitemaps/tags.xml");
     });
 
-    it("API çağrısı başarısız olduğunda sitemap yalnızca statik rotaları döndürür, sahte etiket veya gönderi üretmez (ROADMAP.md P0-02)", async () => {
+    it("includes static routes and paginates beyond the old 50 item limit", async () => {
+      const postItems = Array.from({ length: 60 }, (_, index) => ({
+        id: `c_post_${index + 1}`,
+        title: `Post ${index + 1}`,
+        createdAt: "2026-09-02T10:00:00Z",
+        editedAt: null,
+        deleted: false,
+      }));
+      const tagItems = Array.from({ length: 55 }, (_, index) => ({ name: `tag-${index + 1}` }));
+      const feedList = vi.fn().mockResolvedValue({
+        items: postItems,
+        nextCursor: "feed-page-2",
+      });
+      feedList.mockResolvedValueOnce({ items: postItems, nextCursor: "feed-page-2" });
+      feedList.mockResolvedValueOnce({
+        items: [
+          { id: "c_post_61", title: "Post 61", createdAt: "2026-09-03T10:00:00Z", deleted: false },
+        ],
+        nextCursor: null,
+      });
+      const tagsPopular = vi
+        .fn()
+        .mockResolvedValueOnce({ items: tagItems, nextCursor: "tags-page-2" })
+        .mockResolvedValueOnce({ items: [{ name: "tag-56" }], nextCursor: null });
+
+      vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
+        feed: { list: feedList },
+        tags: { popular: tagsPopular },
+      } as unknown as actosLib.Actos);
+
+      const staticResponse = await staticSitemap();
+      const staticXml = await staticResponse.text();
+      expect(staticXml).toContain("https://actos.com.tr/");
+      expect(staticXml).toContain("https://actos.com.tr/about");
+      expect(staticXml).toContain("https://actos.com.tr/tags");
+
+      const [postsResponse, tagsResponse] = await Promise.all([postSitemap(), tagSitemap()]);
+      const [postsXml, tagsXml] = await Promise.all([postsResponse.text(), tagsResponse.text()]);
+
+      expect(postsResponse.status).toBe(200);
+      expect(postsXml).toContain("/posts/c_post_1/post-1");
+      expect(postsXml).toContain("/posts/c_post_61/post-61");
+      expect(feedList).toHaveBeenCalledTimes(2);
+      expect(feedList).toHaveBeenNthCalledWith(2, {
+        cursor: "feed-page-2",
+        limit: 100,
+        sort: "new",
+      });
+
+      expect(tagsResponse.status).toBe(200);
+      expect(tagsXml).toContain("/t/tag-1");
+      expect(tagsXml).toContain("/t/tag-56");
+      expect(tagsPopular).toHaveBeenCalledTimes(2);
+      expect(tagsPopular).toHaveBeenNthCalledWith(2, { cursor: "tags-page-2", limit: 100 });
+    });
+
+    it("returns a retryable error for failed dynamic sitemap requests without inventing routes", async () => {
       vi.spyOn(actosLib, "getServerClient").mockRejectedValue(new Error("Backend offline"));
 
-      const items = await sitemap();
-      expect(items.some((i) => i.url === "https://actos.com.tr/")).toBe(true);
-      expect(items.some((i) => i.url === "https://actos.com.tr/about")).toBe(true);
-      expect(items.some((i) => i.url === "https://actos.com.tr/tags")).toBe(true);
-      // No fabricated dynamic routes when the backend is unreachable.
-      expect(items.some((i) => i.url.startsWith("https://actos.com.tr/t/"))).toBe(false);
-      expect(items.some((i) => i.url.includes("/posts/"))).toBe(false);
+      const [staticResponse, postsResponse, tagsResponse] = await Promise.all([
+        staticSitemap(),
+        postSitemap(),
+        tagSitemap(),
+      ]);
+      const [staticXml, postsText, tagsText] = await Promise.all([
+        staticResponse.text(),
+        postsResponse.text(),
+        tagsResponse.text(),
+      ]);
+
+      expect(staticResponse.status).toBe(200);
+      expect(staticXml).toContain("https://actos.com.tr/about");
+      expect(postsResponse.status).toBe(503);
+      expect(tagsResponse.status).toBe(503);
+      expect(postsText).not.toContain("/posts/");
+      expect(tagsText).not.toContain("/t/");
+    });
+
+    it("stops at its documented cursor safety cap and warns when more pages remain", async () => {
+      const onSafetyLimit = vi.fn();
+      let pageNumber = 0;
+      const fetchPage = vi.fn(async ({ cursor }: { cursor?: string }) => {
+        pageNumber += 1;
+        return {
+          items: Array.from({ length: SITEMAP_PAGE_SIZE }, (_, index) => ({
+            value: `${cursor ?? "first"}-${index}`,
+          })),
+          nextCursor: `cursor-${pageNumber}`,
+        };
+      });
+
+      const items = await collectCursorPages(fetchPage, onSafetyLimit);
+
+      expect(items).toHaveLength(SITEMAP_MAX_ITEMS);
+      expect(fetchPage).toHaveBeenCalledTimes(100);
+      expect(onSafetyLimit).toHaveBeenCalledWith(SITEMAP_MAX_ITEMS);
     });
   });
 
@@ -285,7 +330,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
       },
     };
 
-    it("profil başlığı, biyografi, avatar ve kanonik URL'i eksiksiz üretmelidir", async () => {
+    it("profil başlığı, biyografi, OG kartı ve kanonik URL'i eksiksiz üretmelidir", async () => {
       const mockClient = {
         actors: {
           get: vi.fn().mockResolvedValue(sampleProfile),
@@ -310,7 +355,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
       expect(og.type).toBe("profile");
       expect(og.username).toBe("efe");
       const ogImages = og.images as Array<{ url: string }>;
-      expect(ogImages[0].url).toBe("https://minio.actos.com.tr/avatars/efe.png");
+      expect(ogImages[0].url).toBe("https://actos.com.tr/u/efe/opengraph-image");
 
       // Twitter Card
       const tw = metadata.twitter as Record<string, unknown>;
@@ -318,7 +363,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
       expect(tw.title).toBe("Efe (@efe) — Actos");
     });
 
-    it("avatarı olmayan kullanıcı için dinamik opengraph-image URL'i üretmelidir", async () => {
+    it("profil avatarı olsa da paylaşım kartı için dinamik opengraph-image URL'i üretmelidir", async () => {
       const profileNoAvatar: ActorProfile = {
         ...sampleProfile,
         actor: {
@@ -503,20 +548,41 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
   describe("7. Dinamik OpenGraph Görsel Spesifikasyonu", () => {
     it("tüm OG görsel üreticileri 1200x630 boyutunda tanımlanmış olmalıdır", () => {
       expect(globalOgSize).toEqual({ width: 1200, height: 630 });
+      expect(postOgSize).toEqual({ width: 1200, height: 630 });
       expect(profileOgSize).toEqual({ width: 1200, height: 630 });
       expect(tagOgSize).toEqual({ width: 1200, height: 630 });
     });
 
-    it("global marka OG görseli başarıyla render edilmelidir", () => {
-      const response = OpenGraphImage();
-      expect(response).toBeDefined();
+    it("insan için daire, ajan için squircle yazar kimliği kullanmalıdır", () => {
+      const human = renderToStaticMarkup(
+        React.createElement(OgActorMark, { actorType: "human", initials: "EF" }),
+      );
+      const agent = renderToStaticMarkup(
+        React.createElement(OgActorMark, { actorType: "ai_agent", initials: "DA" }),
+      );
+
+      expect(human).toContain("border-radius:50%");
+      expect(agent).toContain("border-radius:18px");
     });
 
-    it("etiket OG görseli başarıyla oluşturulmalıdır", async () => {
+    it("global marka görseli sepia paper ve serif kimliğini kullanmalıdır", () => {
+      const response = OpenGraphImage();
+      const element = (response as unknown as { element: unknown }).element;
+      const markup = renderToStaticMarkup(element as React.ReactElement);
+
+      expect(markup).toContain("#F2EADB");
+      expect(markup).toContain("Georgia, serif");
+      expect(markup).not.toContain("22 Canlı Tema");
+      expect(markup).not.toContain("#b45309");
+    });
+
+    it("post OG görseli gerçek içerik kullanıp insan/ajan şeklini ve topluluk placeholder'ını göstermelidir", async () => {
       const mockClient = {
-        tags: {
-          popular: vi.fn().mockResolvedValue({
-            items: [{ name: "rust", postCount: 50 }],
+        posts: {
+          get: vi.fn().mockResolvedValue({
+            title: "Gerçek başlık",
+            tags: ["rust"],
+            author: { displayName: "Dila AI", username: "dila", actorType: "ai_agent" },
           }),
         },
       };
@@ -524,10 +590,30 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
         mockClient as unknown as actosLib.Actos,
       );
 
+      const response = await PostOpenGraphImage({ params: Promise.resolve({ id: "c_post" }) });
+      const markup = renderToStaticMarkup(
+        (response as unknown as { element: React.ReactElement }).element,
+      );
+
+      expect(markup).toContain("Gerçek başlık");
+      expect(markup).toContain("rust");
+      expect(markup).toContain("Topluluk bilgisi yok");
+      expect(markup).toContain("18px");
+      expect(markup).toContain("#F2EADB");
+      expect(markup).not.toContain("💬");
+    });
+
+    it("etiket OG görseli route'tan gelen etiketi gösterip sayı uydurmamalıdır", async () => {
       const response = await TagOpenGraphImage({
         params: Promise.resolve({ name: "rust" }),
       });
-      expect(response).toBeDefined();
+      const markup = renderToStaticMarkup(
+        (response as unknown as { element: React.ReactElement }).element,
+      );
+
+      expect(markup).toContain("rust");
+      expect(markup).not.toContain("Gönderi");
+      expect(markup).toContain("#F2EADB");
     });
 
     it("profil OG görseli başarıyla oluşturulmalıdır", async () => {
@@ -537,7 +623,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
             actor: {
               username: "dila",
               displayName: "Dila",
-              actorType: "agent",
+              actorType: "ai_agent",
               bio: "Otonom yazılım ajanı",
             },
             stats: { postCount: 12, commentCount: 34 },
@@ -551,7 +637,13 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
       const response = await ProfileOpenGraphImage({
         params: Promise.resolve({ username: "dila" }),
       });
-      expect(response).toBeDefined();
+      const markup = renderToStaticMarkup(
+        (response as unknown as { element: React.ReactElement }).element,
+      );
+      expect(markup).toContain("dila");
+      expect(markup).toContain("18px");
+      expect(markup).toContain("Dila");
+      expect(markup).not.toContain("22 Canlı Tema");
     });
   });
 

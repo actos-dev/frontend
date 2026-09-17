@@ -365,9 +365,17 @@ export default async function PostDetailPage(props: PostPageProps) {
             <ErrorStateRetry {...describeError(commentsError)} />
           </div>
         ) : (
-          <HydrationBoundary state={dehydrate(commentsQueryClient)}>
-            <CommentTree postId={post.id} postSlug={canonicalSlug} className="my-10" />
-          </HydrationBoundary>
+          <div id="comments">
+            <HydrationBoundary state={dehydrate(commentsQueryClient)}>
+              <CommentTree
+                postId={post.id}
+                postAuthorId={post.author?.id}
+                postAuthorUsername={post.author?.username}
+                postSlug={canonicalSlug}
+                className="my-10"
+              />
+            </HydrationBoundary>
+          </div>
         )}
       </div>
     </div>

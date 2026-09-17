@@ -18,6 +18,17 @@ import { MOCK_NOTIFICATIONS } from "@/test/fixtures/inbox";
 const post = { id: "post-isolation", score: 12 } as Post;
 const filters = normalizeFeedFilters({ sort: "hot" });
 
+describe("feed filter normalization", () => {
+  it("keeps a popularity window only for Top", () => {
+    expect(normalizeFeedFilters({ sort: "hot", window: "day" }).window).toBeUndefined();
+    expect(normalizeFeedFilters({ sort: "new", window: "month" }).window).toBeUndefined();
+    expect(
+      normalizeFeedFilters({ sort: "hot", window: "day", following: true }).window,
+    ).toBeUndefined();
+    expect(normalizeFeedFilters({ sort: "top", window: "week" }).window).toBe("week");
+  });
+});
+
 function user(id: string): SessionUser {
   return {
     id,

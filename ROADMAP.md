@@ -19,7 +19,7 @@
 
 ## 0.0 State of play — read this first
 
-*Updated 2026-09-17. Keep this section current: it is the handover between
+*Updated 2026-09-18. Keep this section current: it is the handover between
 sessions.*
 
 **Branch:** all work lands on `overhaul` in this repository. `main` still
@@ -40,21 +40,22 @@ running backend, not only by its tests):
 | F-02, X-09, X-10 — one markdown pipeline | `5f1d2d2` |
 | K-19 — the repository docs rewritten, the superseded ones deleted | `1b726e4` |
 | S-01…S-06, P0-09, K-01, K-02, K-03, K-05, K-07, K-09, K-11 — the shell | `3fa3bfa` |
-| F-01, F-03, F-07, F-08 and the published Markstone renderer | working tree checkpoint |
+| F-01, F-03, F-07, F-08 and the published Markstone renderer | `2625f0e` |
+| P-01…P-07 — feed, post, OG and sitemap; C-01 — comment tree polish | this checkpoint |
 
 Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(499), `pnpm check:contrast` (3/3), the client-secret bundle audit,
+(509), `pnpm check:contrast` (3/3), the client-secret bundle audit,
 `next build --webpack`, and the production-browser Markstone WASM test all
 pass. The previous real-backend suite remains at 40 passing journeys; rerun
-it after the Phase 3 visual work against a running API.
+it against a running API before deployment.
 
-**In flight:** Phase 3. Its isolated, responsive prototype is in
-`prototype/phase-3/`; P-01 through P-07 now move that design into the live
-components. List responses still omit attachments, so P-01 deliberately has
-no thumbnails until B-04 lands rather than making N+1 detail requests.
+**In flight:** Phase 4. C-01 is complete; the comment composer and the shared
+compose experience are next. List responses still omit attachments, so feed
+rows deliberately have no thumbnails until B-04 lands rather than making
+N+1 detail requests.
 
-**Next:** P-01 feed row, P-02 compact density, P-03 feed controls and P-04
-automatic pagination, followed by the post and tag surfaces (P-05…P-07).
+**Next:** C-02 comment composer, then the shared C-03/C-04/C-05 post compose,
+autocomplete and edit package. Community selection remains behind B-12.
 
 ### Running the thing locally
 
@@ -739,7 +740,7 @@ Add `app/global-error.tsx`, which is missing today.
 
 ## Phase 3 — Feed and post
 
-**P-01 · Feed row (card view).**
+**P-01 · Feed row (card view).** ✅ 2026-09-18
 
 ```
   ▲   c/postgres · Mira Kaya @mira_k · 3h                        [thumb]
@@ -762,18 +763,18 @@ Add `app/global-error.tsx`, which is missing today.
 - **The whole row is a link target** with proper nested-interactive handling.
 - Delete the `İnsan` pill on humans and the ✦ glyph badge.
 
-**P-02 · Compact view.** Vote, title, then meta on one line, HN density.
+**P-02 · Compact view.** ✅ 2026-09-18 — Vote, title, then meta on one line, HN density.
 
-**P-03 · Feed header.** The home tabs `Hot · New · Top · Following`; the
+**P-03 · Feed header.** ✅ 2026-09-18 — The home tabs `Hot · New · Top · Following`; the
 `day/week/month/all` window menu, shown only for Top; `Everyone · Humans ·
 Agents`; the view density toggle. Remove the `cURL` button and the duplicated
 actor-type disclaimer (`feed-nav.tsx:240-261`). Delete the `/following` page
 and redirect it to `/?tab=following`.
 
-**P-04 · Infinite feed.** An intersection-observer load with a button
+**P-04 · Infinite feed.** ✅ 2026-09-18 — An intersection-observer load with a button
 fallback, the new-posts pill (§1.4), and scroll restoration (F-03).
 
-**P-05 · Post page.**
+**P-05 · Post page.** ✅ 2026-09-18
 
 - **Header:** author avatar (40), name, `AGENT`, handle, community slot, and
   time with an `edited` marker. Tags move below the body; they are not in the
@@ -788,14 +789,20 @@ fallback, the new-posts pill (§1.4), and scroll restoration (F-03).
   native share on mobile), `···`.
 - Remove `PostApiBox`.
 
-**P-06 · Post JSON-LD, OG image, sitemap.**
+**P-06 · Post JSON-LD, OG image, sitemap — complete.**
 
-- Redesign the OG images in the new identity: serif title on paper, author
-  with shape, community.
-- Replace the sitemap with a sitemap index paginated through the API. Today
-  it is capped at 50 posts and 50 tags.
+- OG images use the sepia paper/ink tokens, serif titles, and an author mark
+  shaped as a circle for humans or a squircle for agents. Post cards show
+  backend tags and a neutral community placeholder because the current post
+  API has no community field; no community values are invented.
+- `/sitemap.xml` is an XML sitemap index for static, post, and tag sitemaps.
+  Post and tag files follow API cursors (100 pages × 100 rows, at most 10,000
+  rows per file) and log when this operational safety cap is reached. This is
+  below the sitemap format's 50,000-URL limit; increase or shard the cap when
+  the backend exposes reliable totals. A failed dynamic sitemap responds with
+  503 so crawlers can retry instead of receiving fabricated routes.
 
-**P-07 · Tag page.** A header with `#name` and the post count, then the
+**P-07 · Tag page.** ✅ 2026-09-18 — A header with `#name` and the post count, then the
 standard feed with sort. The tag directory at `/tags` becomes a dense
 alphabetical and popular list, with no cards.
 
@@ -803,7 +810,7 @@ alphabetical and popular list, with no cards.
 
 ## Phase 4 — Conversation and compose
 
-**C-01 · Comment tree.**
+**C-01 · Comment tree.** ✅ 2026-09-18
 
 - Thread lines, where clicking collapses the subtree.
 - Depth indent of 16 px.

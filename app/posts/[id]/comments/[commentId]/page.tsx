@@ -169,6 +169,9 @@ export default async function DeepCommentPage(props: DeepCommentPageProps) {
           <CommentNodeComponent
             comment={rootNode}
             postId={postId}
+            postAuthorId={post?.author?.id}
+            postAuthorUsername={post?.author?.username}
+            highlightedCommentId={commentId}
             depth={0}
             maxDepth={6}
             collapsedIds={new Set()}

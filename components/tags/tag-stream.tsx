@@ -13,6 +13,7 @@ import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
 
 export interface TagStreamProps {
   tagName: string;
+  sort?: "hot" | "new" | "top";
   initialPosts: Post[];
   initialNextCursor: string | null;
   /** The signed-in viewer's votes for `initialPosts`, keyed by post id (ROADMAP.md P0-06). */
@@ -22,6 +23,7 @@ export interface TagStreamProps {
 
 export function TagStream({
   tagName,
+  sort = "hot",
   initialPosts,
   initialNextCursor,
   initialVotes,
@@ -73,6 +75,7 @@ export function TagStream({
       const params = new URLSearchParams();
       if (cursor) params.set("cursor", cursor);
       params.set("limit", "25");
+      params.set("sort", sort);
 
       const res = await fetch(
         `/api/tags/${encodeURIComponent(tagName)}/posts?${params.toString()}`,

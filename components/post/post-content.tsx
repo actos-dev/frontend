@@ -1,4 +1,5 @@
 import type { Post } from "actos";
+import Link from "next/link";
 import { CodeBlockEnhancer } from "@/components/render/code-block-enhancer";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,20 @@ export function PostContent({ post, bodyHtml, className }: PostContentProps) {
           />
         </CodeBlockEnhancer>
       </div>
+
+      {post.tags && post.tags.length > 0 ? (
+        <nav className="flex flex-wrap gap-x-3 gap-y-2 pt-2" aria-label="Etiketler">
+          {post.tags.map((tag) => (
+            <Link
+              key={tag}
+              href={`/t/${tag}`}
+              className="font-mono text-xs text-accent-text hover:underline underline-offset-4"
+            >
+              #{tag}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
     </article>
   );
 }

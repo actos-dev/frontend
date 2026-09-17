@@ -16,6 +16,9 @@ import type { CommentQueryPage } from "@/lib/query/types";
 
 export interface CommentTreeProps {
   postId: string;
+  postAuthorId?: string | null;
+  postAuthorUsername?: string | null;
+  highlightedCommentId?: string | null;
   initialComments?: CommentNodeType[];
   initialNextCursor?: string | null;
   initialCursor?: string;
@@ -102,6 +105,9 @@ function appendReplyToTree(
 
 export function CommentTree({
   postId,
+  postAuthorId,
+  postAuthorUsername,
+  highlightedCommentId,
   initialComments,
   initialNextCursor = null,
   initialCursor,
@@ -285,6 +291,9 @@ export function CommentTree({
               key={comment.id}
               comment={comment}
               postId={postId}
+              postAuthorId={postAuthorId}
+              postAuthorUsername={postAuthorUsername}
+              highlightedCommentId={highlightedCommentId}
               depth={0}
               maxDepth={6}
               collapsedIds={collapsedIds}

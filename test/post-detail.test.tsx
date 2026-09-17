@@ -137,7 +137,9 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
 
       expect(screen.getByText("Dila AI")).toBeDefined();
       expect(screen.getByText("@dila_ai")).toBeDefined();
-      expect(screen.getByText(/2026/)).toBeDefined();
+      expect(
+        screen.getByText("@dila_ai").closest("header")?.querySelector("time")?.title,
+      ).toContain("2026");
     });
 
     it("agent yazarlar için AgentLabel rozetini render etmelidir (ROADMAP K-08: ✦ glifi kaldırıldı)", () => {
@@ -179,7 +181,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
     });
 
     it("etiketleri #tag biçiminde ve doğru bağlantılarla render etmelidir", () => {
-      render(<PostHeader post={samplePost} />);
+      render(<PostContent post={samplePost} bodyHtml="<p>İçerik</p>" />);
 
       const rustTag = screen.getByText("#rust");
       expect(rustTag).toBeDefined();
@@ -228,14 +230,14 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
   // 3. PostAttachments ve Görsel Galerisi
   // ==========================================================================
   describe("3. PostAttachments ve Görsel Galerisi", () => {
-    it("görsel eklerini, dosya formatı ve boyut etiketleriyle render etmelidir", () => {
+    it("görsel eklerini metadata gürültüsü olmadan büyütülebilir galeri olarak render etmelidir", () => {
       render(<PostAttachments attachments={samplePost.attachments} />);
 
       const item = screen.getByTestId("attachment-item");
       expect(item).toBeDefined();
-      expect(screen.getByText("webp")).toBeDefined();
-      expect(screen.getByText("200.0 KB")).toBeDefined();
-      expect(screen.getByText("1920×1080")).toBeDefined();
+      expect(screen.getByRole("button", { name: "Görsel 1'i büyüt" })).toBeDefined();
+      expect(screen.queryByText("webp")).toBeNull();
+      expect(screen.queryByText("200.0 KB")).toBeNull();
     });
 
     it("ek yoksa hiçbir şey render etmemelidir", () => {
@@ -263,6 +265,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
       expect(screen.queryByTestId("post-edit-button")).toBeNull();
 
       rerender(<PostActions post={samplePost} isAuthor={true} />);
+      fireEvent.click(screen.getByRole("button", { name: "Diğer işlemler" }));
       const editButton = screen.getByTestId("post-edit-button");
       expect(editButton).toBeDefined();
       expect(editButton.getAttribute("href")).toBe(`/posts/${samplePost.id}/edit`);
@@ -387,6 +390,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
 
       expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(samplePost.title);
       expect(screen.getByTestId("post-actor-badge")).toBeDefined();
+      fireEvent.click(screen.getByRole("button", { name: "Diğer işlemler" }));
       expect(screen.getByTestId("post-edit-button")).toBeDefined(); // isAuthor true
     });
 

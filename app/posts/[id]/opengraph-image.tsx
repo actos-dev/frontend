@@ -1,179 +1,59 @@
 import type { Post } from "actos";
 import { ImageResponse } from "next/og";
 import { getServerClient } from "@/lib/actos";
+import {
+  initialsFor,
+  OG_COLORS,
+  OG_SIZE,
+  OgActorMark,
+  OgMasthead,
+  OgPage,
+  OgRule,
+} from "@/lib/seo/og-template";
 
 export const runtime = "nodejs";
-export const alt = "Actos Gönderisi";
-export const size = {
-  width: 1200,
-  height: 630,
-};
+export const alt = "Actos gönderi önizlemesi";
+export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default async function Image({
+export default async function PostOpenGraphImage({
   params,
 }: {
   params: Promise<{ id: string; slug?: string[] }>;
 }) {
   const { id } = await params;
-
   let post: Post | null = null;
+
   try {
     const client = await getServerClient();
     post = (await client.posts.get(id)) as Post;
   } catch {
-    // No post to show a title/author for (not found, deleted, or the API is
-    // unreachable): fall through to the generic site card below rather than
-    // fabricating a title (ROADMAP.md P0-02, decision 7).
     post = null;
   }
 
-  if (!post) {
-    return new ImageResponse(
-      <div
-        style={{
-          height: "100%",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "24px",
-          backgroundColor: "#fbf0d9",
-          color: "#2c2825",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div
-          style={{
-            width: "96px",
-            height: "96px",
-            borderRadius: "24px",
-            backgroundColor: "#b45309",
-            color: "white",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "56px",
-            fontWeight: "bold",
-          }}
-        >
-          A
-        </div>
-        <span
-          style={{
-            fontSize: "56px",
-            fontWeight: 800,
-            letterSpacing: "-0.03em",
-            color: "#2c2825",
-          }}
-        >
-          Actos
-        </span>
-      </div>,
-      { ...size },
-    );
-  }
-
-  const title = post.title || "Actos — Sosyal Platform";
-  const author = post.author?.displayName || post.author?.username || "Anonim";
-  const username = post.author?.username || "anon";
-  const tags = post.tags?.slice(0, 3) || [];
-  const score = post.score ?? 0;
-  const comments = post.commentCount ?? 0;
+  const title = post?.title?.trim() || "Actos";
+  const author = post?.author?.displayName || post?.author?.username || "";
+  const username = post?.author?.username;
+  const tags = post?.tags?.slice(0, 3) || [];
 
   return new ImageResponse(
-    <div
-      style={{
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        backgroundColor: "#fbf0d9", // Sepia background
-        color: "#2c2825",
-        padding: "60px 80px",
-        fontFamily: "sans-serif",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "100%",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              borderRadius: "12px",
-              backgroundColor: "#b45309",
-              color: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "28px",
-              fontWeight: "bold",
-            }}
-          >
-            A
+    <OgPage>
+      <OgMasthead label="GÖNDERİ" />
+      <div style={{ display: "flex", flexDirection: "column", gap: "25px", maxWidth: "1030px" }}>
+        {tags.length > 0 ? (
+          <div style={{ display: "flex", gap: "18px", color: OG_COLORS.accent, fontSize: "19px" }}>
+            {tags.map((tag) => (
+              <span key={tag}>#{tag}</span>
+            ))}
           </div>
-          <span
-            style={{
-              fontSize: "32px",
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              color: "#2c2825",
-            }}
-          >
-            Actos
-          </span>
-        </div>
-
+        ) : null}
         <div
           style={{
-            display: "flex",
-            gap: "8px",
-          }}
-        >
-          {tags.map((tag) => (
-            <span
-              key={tag}
-              style={{
-                fontSize: "18px",
-                fontWeight: 600,
-                color: "#78350f",
-                backgroundColor: "rgba(180, 83, 9, 0.12)",
-                padding: "6px 14px",
-                borderRadius: "9999px",
-              }}
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Title */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          maxWidth: "1040px",
-        }}
-      >
-        <div
-          style={{
-            fontSize: title.length > 60 ? "46px" : "56px",
-            fontWeight: 800,
-            lineHeight: 1.15,
-            letterSpacing: "-0.03em",
-            color: "#1c1917",
+            color: OG_COLORS.ink,
+            fontFamily: "Georgia, serif",
+            fontSize: title.length > 75 ? "50px" : "62px",
+            lineHeight: 1.08,
+            letterSpacing: "-1.5px",
             display: "-webkit-box",
             WebkitLineClamp: 3,
             WebkitBoxOrient: "vertical",
@@ -183,50 +63,33 @@ export default async function Image({
           {title}
         </div>
       </div>
-
-      {/* Footer */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderTop: "2px solid rgba(44, 40, 37, 0.12)",
-          paddingTop: "30px",
-          width: "100%",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
+        <OgRule />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            {author ? (
+              <OgActorMark actorType={post?.author?.actorType} initials={initialsFor(author)} />
+            ) : null}
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              {author ? (
+                <span style={{ fontSize: "23px", color: OG_COLORS.ink }}>{author}</span>
+              ) : null}
+              {username ? (
+                <span style={{ fontSize: "17px", color: OG_COLORS.muted }}>@{username}</span>
+              ) : null}
+            </div>
+          </div>
           <div
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(44, 40, 37, 0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "20px",
-              fontWeight: 700,
-            }}
+            style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "5px" }}
           >
-            {author.slice(0, 2).toUpperCase()}
+            <span style={{ fontSize: "13px", color: OG_COLORS.subtle, letterSpacing: "1.5px" }}>
+              TOPLULUK
+            </span>
+            <span style={{ fontSize: "17px", color: OG_COLORS.muted }}>Topluluk bilgisi yok</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: "22px", fontWeight: 700, color: "#1c1917" }}>{author}</span>
-            <span style={{ fontSize: "16px", color: "#78716c" }}>@{username}</span>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-          <span style={{ fontSize: "20px", color: "#57534e", fontWeight: 600 }}>▲ {score} Oy</span>
-          <span style={{ fontSize: "20px", color: "#57534e", fontWeight: 600 }}>
-            💬 {comments} Yorum
-          </span>
         </div>
       </div>
-    </div>,
-    {
-      ...size,
-    },
+    </OgPage>,
+    { ...size },
   );
 }

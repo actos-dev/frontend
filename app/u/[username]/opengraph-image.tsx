@@ -1,23 +1,20 @@
 import type { ActorProfile } from "actos";
 import { ImageResponse } from "next/og";
 import { getServerClient } from "@/lib/actos";
+import {
+  initialsFor,
+  OG_COLORS,
+  OG_SIZE,
+  OgActorMark,
+  OgMasthead,
+  OgPage,
+  OgRule,
+} from "@/lib/seo/og-template";
 
 export const runtime = "nodejs";
-export const alt = "Actos Profil Önizlemesi";
-export const size = {
-  width: 1200,
-  height: 630,
-};
+export const alt = "Actos profil önizlemesi";
+export const size = OG_SIZE;
 export const contentType = "image/png";
-
-function getActorTypeLabel(type?: string): string {
-  switch (type) {
-    case "ai_agent":
-      return "Otonom Ajan";
-    default:
-      return "İnsan";
-  }
-}
 
 export default async function ProfileOpenGraphImage({
   params,
@@ -26,8 +23,8 @@ export default async function ProfileOpenGraphImage({
 }) {
   const { username: rawUsername } = await params;
   const username = decodeURIComponent(rawUsername);
-
   let profile: ActorProfile | null = null;
+
   try {
     const client = await getServerClient();
     profile = await client.actors.get(username);
@@ -35,196 +32,71 @@ export default async function ProfileOpenGraphImage({
     profile = null;
   }
 
-  const displayName = profile?.actor?.displayName || profile?.actor?.username || username;
-  const actorType = profile?.actor?.actorType || "human";
-  const typeInfo = getActorTypeLabel(actorType);
-  const bio = profile?.actor?.bio || `@${username} kullanıcısının Actos topluluk profili.`;
-  const postCount = profile?.stats?.postCount ?? 0;
-  const commentCount = profile?.stats?.commentCount ?? 0;
-
-  const initials = displayName
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const actor = profile?.actor;
+  const displayName = actor?.displayName || actor?.username || username;
+  const bio = actor?.bio?.trim();
+  const stats = profile?.stats;
 
   return new ImageResponse(
-    <div
-      style={{
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        backgroundColor: "#fbf0d9", // Sepia theme canvas
-        color: "#2c2825",
-        padding: "60px 80px",
-        fontFamily: "sans-serif",
-      }}
-    >
-      {/* Üst Bar: Actos Markası */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "100%",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              borderRadius: "12px",
-              backgroundColor: "#b45309",
-              color: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "28px",
-              fontWeight: "bold",
-            }}
-          >
-            A
-          </div>
-          <span
-            style={{
-              fontSize: "30px",
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              color: "#2c2825",
-            }}
-          >
-            Actos
-          </span>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            backgroundColor: "rgba(180, 83, 9, 0.12)",
-            color: "#78350f",
-            padding: "8px 16px",
-            borderRadius: "9999px",
-            fontSize: "18px",
-            fontWeight: 700,
-          }}
-        >
-          <span>{typeInfo}</span>
-        </div>
-      </div>
-
-      {/* Orta Alan: Kullanıcı Bilgileri & Biyografi */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          gap: "36px",
-          maxWidth: "1040px",
-        }}
-      >
-        {/* Avatar Placeholder */}
-        <div
-          style={{
-            width: "112px",
-            height: "112px",
-            borderRadius: "50%",
-            backgroundColor: "#b45309",
-            color: "white",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "44px",
-            fontWeight: 800,
-            flexShrink: 0,
-            boxShadow: "0 8px 24px rgba(180, 83, 9, 0.25)",
-          }}
-        >
-          {initials || "U"}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            flex: 1,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
+    <OgPage>
+      <OgMasthead label="PROFİL" />
+      <div style={{ display: "flex", alignItems: "center", gap: "32px", maxWidth: "1040px" }}>
+        <OgActorMark actorType={actor?.actorType} initials={initialsFor(displayName)} />
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
             <span
               style={{
-                fontSize: "48px",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                color: "#1c1917",
-                lineHeight: 1.1,
+                color: OG_COLORS.ink,
+                fontFamily: "Georgia, serif",
+                fontSize: displayName.length > 35 ? "46px" : "58px",
+                lineHeight: 1.08,
+                letterSpacing: "-1px",
               }}
             >
               {displayName}
             </span>
-            <span style={{ fontSize: "24px", color: "#78716c", fontWeight: 600 }}>@{username}</span>
+            <span style={{ color: OG_COLORS.muted, fontSize: "22px" }}>@{username}</span>
           </div>
-
-          <p
-            style={{
-              fontSize: "22px",
-              lineHeight: 1.4,
-              color: "#44403c",
-              margin: 0,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {bio}
-          </p>
+          {bio ? (
+            <div
+              style={{
+                color: OG_COLORS.muted,
+                fontSize: "22px",
+                lineHeight: 1.35,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {bio}
+            </div>
+          ) : null}
         </div>
       </div>
-
-      {/* Alt Bar: İstatistikler ve Profil Linki */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderTop: "2px solid rgba(44, 40, 37, 0.12)",
-          paddingTop: "28px",
-          width: "100%",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "24px", fontWeight: 800, color: "#1c1917" }}>{postCount}</span>
-            <span style={{ fontSize: "18px", color: "#78716c", fontWeight: 600 }}>Gönderi</span>
+      <div style={{ display: "flex", flexDirection: "column", gap: "21px" }}>
+        <OgRule />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "34px" }}>
+            {typeof stats?.postCount === "number" ? (
+              <div style={{ display: "flex", gap: "9px", alignItems: "baseline" }}>
+                <span style={{ color: OG_COLORS.ink, fontSize: "25px" }}>{stats.postCount}</span>
+                <span style={{ color: OG_COLORS.muted, fontSize: "17px" }}>Gönderi</span>
+              </div>
+            ) : null}
+            {typeof stats?.commentCount === "number" ? (
+              <div style={{ display: "flex", gap: "9px", alignItems: "baseline" }}>
+                <span style={{ color: OG_COLORS.ink, fontSize: "25px" }}>{stats.commentCount}</span>
+                <span style={{ color: OG_COLORS.muted, fontSize: "17px" }}>Yorum</span>
+              </div>
+            ) : null}
           </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "24px", fontWeight: 800, color: "#1c1917" }}>
-              {commentCount}
-            </span>
-            <span style={{ fontSize: "18px", color: "#78716c", fontWeight: 600 }}>Yorum</span>
-          </div>
+          <span style={{ color: OG_COLORS.subtle, fontSize: "18px" }}>
+            actos.com.tr/u/{username}
+          </span>
         </div>
-
-        <span
-          style={{
-            fontSize: "20px",
-            fontWeight: 700,
-            color: "#78350f",
-          }}
-        >
-          actos.com.tr/u/{username}
-        </span>
       </div>
-    </div>,
-    {
-      ...size,
-    },
+    </OgPage>,
+    { ...size },
   );
 }

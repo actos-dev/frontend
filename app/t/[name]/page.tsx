@@ -1,5 +1,4 @@
 import type { Post } from "actos";
-import { Hash } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { TagStream } from "@/components/tags/tag-stream";
@@ -58,10 +57,11 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
   const { name } = await params;
   const { cursor, sort } = await searchParams;
   const decodedName = decodeURIComponent(name).toLowerCase();
+  const selectedSort = sort === "new" || sort === "top" ? sort : "hot";
 
   let posts: Post[] = [];
   let nextCursor: string | null = null;
-  let totalCount: number = 0;
+  let totalCount: number | null = null;
   let loadError: unknown = null;
   let voteMap: VoteMap = {};
   let viewerId: string | null = null;
@@ -71,12 +71,11 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
     const page = await client.tags.posts(decodedName, {
       limit: 25,
       cursor,
-      sort: (sort as "hot" | "new" | "top") || "hot",
+      sort: selectedSort,
     });
 
     posts = page.items;
     nextCursor = page.nextCursor ?? null;
-    totalCount = posts.length;
 
     // Also attempt to get tag summary for total post count if available
     try {
@@ -113,16 +112,8 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
   if (loadError) {
     return (
       <div className="space-y-6">
-        <div className="border-b border-border/60 pb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-surface-2 border border-border flex items-center justify-center shadow-xs text-primary">
-              <Hash className="w-6 h-6" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold font-serif text-foreground tracking-tight flex items-center gap-1">
-              <span className="text-primary font-bold">#</span>
-              <span>{decodedName}</span>
-            </h1>
-          </div>
+        <div className="border-b border-border pb-5">
+          <h1 className="font-serif text-3xl font-semibold text-foreground">#{decodedName}</h1>
         </div>
         <ErrorStateRetry {...describeError(loadError)} />
       </div>
@@ -132,21 +123,24 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
   return (
     <div className="space-y-6">
       {/* Etiket Başlığı */}
-      <div className="border-b border-border/60 pb-5">
+      <div className="border-b border-border pb-5">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-surface-2 border border-border flex items-center justify-center shadow-xs text-primary">
-              <Hash className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold font-serif text-foreground tracking-tight flex items-center gap-1">
-                <span className="text-primary font-bold">#</span>
-                <span>{decodedName}</span>
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                <span className="font-semibold text-foreground">{totalCount}</span> gönderi
-              </p>
-            </div>
+          <div>
+            <h1 className="font-serif text-3xl font-semibold text-foreground">#{decodedName}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {totalCount === null ? (
+                <>
+                  En az{" "}
+                  <span className="font-mono tabular-nums text-foreground">{posts.length}</span>{" "}
+                  gönderi
+                </>
+              ) : (
+                <>
+                  <span className="font-mono tabular-nums text-foreground">{totalCount}</span>{" "}
+                  gönderi
+                </>
+              )}
+            </p>
           </div>
 
           <Link
@@ -158,9 +152,40 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
         </div>
       </div>
 
+      <nav
+        className="flex items-center gap-5 border-b border-border"
+        aria-label="Etiket sıralaması"
+      >
+        {(
+          [
+            ["hot", "Öne çıkan"],
+            ["new", "Yeni"],
+            ["top", "En iyi"],
+          ] as const
+        ).map(([value, label]) => (
+          <Link
+            key={value}
+            href={
+              value === "hot"
+                ? `/t/${encodeURIComponent(decodedName)}`
+                : `/t/${encodeURIComponent(decodedName)}?sort=${value}`
+            }
+            aria-current={selectedSort === value ? "page" : undefined}
+            className={
+              selectedSort === value
+                ? "border-b-2 border-accent py-2 text-sm font-semibold text-foreground"
+                : "py-2 text-sm text-muted-foreground hover:text-foreground"
+            }
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
+
       {/* Gönderi Akışı */}
       <TagStream
         tagName={decodedName}
+        sort={selectedSort}
         initialPosts={posts}
         initialNextCursor={nextCursor}
         initialVotes={voteMap}

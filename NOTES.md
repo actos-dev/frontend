@@ -4,7 +4,7 @@ Decisions that are not obvious from the code, and the constraints behind
 them. `ROADMAP.md` holds the plan and the open work; this file holds the
 things a reader of the code would otherwise have to rediscover.
 
-Last revised 2026-09-17, after the foundation layer and Markstone integration.
+Last revised 2026-09-18, after the feed/post rewrite and first conversation pass.
 
 ---
 
@@ -70,7 +70,7 @@ response.
 The API exposes no per-item "saved" flag, so outside `/saved` the save button
 starts in an unknown state. Recorded as B-03 in the roadmap.
 
-## 7. Markstone is the one markdown renderer
+## 7. One markdown renderer: Markstone
 
 `lib/render` is the only entry point. Markstone 0.1.0 renders through its
 native Node path on the server and its lazy WASM path in the editor preview.

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render as rtlRender, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render as rtlRender, screen, waitFor, within } from "@testing-library/react";
 import type { CommentNode } from "actos";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -144,6 +144,80 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       expect(continueLink).toBeDefined();
       expect(continueLink.getAttribute("href")).toBe("/posts/c_post_100/comments/node_lvl_6");
       expect(continueLink.textContent).toContain("Devamını gör →");
+    });
+  });
+
+  describe("1a. Comment tree context and controls", () => {
+    it("post yazarını gerçek author kimliğiyle belirler ve username fallback'i yalnızca ID yokken kullanır", () => {
+      const node = createDeepCommentTree();
+
+      const { unmount } = render(
+        <CommentNodeComponent
+          comment={node}
+          postId="c_post_1"
+          postAuthorId="usr_1"
+          postAuthorUsername="different_name"
+          collapsedIds={new Set()}
+          onToggleCollapse={vi.fn()}
+        />,
+      );
+      expect(screen.getByTestId("original-poster-badge").textContent).toBe("OP");
+
+      unmount();
+      render(
+        <CommentNodeComponent
+          comment={node}
+          postId="c_post_1"
+          postAuthorId="usr_someone_else"
+          postAuthorUsername="yazar_1"
+          collapsedIds={new Set()}
+          onToggleCollapse={vi.fn()}
+        />,
+      );
+      expect(screen.queryByTestId("original-poster-badge")).toBeNull();
+    });
+
+    it("thread çizgisi düğmesi klavyeyle erişilebilir bir buton olarak dalı daraltıp yeniden açar", () => {
+      const tree = createDeepCommentTree();
+      render(<CommentTree postId="c_post_1" initialComments={[tree]} />);
+
+      const secondLevel = screen.getByTestId("comment-node-node_lvl_2");
+      const collapseButton = secondLevel.querySelector<HTMLButtonElement>(
+        '[data-testid="thread-line-toggle"]',
+      );
+      expect(collapseButton).not.toBeNull();
+      if (!collapseButton) throw new Error("Thread line toggle was not rendered");
+      expect(collapseButton?.getAttribute("aria-expanded")).toBe("true");
+      expect(collapseButton?.getAttribute("aria-label")).toBe("Yanıtları daralt");
+
+      fireEvent.click(collapseButton);
+      expect(screen.queryByText("2. Seviye yorum metni")).toBeNull();
+      expect(screen.getByText("1. Seviye yorum metni")).toBeDefined();
+      expect(
+        screen.getByTestId("comment-node-node_lvl_2").querySelector('[aria-expanded="false"]'),
+      ).toBeDefined();
+
+      const expandButton = screen
+        .getByTestId("comment-node-node_lvl_2")
+        .querySelector<HTMLButtonElement>('[data-testid="thread-line-toggle"]');
+      expect(expandButton).not.toBeNull();
+      if (!expandButton) throw new Error("Thread line toggle was not rendered after collapsing");
+      fireEvent.click(expandButton);
+      expect(screen.getByText("2. Seviye yorum metni")).toBeDefined();
+    });
+
+    it("post yazarı kimliğini yorum ağacına aktarır", () => {
+      const node = createDeepCommentTree();
+      render(
+        <CommentTree
+          postId="c_post_1"
+          postAuthorId="usr_1"
+          postAuthorUsername="post_author"
+          initialComments={[node]}
+        />,
+      );
+
+      expect(screen.getByTestId("original-poster-badge").textContent).toBe("OP");
     });
   });
 
@@ -604,6 +678,13 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
             title: "Rust'ta ltree ile nested yorum ağacı",
             body: "Postgres'in ltree eklentisi.",
             bodyHtml: "<p>Postgres'in ltree eklentisi.</p>",
+            author: {
+              id: "usr_human_1",
+              username: "efe",
+              displayName: "Efe",
+              actorType: "human",
+              createdAt: "2026-08-01T00:00:00Z",
+            },
           }),
         },
         comments: {
@@ -627,6 +708,12 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
 
       // Kök yorum ve çocukları render edilmelidir
       expect(screen.getByText(/gerçekten çok pratik bir eklenti/)).toBeDefined();
+      const targetComment = screen.getByTestId("comment-node-c_root_1");
+      expect(targetComment.getAttribute("aria-current")).toBe("location");
+      expect(targetComment.getAttribute("data-comment-highlighted")).toBe("true");
+      expect(screen.getByTestId("original-poster-badge").textContent).toBe("OP");
+      fireEvent.click(within(targetComment).getByRole("button", { name: "Yanıtla" }));
+      expect(within(targetComment).getByRole("textbox")).toBeDefined();
     });
 
     it("yorum kalıcı olarak silinmişse (410 GONE) Gone bileşenini render etmelidir", async () => {

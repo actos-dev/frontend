@@ -58,9 +58,8 @@ export async function generateMetadata(props: ProfilePageProps): Promise<Metadat
   const bio =
     profile?.actor?.bio ||
     `@${username} kullanıcısının Actos profili, gönderileri ve topluluk paylaşımları.`;
-  const avatarUrl = profile?.actor?.avatarUrl;
   const ogImageUrl = `${siteUrl}/u/${encodeURIComponent(username)}/opengraph-image`;
-  const previewImage = avatarUrl || ogImageUrl;
+  const previewImage = ogImageUrl;
   const title = `${displayName} (@${username}) — Actos`;
 
   return {

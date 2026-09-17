@@ -37,6 +37,9 @@ import { formatRelativeTime } from "@/lib/utils";
 export interface CommentNodeProps {
   comment: CommentNodeType;
   postId: string;
+  postAuthorId?: string | null;
+  postAuthorUsername?: string | null;
+  highlightedCommentId?: string | null;
   depth?: number;
   maxDepth?: number;
   collapsedIds: Set<string>;
@@ -57,6 +60,9 @@ export function countAllReplies(node: CommentNodeType): number {
 export function CommentNodeComponent({
   comment,
   postId,
+  postAuthorId,
+  postAuthorUsername,
+  highlightedCommentId,
   depth = 0,
   maxDepth = 6,
   collapsedIds,
@@ -85,12 +91,24 @@ export function CommentNodeComponent({
   const isCollapsed = collapsedIds.has(comment.id);
   const isDeleted = Boolean(comment.deleted);
   const isAuthorDeleted = Boolean(comment.authorDeleted);
+  const isHighlighted = highlightedCommentId === comment.id;
 
   // Author identity
   const author = comment.author;
   const authorType = (author?.actorType || "human") as ActorType;
   const username = author?.username || "anonim";
   const displayName = author?.displayName || username;
+  const isOriginalPoster =
+    !isDeleted &&
+    !isAuthorDeleted &&
+    Boolean(
+      author &&
+        ((postAuthorId && author.id && author.id === postAuthorId) ||
+          ((!postAuthorId || !author.id) &&
+            postAuthorUsername &&
+            author.username &&
+            author.username.toLocaleLowerCase() === postAuthorUsername.toLocaleLowerCase())),
+    );
 
   // Sahiplik: Silinmemişse ve giriş yapan kullanıcı yazarsa
   const isAuthor =
@@ -188,15 +206,38 @@ export function CommentNodeComponent({
   const reachedCutoff = depth >= maxDepth - 1;
   const hasReplies = Boolean(comment.replies && comment.replies.length > 0);
   const totalHiddenReplies = countAllReplies(comment);
+  const canCollapseThread = depth > 0 && hasReplies;
 
   return (
     <div
       data-testid={`comment-node-${comment.id}`}
       data-depth={depth}
+      data-comment-highlighted={isHighlighted ? "true" : undefined}
+      aria-current={isHighlighted ? "location" : undefined}
+      tabIndex={isHighlighted ? -1 : undefined}
       className={`relative group/node text-sm transition-colors ${
         depth > 0 ? "mt-3 pl-3 sm:pl-4 border-l-2 border-border/60 hover:border-primary/50" : "mt-4"
-      }`}
+      } ${isHighlighted ? "scroll-mt-24 rounded-md bg-primary/5 ring-2 ring-primary/50 ring-offset-2 ring-offset-background" : ""}`}
     >
+      {canCollapseThread && (
+        <button
+          type="button"
+          data-testid="thread-line-toggle"
+          aria-label={
+            isCollapsed
+              ? t("comments.expand_thread") || "Yanıtları genişlet"
+              : t("comments.collapse_thread") || "Yanıtları daralt"
+          }
+          aria-expanded={!isCollapsed}
+          onClick={() => onToggleCollapse(comment.id)}
+          className="absolute left-0 top-0 bottom-0 z-10 w-3 -translate-x-1/2 cursor-pointer border-0 bg-transparent p-0 hover:[&>span]:bg-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:[&>span]:bg-primary"
+        >
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-border/70 transition-colors"
+          />
+        </button>
+      )}
       {/* 1. KATLANMIŞ DURUM GÖRÜNÜMÜ */}
       {isCollapsed ? (
         <button
@@ -215,6 +256,15 @@ export function CommentNodeComponent({
           <span className="font-semibold text-foreground">
             @{isDeleted || isAuthorDeleted ? "silindi" : username}
           </span>
+          {isOriginalPoster && (
+            <abbr
+              data-testid="original-poster-badge"
+              title={t("comments.original_poster") || "Gönderi yazarı"}
+              className="inline-flex h-4 items-center rounded-sm border border-border px-1 font-mono text-[9px] font-semibold leading-none text-muted-foreground"
+            >
+              OP
+            </abbr>
+          )}
           <span className="text-muted-foreground/80">
             ({totalHiddenReplies}{" "}
             {t("comments.hidden_replies")?.replace("{count}", String(totalHiddenReplies)) ||
@@ -298,6 +348,15 @@ export function CommentNodeComponent({
                     variant="full"
                     className="text-[10px] py-0 px-1.5 h-4 shadow-2xs"
                   />
+                  {isOriginalPoster && (
+                    <abbr
+                      data-testid="original-poster-badge"
+                      title={t("comments.original_poster") || "Gönderi yazarı"}
+                      className="inline-flex h-4 items-center rounded-sm border border-border px-1 font-mono text-[9px] font-semibold leading-none text-muted-foreground"
+                    >
+                      OP
+                    </abbr>
+                  )}
                 </>
               )}
 
@@ -525,6 +584,9 @@ export function CommentNodeComponent({
                     key={reply.id}
                     comment={reply}
                     postId={postId}
+                    postAuthorId={postAuthorId}
+                    postAuthorUsername={postAuthorUsername}
+                    highlightedCommentId={highlightedCommentId}
                     depth={depth + 1}
                     maxDepth={maxDepth}
                     collapsedIds={collapsedIds}
