@@ -85,7 +85,7 @@ export function TagStream({
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Daha fazla gönderi yüklenemedi.");
+        toast.error(data.detail || data.title || t("tags.load_failed"));
         return;
       }
 
@@ -110,7 +110,7 @@ export function TagStream({
         }
       }
     } catch {
-      toast.error("Bağlantı hatası: Gönderiler yüklenemedi.");
+      toast.error(t("tags.network_failed"));
     } finally {
       setIsLoadingMore(false);
     }
@@ -148,8 +148,8 @@ export function TagStream({
         nextCursor={nextCursor}
         onLoadMore={handleLoadMore}
         isLoading={isLoadingMore}
-        label="Daha fazla"
-        loadingLabel="Yükleniyor..."
+        label={t("common.loadMore")}
+        loadingLabel={t("common.loading")}
       />
     </div>
   );

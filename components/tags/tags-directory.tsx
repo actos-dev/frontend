@@ -7,12 +7,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/lib/i18n";
 
 export interface TagsDirectoryProps {
   initialTags: Tag[];
 }
 
 export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Tag[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -119,9 +121,9 @@ export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Etiket ara veya filtrele..."
+            placeholder={t("tags.search_placeholder")}
             className="pl-10 pr-10 h-10 rounded-xl bg-surface-2 border-border/70 focus-visible:ring-primary"
-            aria-label="Etiket ara"
+            aria-label={t("tags.search_label")}
           />
           {isSearching && (
             <div className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -135,14 +137,14 @@ export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
               size="sm"
               onClick={handleClear}
               className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-              aria-label="Aramayı temizle"
+              aria-label={t("tags.clear_search")}
             >
               <X className="w-4 h-4" />
             </Button>
           )}
         </div>
         <fieldset className="flex items-center gap-4 text-sm">
-          <legend className="sr-only">Etiket sıralaması</legend>
+          <legend className="sr-only">{t("tags.sort_label")}</legend>
           <button
             type="button"
             onClick={() => setSort("popular")}
@@ -153,7 +155,7 @@ export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
                 : "text-muted-foreground hover:text-foreground"
             }
           >
-            Popüler
+            {t("tags.popular")}
           </button>
           <button
             type="button"
@@ -189,7 +191,7 @@ export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
               </span>
               {tag.postCount !== undefined ? (
                 <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                  {tag.postCount} gönderi
+                  {t("tags.post_count", { count: tag.postCount })}
                 </span>
               ) : null}
             </Link>
@@ -199,12 +201,12 @@ export function TagsDirectory({ initialTags }: TagsDirectoryProps) {
         /* Boş durum (EmptyState) */
         <EmptyState
           icon={Hash}
-          title="Eşleşen etiket bulunamadı."
-          description="Aramanızla eşleşen etiket bulunamadı. Farklı bir terim deneyebilirsiniz."
+          title={t("tags.no_match_title")}
+          description={t("tags.no_match_description")}
           action={
             query
               ? {
-                  label: "Aramayı Temizle",
+                  label: t("tags.clear_search"),
                   onClick: handleClear,
                   variant: "outline",
                 }

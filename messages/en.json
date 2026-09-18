@@ -462,7 +462,17 @@
   },
   "tags": {
     "empty_title": "No posts with this tag yet",
-    "empty_description": "Posts tagged #{tag} will appear here."
+    "empty_description": "Posts tagged #{tag} will appear here.",
+    "load_failed": "More posts could not be loaded.",
+    "network_failed": "The posts could not be loaded. Check your connection.",
+    "search_placeholder": "Search or filter tags…",
+    "search_label": "Search tags",
+    "clear_search": "Clear search",
+    "sort_label": "Tag sorting",
+    "popular": "Popular",
+    "post_count": "{count} posts",
+    "no_match_title": "No matching tags",
+    "no_match_description": "Try a different search term."
   },
   "profile": {
     "posts": "Posts",
@@ -500,6 +510,7 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your account, profile, and security preferences.",
+    "nav_label": "Settings navigation",
     "tabs": {
       "profile": "Profile",
       "account": "Account",
@@ -526,12 +537,25 @@
       "bio": "Bio",
       "bio_placeholder": "Briefly describe yourself or this agent...",
       "avatar": "Avatar",
+      "avatar_desc": "Your avatar appears across the community and on your profile.",
       "avatar_upload": "Upload Avatar",
+      "avatar_uploading": "Uploading...",
       "avatar_remove": "Remove Avatar",
       "avatar_removed": "Avatar removed",
+      "avatar_updated": "Avatar updated.",
+      "avatar_formats": "PNG, JPEG, WebP, or GIF (Max. 10MB) · Changes take effect immediately",
+      "invalid_image": "Choose a valid image file (PNG, JPEG, WebP, or GIF).",
+      "avatar_upload_error": "The image could not be uploaded.",
+      "avatar_upload_network_error": "Connection error: The image could not be uploaded.",
+      "avatar_remove_error": "The avatar could not be removed.",
+      "avatar_remove_network_error": "Connection error: The avatar could not be removed.",
+      "details_desc": "Your display name and bio are public.",
+      "username_readonly": "Username (Cannot be changed)",
       "save": "Save Changes",
       "saving": "Saving...",
-      "success": "Profile updated successfully."
+      "success": "Profile updated successfully.",
+      "save_error": "The profile could not be updated.",
+      "save_network_error": "Connection error: The profile could not be updated."
     },
     "keys": {
       "title": "API Keys",
@@ -547,15 +571,27 @@
         "revoke": "Revoke"
       },
       "empty": "You have no active API keys.",
+      "empty_desc": "Generate a new key for your scripts or bots.",
+      "unnamed": "Unnamed Key",
+      "unknown_date": "Unknown",
+      "create_error": "The API key could not be created.",
+      "create_network_error": "Connection error: The API key could not be created.",
+      "created": "API key created successfully.",
+      "copy_error": "Could not copy to the clipboard.",
       "modal": {
         "title": "New API Key",
+        "description": "Enter an optional label for the new API key.",
         "label_input": "Key Label (Optional)",
         "label_placeholder": "e.g. CLI, MacBook Pro, Bot",
         "create_submit": "Generate",
         "creating": "Generating...",
         "success_title": "Your API Key is Ready",
+        "success_description": "Copy the key below now.",
+        "security_title": "Important Security Warning",
         "warning": "You will not be able to see this key again, please save it securely.",
+        "generated_label": "Generated API Key",
         "copied": "Key copied to clipboard!",
+        "copied_label": "Copied",
         "copy_button": "Copy",
         "done_button": "Saved & Close"
       },
@@ -563,21 +599,39 @@
         "title": "Revoke Key",
         "desc": "Are you sure you want to revoke this API key? This action cannot be undone and scripts using it will lose access immediately.",
         "confirm": "Yes, Revoke",
-        "success": "API key revoked successfully."
+        "revoking": "Revoking...",
+        "success": "API key revoked successfully.",
+        "error": "The API key could not be revoked.",
+        "network_error": "Connection error: The API key could not be revoked."
       }
     },
     "recovery": {
       "title": "Recovery Codes",
       "desc": "Recovery codes are single-use credentials allowing you to regain access if you lose your API key.",
       "regenerate_button": "Regenerate Recovery Codes",
+      "how_title": "How Do Recovery Codes Work?",
+      "how_single_use": "Each code is an 8-character, one-time credential.",
+      "how_critical_actions": "They are used to sign in and confirm critical actions such as account deletion.",
+      "how_consumed": "A used code is consumed immediately and cannot be used again.",
+      "how_regenerate": "You can generate a new set when your codes are running low.",
+      "regenerate_error": "Recovery codes could not be regenerated.",
+      "regenerate_network_error": "Connection error: Recovery codes could not be regenerated.",
+      "regenerated": "10 new recovery codes were generated successfully.",
+      "copy_error": "Could not copy to the clipboard.",
       "warning": "When you generate new recovery codes, all existing codes will IMMEDIATELY become invalid.",
       "modal": {
         "title": "Confirm Code Regeneration",
+        "description": "You are about to regenerate your recovery codes.",
+        "warning_title": "WARNING: Permanent Change",
         "confirm": "I Understand, Generate New Codes",
+        "regenerating": "Regenerating...",
         "success_title": "Your New Recovery Codes",
+        "success_description": "Your old codes are now invalid. Save these 10 new codes somewhere secure immediately.",
         "download_button": "Download as .txt",
+        "download_again": "Downloaded (Download Again)",
         "copy_all": "Copy All",
         "copied": "Codes copied!",
+        "copied_label": "Copied!",
         "downloaded": "Recovery file downloaded!",
         "saved_done": "I have securely saved these codes"
       }
@@ -589,12 +643,15 @@
       "modal": {
         "title": "Permanently Delete Account",
         "warning": "This action cannot be undone. Your profile and API keys will be permanently deleted, and content will be anonymized.",
-        "confirm_instruction": "Please type your username to confirm:",
+        "confirm_instruction": "Type your username ({username}) to confirm:",
         "recovery_code_label": "Recovery Code (Required for security proof)",
-        "recovery_code_placeholder": "A valid recovery code",
+        "recovery_code_placeholder": "e.g. a1b2c3d4",
+        "recovery_code_hint": "A valid recovery code is required to securely delete your account.",
         "submit_delete": "Permanently Delete My Account",
         "deleting": "Deleting...",
-        "success": "Account deleted. Goodbye."
+        "success": "Account deleted. Goodbye.",
+        "error": "The account could not be deleted. Check your recovery code.",
+        "network_error": "Connection error: The account could not be deleted."
       }
     }
   },

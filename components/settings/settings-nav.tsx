@@ -23,19 +23,19 @@ export function SettingsNav({ className }: SettingsNavProps) {
   const navItems = [
     {
       href: "/settings",
-      label: t("settings.tabs.profile") || "Profil",
+      label: t("settings.tabs.profile"),
       icon: User,
       exact: true,
     },
     {
       href: "/settings/account",
-      label: t("settings.tabs.account") || "Hesap",
+      label: t("settings.tabs.account"),
       icon: Settings2,
       exact: false,
     },
     {
       href: "/settings/preferences",
-      label: t("settings.tabs.preferences") || "Tercihler",
+      label: t("settings.tabs.preferences"),
       icon: SlidersHorizontal,
       exact: false,
     },
@@ -43,7 +43,7 @@ export function SettingsNav({ className }: SettingsNavProps) {
 
   return (
     <nav
-      aria-label="Ayarlar Navigasyonu"
+      aria-label={t("settings.nav_label")}
       className={cn(
         "flex items-center gap-1 border-b border-border/80 pb-px overflow-x-auto no-scrollbar",
         className,

@@ -59,7 +59,7 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
 
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Kurtarma kodları yenilenemedi.");
+        toast.error(data.detail || data.title || t("settings.recovery.regenerate_error"));
         return;
       }
 
@@ -68,9 +68,9 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
       setConfirmModalOpen(false);
       setHasCopied(false);
       setHasDownloaded(false);
-      toast.success("10 yeni kurtarma kodu başarıyla üretildi.");
+      toast.success(t("settings.recovery.regenerated"));
     } catch {
-      toast.error("Bağlantı hatası: Kurtarma kodları yenilenemedi.");
+      toast.error(t("settings.recovery.regenerate_network_error"));
     } finally {
       setIsRegenerating(false);
     }
@@ -86,10 +86,7 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
 
     downloadRecoveryFile(username, fileContent);
     setHasDownloaded(true);
-    toast.success(
-      t("settings.recovery.modal.downloaded") ||
-        `actos-recovery-${username}.txt başarıyla indirildi!`,
-    );
+    toast.success(t("settings.recovery.modal.downloaded"));
   };
 
   const handleCopyAll = async () => {
@@ -99,10 +96,10 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
       const formatted = newCodes.map((c, i) => `${i + 1}. ${c}`).join("\n");
       await navigator.clipboard.writeText(formatted);
       setHasCopied(true);
-      toast.success(t("settings.recovery.modal.copied") || "10 kurtarma kodu panoya kopyalandı!");
+      toast.success(t("settings.recovery.modal.copied"));
       setTimeout(() => setHasCopied(false), 3000);
     } catch {
-      toast.error("Panoya kopyalanamadı.");
+      toast.error(t("settings.recovery.copy_error"));
     }
   };
 
@@ -118,11 +115,10 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
               </div>
               <div className="space-y-1">
                 <h2 className="text-base font-semibold text-foreground">
-                  {t("settings.recovery.title") || "Kurtarma Kodları"}
+                  {t("settings.recovery.title")}
                 </h2>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-                  {t("settings.recovery.desc") ||
-                    "Kurtarma kodları, API anahtarınızı kaybettiğinizde hesabınıza yeniden erişim sağlamanın tek yoludur. Her kod yalnızca bir kez kullanılabilir."}
+                  {t("settings.recovery.desc")}
                 </p>
               </div>
             </div>
@@ -130,13 +126,13 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
             <div className="rounded-xl border border-border/80 bg-surface-2/40 p-4 text-xs text-muted-foreground leading-relaxed space-y-2">
               <div className="font-semibold text-foreground flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-primary" />
-                <span>Kurtarma Kodları Nasıl Çalışır?</span>
+                <span>{t("settings.recovery.how_title")}</span>
               </div>
               <ul className="list-disc list-inside space-y-1 pl-1">
-                <li>Her kod 8 karakterlik tek kullanımlık bir şifredir.</li>
-                <li>Giriş yaparken veya hesap silme gibi kritik işlemlerde kullanılır.</li>
-                <li>Kullanılan kod anında tüketilir ve tekrar kullanılamaz.</li>
-                <li>Kodlarınızın tükendiğini düşünüyorsanız yenilerini üretebilirsiniz.</li>
+                <li>{t("settings.recovery.how_single_use")}</li>
+                <li>{t("settings.recovery.how_critical_actions")}</li>
+                <li>{t("settings.recovery.how_consumed")}</li>
+                <li>{t("settings.recovery.how_regenerate")}</li>
               </ul>
             </div>
 
@@ -149,9 +145,7 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
                 className="cursor-pointer gap-2 border-border/90 hover:border-primary shadow-xs"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>
-                  {t("settings.recovery.regenerate_button") || "Kurtarma Kodlarını Yenile"}
-                </span>
+                <span>{t("settings.recovery.regenerate_button")}</span>
               </Button>
             </div>
           </div>
@@ -168,10 +162,10 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">
-                {t("settings.recovery.modal.success_title") || "Yeni Kurtarma Kodlarınız"}
+                {t("settings.recovery.modal.success_title")}
               </h2>
               <p className="text-xs text-muted-foreground">
-                Eski kodlarınız geçersiz kılındı. Bu 10 yeni kodu hemen güvenli bir yere kaydedin.
+                {t("settings.recovery.modal.success_description")}
               </p>
             </div>
           </div>
@@ -206,12 +200,12 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
               {hasDownloaded ? (
                 <>
                   <Check className="w-4 h-4 text-primary-foreground" />
-                  <span>İndirildi (Tekrar İndir)</span>
+                  <span>{t("settings.recovery.modal.download_again")}</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  <span>{t("settings.recovery.modal.download_button") || ".txt Olarak İndir"}</span>
+                  <span>{t("settings.recovery.modal.download_button")}</span>
                 </>
               )}
             </Button>
@@ -227,12 +221,12 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
               {hasCopied ? (
                 <>
                   <Check className="w-4 h-4 text-success" />
-                  <span>Kopyalandı!</span>
+                  <span>{t("settings.recovery.modal.copied_label")}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-4 h-4" />
-                  <span>{t("settings.recovery.modal.copy_all") || "Tümünü Kopyala"}</span>
+                  <span>{t("settings.recovery.modal.copy_all")}</span>
                 </>
               )}
             </Button>
@@ -246,7 +240,7 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
               onClick={() => setNewCodes(null)}
               className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
             >
-              {t("settings.recovery.modal.saved_done") || "Kodları Güvenle Kaydettim"}
+              {t("settings.recovery.modal.saved_done")}
             </Button>
           </div>
         </div>
@@ -258,12 +252,10 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
           <DialogHeader>
             <div className="flex items-center gap-2 text-destructive mb-1">
               <AlertTriangle className="w-5 h-5" />
-              <DialogTitle>
-                {t("settings.recovery.modal.title") || "Kodları Yenilemeyi Onayla"}
-              </DialogTitle>
+              <DialogTitle>{t("settings.recovery.modal.title")}</DialogTitle>
             </div>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              Kurtarma kodlarınızı yenilemek üzeresiniz.
+              {t("settings.recovery.modal.description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -274,11 +266,10 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
           >
             <div className="flex items-center gap-2 font-bold text-sm">
               <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>DİKKAT: Kalıcı Değişiklik</span>
+              <span>{t("settings.recovery.modal.warning_title")}</span>
             </div>
             <p className="text-xs text-foreground font-medium leading-relaxed">
-              {t("settings.recovery.warning") ||
-                "Yeni kurtarma kodları ürettiğinizde, mevcut tüm kurtarma kodlarınız ANINDA geçersiz olacaktır."}
+              {t("settings.recovery.warning")}
             </p>
           </div>
 
@@ -289,7 +280,7 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
               onClick={() => setConfirmModalOpen(false)}
               disabled={isRegenerating}
             >
-              Vazgeç
+              {t("common.cancel")}
             </Button>
             <Button
               type="button"
@@ -302,8 +293,8 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
               {isRegenerating && <Loader2 className="w-4 h-4 animate-spin text-white" />}
               <span>
                 {isRegenerating
-                  ? "Yenileniyor..."
-                  : t("settings.recovery.modal.confirm") || "Anladım, Yeni Kodları Üret"}
+                  ? t("settings.recovery.modal.regenerating")
+                  : t("settings.recovery.modal.confirm")}
               </span>
             </Button>
           </DialogFooter>

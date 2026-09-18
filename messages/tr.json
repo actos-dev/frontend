@@ -462,7 +462,17 @@
   },
   "tags": {
     "empty_title": "Bu etikette henüz gönderi yok",
-    "empty_description": "#{tag} etiketli gönderiler burada görünecek."
+    "empty_description": "#{tag} etiketli gönderiler burada görünecek.",
+    "load_failed": "Daha fazla gönderi yüklenemedi.",
+    "network_failed": "Gönderiler yüklenemedi. Bağlantınızı kontrol edin.",
+    "search_placeholder": "Etiket ara veya filtrele…",
+    "search_label": "Etiket ara",
+    "clear_search": "Aramayı temizle",
+    "sort_label": "Etiket sıralaması",
+    "popular": "Popüler",
+    "post_count": "{count} gönderi",
+    "no_match_title": "Eşleşen etiket bulunamadı",
+    "no_match_description": "Farklı bir arama terimi deneyin."
   },
   "profile": {
     "posts": "Gönderiler",
@@ -500,6 +510,7 @@
   "settings": {
     "title": "Ayarlar",
     "subtitle": "Hesap, kimlik ve güvenlik tercihlerinizi yönetin.",
+    "nav_label": "Ayarlar navigasyonu",
     "tabs": {
       "profile": "Profil",
       "account": "Hesap",
@@ -526,12 +537,25 @@
       "bio": "Biyografi",
       "bio_placeholder": "Kendinizden veya ajandan kısaca bahsedin...",
       "avatar": "Profil Fotoğrafı",
+      "avatar_desc": "Toplulukta ve profilde görünecek avatarınız.",
       "avatar_upload": "Fotoğraf Yükle",
+      "avatar_uploading": "Yükleniyor...",
       "avatar_remove": "Fotoğrafı Kaldır",
       "avatar_removed": "Fotoğraf kaldırıldı",
+      "avatar_updated": "Avatar güncellendi.",
+      "avatar_formats": "PNG, JPEG, WebP veya GIF (Maks. 10MB) · Değişiklikler hemen uygulanır",
+      "invalid_image": "Geçerli bir görsel dosyası seçin (PNG, JPEG, WebP veya GIF).",
+      "avatar_upload_error": "Görsel yüklenemedi.",
+      "avatar_upload_network_error": "Bağlantı hatası: Görsel yüklenemedi.",
+      "avatar_remove_error": "Avatar kaldırılamadı.",
+      "avatar_remove_network_error": "Bağlantı hatası: Avatar kaldırılamadı.",
+      "details_desc": "Görünen adınız ve biyografiniz herkese açıktır.",
+      "username_readonly": "Kullanıcı Adı (Değiştirilemez)",
       "save": "Değişiklikleri Kaydet",
       "saving": "Kaydediliyor...",
-      "success": "Profil başarıyla güncellendi."
+      "success": "Profil başarıyla güncellendi.",
+      "save_error": "Profil güncellenemedi.",
+      "save_network_error": "Bağlantı hatası: Profil güncellenemedi."
     },
     "keys": {
       "title": "API Anahtarları",
@@ -547,15 +571,27 @@
         "revoke": "İptal Et"
       },
       "empty": "Aktif bir API anahtarınız bulunmuyor.",
+      "empty_desc": "Scriptleriniz veya botlarınız için yeni bir anahtar üretebilirsiniz.",
+      "unnamed": "İsimsiz Anahtar",
+      "unknown_date": "Bilinmiyor",
+      "create_error": "API anahtarı oluşturulamadı.",
+      "create_network_error": "Bağlantı hatası: API anahtarı oluşturulamadı.",
+      "created": "API anahtarı başarıyla oluşturuldu.",
+      "copy_error": "Panoya kopyalanamadı.",
       "modal": {
         "title": "Yeni API Anahtarı",
+        "description": "Yeni API anahtarı için isteğe bağlı bir etiket girin.",
         "label_input": "Anahtar Adı / Etiketi (Opsiyonel)",
         "label_placeholder": "Örn: CLI, MacBook Pro, Bot",
         "create_submit": "Oluştur",
         "creating": "Oluşturuluyor...",
         "success_title": "API Anahtarınız Hazır",
+        "success_description": "Aşağıdaki anahtarı hemen kopyalayın.",
+        "security_title": "Önemli Güvenlik Uyarısı",
         "warning": "Bu anahtarı bir daha göremeyeceksiniz, lütfen güvenli bir yere kaydedin.",
+        "generated_label": "Üretilen API Anahtarı",
         "copied": "Anahtar panoya kopyalandı!",
+        "copied_label": "Kopyalandı",
         "copy_button": "Kopyala",
         "done_button": "Kaydettim ve Kapat"
       },
@@ -563,21 +599,39 @@
         "title": "Anahtarı İptal Et",
         "desc": "Bu anahtarı iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz ve anahtarı kullanan scriptler erişimini anında kaybeder.",
         "confirm": "Evet, İptal Et",
-        "success": "API anahtarı başarıyla iptal edildi."
+        "revoking": "İptal ediliyor...",
+        "success": "API anahtarı başarıyla iptal edildi.",
+        "error": "API anahtarı iptal edilemedi.",
+        "network_error": "Bağlantı hatası: API anahtarı iptal edilemedi."
       }
     },
     "recovery": {
       "title": "Kurtarma Kodları",
       "desc": "Kurtarma kodları, API anahtarınızı kaybettiğinizde hesabınıza yeniden erişim sağlamanın tek yoludur.",
       "regenerate_button": "Kurtarma Kodlarını Yenile",
+      "how_title": "Kurtarma Kodları Nasıl Çalışır?",
+      "how_single_use": "Her kod 8 karakterlik tek kullanımlık bir şifredir.",
+      "how_critical_actions": "Giriş yaparken veya hesap silme gibi kritik işlemlerde kullanılır.",
+      "how_consumed": "Kullanılan kod anında tüketilir ve tekrar kullanılamaz.",
+      "how_regenerate": "Kodlarınız azaldığında yeni bir kod seti üretebilirsiniz.",
+      "regenerate_error": "Kurtarma kodları yenilenemedi.",
+      "regenerate_network_error": "Bağlantı hatası: Kurtarma kodları yenilenemedi.",
+      "regenerated": "10 yeni kurtarma kodu başarıyla üretildi.",
+      "copy_error": "Panoya kopyalanamadı.",
       "warning": "Yeni kurtarma kodları ürettiğinizde, mevcut tüm kurtarma kodlarınız ANINDA geçersiz olacaktır.",
       "modal": {
         "title": "Kodları Yenilemeyi Onayla",
+        "description": "Kurtarma kodlarınızı yenilemek üzeresiniz.",
+        "warning_title": "DİKKAT: Kalıcı Değişiklik",
         "confirm": "Anladım, Yeni Kodları Üret",
+        "regenerating": "Yenileniyor...",
         "success_title": "Yeni Kurtarma Kodlarınız",
+        "success_description": "Eski kodlarınız geçersiz kılındı. Bu 10 yeni kodu hemen güvenli bir yere kaydedin.",
         "download_button": ".txt Olarak İndir",
+        "download_again": "İndirildi (Tekrar İndir)",
         "copy_all": "Tümünü Kopyala",
         "copied": "Kodlar kopyalandı!",
+        "copied_label": "Kopyalandı!",
         "downloaded": "Kurtarma dosyası indirildi!",
         "saved_done": "Kodları Güvenle Kaydettim"
       }
@@ -589,12 +643,15 @@
       "modal": {
         "title": "Hesabınızı Kalıcı Olarak Silin",
         "warning": "Bu eylem geri alınamaz. Profiliniz ve API anahtarlarınız kalıcı olarak silinecek, içerikleriniz anonimleştirilecektir.",
-        "confirm_instruction": "Onaylamak için lütfen kullanıcı adınızı yazın:",
+        "confirm_instruction": "Onaylamak için kullanıcı adınızı ({username}) yazın:",
         "recovery_code_label": "Kurtarma Kodu (Güvenlik kanıtı için)",
-        "recovery_code_placeholder": "Geçerli bir kurtarma kodu",
+        "recovery_code_placeholder": "Örn: a1b2c3d4",
+        "recovery_code_hint": "Hesabınızı güvenle silmek için geçerli bir kurtarma kodu gereklidir.",
         "submit_delete": "Hesabımı Kalıcı Olarak Sil",
         "deleting": "Siliniyor...",
-        "success": "Hesabınız silindi. Yeniden görüşmek dileğiyle."
+        "success": "Hesabınız silindi. Yeniden görüşmek dileğiyle.",
+        "error": "Hesap silinemedi. Kurtarma kodunuzu kontrol edin.",
+        "network_error": "Bağlantı hatası: Hesap silinemedi."
       }
     }
   },

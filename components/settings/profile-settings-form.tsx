@@ -58,7 +58,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Lütfen geçerli bir görsel dosyası seçin (PNG, JPEG, WebP).");
+      toast.error(t("settings.profile.invalid_image"));
       return;
     }
 
@@ -74,7 +74,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
 
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Görsel yüklenemedi.");
+        toast.error(data.detail || data.title || t("settings.profile.avatar_upload_error"));
         return;
       }
 
@@ -86,9 +86,9 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
         useSessionStore.getState().setUser({ ...currentUser, avatarUrl: newAvatarUrl });
       }
 
-      toast.success("Avatar güncellendi.");
+      toast.success(t("settings.profile.avatar_updated"));
     } catch {
-      toast.error("Bağlantı hatası: Görsel yüklenemedi.");
+      toast.error(t("settings.profile.avatar_upload_network_error"));
     } finally {
       setIsUploadingAvatar(false);
       if (fileInputRef.current) {
@@ -105,7 +105,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
       const res = await fetch("/api/actors/me/avatar", { method: "DELETE" });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Avatar kaldırılamadı.");
+        toast.error(data.detail || data.title || t("settings.profile.avatar_remove_error"));
         return;
       }
 
@@ -116,9 +116,9 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
         useSessionStore.getState().setUser({ ...currentUser, avatarUrl: null });
       }
 
-      toast.success(t("settings.profile.avatar_removed") || "Avatar kaldırıldı.");
+      toast.success(t("settings.profile.avatar_removed"));
     } catch {
-      toast.error("Bağlantı hatası: Avatar kaldırılamadı.");
+      toast.error(t("settings.profile.avatar_remove_network_error"));
     } finally {
       setIsRemovingAvatar(false);
     }
@@ -147,7 +147,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
 
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Profil güncellenemedi.");
+        toast.error(data.detail || data.title || t("settings.profile.save_error"));
         return;
       }
 
@@ -162,9 +162,9 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
         });
       }
 
-      toast.success(t("settings.profile.success") || "Profil başarıyla güncellendi.");
+      toast.success(t("settings.profile.success"));
     } catch {
-      toast.error("Bağlantı hatası: Profil güncellenemedi.");
+      toast.error(t("settings.profile.save_network_error"));
     } finally {
       setIsSaving(false);
     }
@@ -186,20 +186,16 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
 
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        toast.error(
-          data.detail || data.title || "Hesap silinemedi. Lütfen kurtarma kodunuzu kontrol edin.",
-        );
+        toast.error(data.detail || data.title || t("settings.danger_zone.modal.error"));
         return;
       }
 
       await useSessionStore.getState().logout();
-      toast.success(
-        t("settings.danger_zone.modal.success") || "Hesabınız silindi. Yeniden görüşmek dileğiyle.",
-      );
+      toast.success(t("settings.danger_zone.modal.success"));
       setDeleteModalOpen(false);
       router.push("/");
     } catch {
-      toast.error("Bağlantı hatası: Hesap silinemedi.");
+      toast.error(t("settings.danger_zone.modal.network_error"));
     } finally {
       setIsDeleting(false);
     }
@@ -214,10 +210,10 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
           <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
             <div>
               <h2 className="text-base font-semibold text-foreground">
-                {t("settings.profile.avatar") || "Profil Fotoğrafı"}
+                {t("settings.profile.avatar")}
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Toplulukta ve profilde görünecek avatarınız.
+                {t("settings.profile.avatar_desc")}
               </p>
             </div>
 
@@ -264,8 +260,8 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                     )}
                     <span>
                       {isUploadingAvatar
-                        ? "Yükleniyor..."
-                        : t("settings.profile.avatar_upload") || "Fotoğraf Yükle"}
+                        ? t("settings.profile.avatar_uploading")
+                        : t("settings.profile.avatar_upload")}
                     </span>
                   </Button>
 
@@ -283,14 +279,14 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                       ) : (
                         <Trash2 className="w-4 h-4" />
                       )}
-                      <span>{t("settings.profile.avatar_remove") || "Fotoğrafı Kaldır"}</span>
+                      <span>{t("settings.profile.avatar_remove")}</span>
                     </Button>
                   )}
                 </div>
 
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">
-                    PNG, JPEG, WebP veya GIF (Maks. 10MB) · Değişiklikler hemen uygulanır
+                    {t("settings.profile.avatar_formats")}
                   </span>
                 </div>
               </div>
@@ -301,10 +297,10 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
           <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
             <div>
               <h2 className="text-base font-semibold text-foreground">
-                {t("settings.profile.title") || "Profil Bilgileri"}
+                {t("settings.profile.title")}
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Görünen adınız ve biyografiniz herkese açıktır.
+                {t("settings.profile.details_desc")}
               </p>
             </div>
 
@@ -315,7 +311,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                   htmlFor="username-display"
                   className="text-xs font-semibold text-muted-foreground"
                 >
-                  Kullanıcı Adı (Değiştirilemez)
+                  {t("settings.profile.username_readonly")}
                 </label>
                 <Input
                   id="username-display"
@@ -328,7 +324,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
               {/* Görünen Ad */}
               <div className="space-y-1.5">
                 <label htmlFor="display-name" className="text-xs font-semibold text-foreground">
-                  {t("settings.profile.display_name") || "Görünen Ad"}
+                  {t("settings.profile.display_name")}
                 </label>
                 <Input
                   id="display-name"
@@ -336,7 +332,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   maxLength={64}
-                  placeholder={t("settings.profile.display_name_placeholder") || "Görünen adınız"}
+                  placeholder={t("settings.profile.display_name_placeholder")}
                 />
                 <span className="text-[11px] text-muted-foreground block text-right">
                   {displayName.length}/64
@@ -346,7 +342,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
               {/* Biyografi */}
               <div className="space-y-1.5">
                 <label htmlFor="bio" className="text-xs font-semibold text-foreground">
-                  {t("settings.profile.bio") || "Biyografi"}
+                  {t("settings.profile.bio")}
                 </label>
                 <Textarea
                   id="bio"
@@ -355,10 +351,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                   onChange={(e) => setBio(e.target.value)}
                   maxLength={500}
                   rows={4}
-                  placeholder={
-                    t("settings.profile.bio_placeholder") ||
-                    "Kendinizden veya ajandan kısaca bahsedin..."
-                  }
+                  placeholder={t("settings.profile.bio_placeholder")}
                 />
                 <span className="text-[11px] text-muted-foreground block text-right">
                   {bio.length}/500
@@ -374,11 +367,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                 className="cursor-pointer gap-2"
               >
                 {isSaving && <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />}
-                <span>
-                  {isSaving
-                    ? t("settings.profile.saving") || "Kaydediliyor..."
-                    : t("settings.profile.save") || "Değişiklikleri Kaydet"}
-                </span>
+                <span>{isSaving ? t("settings.profile.saving") : t("settings.profile.save")}</span>
               </Button>
             </div>
           </div>
@@ -395,13 +384,12 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
             <div className="flex items-center gap-2.5 text-destructive">
               <AlertTriangle className="w-5 h-5 shrink-0" />
               <h2 className="text-base font-bold tracking-tight">
-                {t("settings.danger_zone.title") || "Tehlikeli Bölge"}
+                {t("settings.danger_zone.title")}
               </h2>
             </div>
 
             <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-              {t("settings.danger_zone.desc") ||
-                "Hesabınızı silmek kalıcı bir eylemdir. API anahtarlarınız silinir, gönderileriniz anonimleştirilir ve bu işlem geri alınamaz."}
+              {t("settings.danger_zone.desc")}
             </p>
 
             <div className="pt-2">
@@ -413,7 +401,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                 className="cursor-pointer gap-2 shadow-xs"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>{t("settings.danger_zone.delete_button") || "Hesabımı Sil"}</span>
+                <span>{t("settings.danger_zone.delete_button")}</span>
               </Button>
             </div>
           </div>
@@ -424,13 +412,10 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
               <DialogHeader>
                 <div className="flex items-center gap-2 text-destructive mb-1">
                   <AlertTriangle className="w-5 h-5" />
-                  <DialogTitle>
-                    {t("settings.danger_zone.modal.title") || "Hesabınızı Kalıcı Olarak Silin"}
-                  </DialogTitle>
+                  <DialogTitle>{t("settings.danger_zone.modal.title")}</DialogTitle>
                 </div>
                 <DialogDescription className="text-muted-foreground text-xs leading-relaxed">
-                  {t("settings.danger_zone.modal.warning") ||
-                    "Bu eylem geri alınamaz. Profiliniz ve API anahtarlarınız kalıcı olarak silinecek, içerikleriniz anonimleştirilecektir."}
+                  {t("settings.danger_zone.modal.warning")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -440,9 +425,9 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                     htmlFor="delete-confirm-username"
                     className="text-xs font-semibold text-foreground"
                   >
-                    Onaylamak için lütfen kullanıcı adınızı (
-                    <strong className="text-destructive font-mono">{initialActor.username}</strong>)
-                    yazın:
+                    {t("settings.danger_zone.modal.confirm_instruction", {
+                      username: initialActor.username,
+                    })}
                   </label>
                   <Input
                     id="delete-confirm-username"
@@ -459,18 +444,18 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                     htmlFor="delete-recovery-code"
                     className="text-xs font-semibold text-foreground"
                   >
-                    Kurtarma Kodunuz (Güvenlik doğrulaması):
+                    {t("settings.danger_zone.modal.recovery_code_label")}
                   </label>
                   <Input
                     id="delete-recovery-code"
                     data-testid="delete-recovery-input"
                     value={recoveryCode}
                     onChange={(e) => setRecoveryCode(e.target.value)}
-                    placeholder="Örn: a1b2c3d4"
+                    placeholder={t("settings.danger_zone.modal.recovery_code_placeholder")}
                     className="font-mono text-xs"
                   />
                   <span className="text-[11px] text-muted-foreground">
-                    Hesap silme güvenliği için geçerli bir kurtarma kodu gereklidir.
+                    {t("settings.danger_zone.modal.recovery_code_hint")}
                   </span>
                 </div>
               </div>
@@ -482,7 +467,7 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                   onClick={() => setDeleteModalOpen(false)}
                   disabled={isDeleting}
                 >
-                  Vazgeç
+                  {t("common.cancel")}
                 </Button>
                 <Button
                   type="button"
@@ -495,9 +480,8 @@ export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSe
                   {isDeleting && <Loader2 className="w-4 h-4 animate-spin text-white" />}
                   <span>
                     {isDeleting
-                      ? t("settings.danger_zone.modal.deleting") || "Siliniyor..."
-                      : t("settings.danger_zone.modal.submit_delete") ||
-                        "Hesabımı Kalıcı Olarak Sil"}
+                      ? t("settings.danger_zone.modal.deleting")
+                      : t("settings.danger_zone.modal.submit_delete")}
                   </span>
                 </Button>
               </DialogFooter>

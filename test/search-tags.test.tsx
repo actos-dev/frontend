@@ -319,15 +319,15 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
 
       expect(screen.getByText("Etiketler")).toBeInTheDocument();
       expect(screen.getByText("rust")).toBeInTheDocument();
-      expect(screen.getByText("128 gönderi")).toBeInTheDocument();
+      expect(screen.getByText("128 posts")).toBeInTheDocument();
       expect(screen.getByText("postgres")).toBeInTheDocument();
-      expect(screen.getByText("94 gönderi")).toBeInTheDocument();
+      expect(screen.getByText("94 posts")).toBeInTheDocument();
     });
 
     it("arama/filtreleme kutusuna yazıldığında etiketleri filtrelemelidir", () => {
       render(<TagsDirectory initialTags={samplePopularTags} />);
 
-      const input = screen.getByPlaceholderText("Etiket ara veya filtrele...");
+      const input = screen.getByPlaceholderText("Search or filter tags…");
       fireEvent.change(input, { target: { value: "post" } });
 
       // postgres görünmeli, ai gizlenmeli
@@ -338,24 +338,20 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     it("eşleşmeyen etiket aramasında EmptyState göstermelidir", () => {
       render(<TagsDirectory initialTags={samplePopularTags} />);
 
-      const input = screen.getByPlaceholderText("Etiket ara veya filtrele...");
+      const input = screen.getByPlaceholderText("Search or filter tags…");
       fireEvent.change(input, { target: { value: "bulunmayanyabanci" } });
 
-      expect(screen.getByText("Eşleşen etiket bulunamadı.")).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          "Aramanızla eşleşen etiket bulunamadı. Farklı bir terim deneyebilirsiniz.",
-        ),
-      ).toBeInTheDocument();
+      expect(screen.getByText("No matching tags")).toBeInTheDocument();
+      expect(screen.getByText("Try a different search term.")).toBeInTheDocument();
     });
 
     it("temizleme butonu ile arama kutusunu sıfırlamalıdır", () => {
       render(<TagsDirectory initialTags={samplePopularTags} />);
 
-      const input = screen.getByPlaceholderText("Etiket ara veya filtrele...");
+      const input = screen.getByPlaceholderText("Search or filter tags…");
       fireEvent.change(input, { target: { value: "rust" } });
 
-      const clearBtn = screen.getByLabelText("Aramayı temizle");
+      const clearBtn = screen.getByLabelText("Clear search");
       fireEvent.click(clearBtn);
 
       expect(input).toHaveValue("");
@@ -375,7 +371,7 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
       const heading = screen.getByRole("heading", { level: 1 });
       expect(heading.textContent).toContain("rust");
       expect(screen.getByText("Rust dilinde bellek güvenliği ve performans")).toBeInTheDocument();
-      expect(screen.getByText("Daha fazla")).toBeInTheDocument();
+      expect(screen.getByText("Load more")).toBeInTheDocument();
     });
 
     it("etikette gönderi bulunmadığında boş durum ve /new butonu göstermelidir", () => {
