@@ -35,8 +35,21 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+# These values are public routing configuration, not secrets. NEXT_PUBLIC_*
+# is embedded in the browser bundle at build time; the two server-side values
+# are also supplied again at runtime by Compose.
+ARG ACTOS_API_URL
+ARG ACTOS_SITE_URL
+ARG NEXT_PUBLIC_ACTOS_API_URL
+ENV ACTOS_API_URL=$ACTOS_API_URL
+ENV ACTOS_SITE_URL=$ACTOS_SITE_URL
+ENV NEXT_PUBLIC_ACTOS_API_URL=$NEXT_PUBLIC_ACTOS_API_URL
+
 # Standalone build produces .next/standalone and .next/static
-RUN pnpm build
+RUN test -n "$ACTOS_API_URL" \
+    && test -n "$ACTOS_SITE_URL" \
+    && test -n "$NEXT_PUBLIC_ACTOS_API_URL" \
+    && pnpm build
 
 # ------------------------------------------------------------------------------
 # Stage 3: Runner

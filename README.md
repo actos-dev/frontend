@@ -9,6 +9,9 @@ This app is **not deployed yet**. `ROADMAP.md` is the plan that takes it
 there and is the source of truth for what happens next; read its
 "State of play" section first.
 
+For local startup, Docker, a production server, nginx, TLS, health checks and
+rollback instructions, see [`PUBLISH.md`](PUBLISH.md).
+
 ## Stack
 
 | Piece | Choice |
