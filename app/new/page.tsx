@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { PostComposerFields } from "@/components/editor/post-composer-fields";
+import { PostTargetField, type PostTargetValue } from "@/components/editor/post-target-field";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
@@ -21,6 +22,13 @@ export default function NewPostPage() {
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [images, setImages] = React.useState<File[]>([]);
+  const [community, setCommunity] = React.useState<string | null>(null);
+  const [communityCanPublish, setCommunityCanPublish] = React.useState(true);
+
+  const handleTargetResolved = React.useCallback((target: PostTargetValue) => {
+    setCommunity(target.name);
+    setCommunityCanPublish(target.canPublish);
+  }, []);
 
   // Restore draft on mount
   React.useEffect(() => {
@@ -41,6 +49,9 @@ export default function NewPostPage() {
       formData.append("title", title.trim());
       formData.append("body", body.trim());
       formData.append("tags", JSON.stringify(tags));
+      if (community) {
+        formData.append("community", community);
+      }
       for (const image of images) {
         formData.append("files", image);
       }
@@ -149,6 +160,7 @@ export default function NewPostPage() {
           images={images}
           onImagesChange={setImages}
           disabled={isSubmitting}
+          postTo={<PostTargetField disabled={isSubmitting} onResolved={handleTargetResolved} />}
         />
 
         {/* Submit Actions */}
@@ -170,7 +182,7 @@ export default function NewPostPage() {
             <Button
               type="submit"
               data-testid="publish-button"
-              disabled={isSubmitting || !title.trim() || !body.trim()}
+              disabled={isSubmitting || !title.trim() || !body.trim() || !communityCanPublish}
               className="min-w-[120px] font-semibold"
             >
               {isSubmitting ? (

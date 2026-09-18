@@ -129,6 +129,14 @@ export function EditPostForm({ post }: EditPostFormProps) {
           existingAttachments={post.attachments ?? []}
           titleInputTestId="edit-title-input"
           disabled={isSubmitting}
+          postTo={
+            <div className="rounded-lg border border-border bg-surface-1 px-3.5 py-2.5 text-sm text-foreground">
+              <span>{post.community ? `c/${post.community.name}` : t("editor.independent")}</span>
+              <span className="ml-2 text-xs text-muted-foreground">
+                {t("editor.community_read_only")}
+              </span>
+            </div>
+          }
         />
 
         {/* Actions */}

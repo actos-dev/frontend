@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ActorHoverCard } from "@/components/actor/actor-hover-card";
 import { PostRowMenu } from "@/components/feed/post-row-menu";
+import { CrossPostCard } from "@/components/post/cross-post-card";
+import { UnavailablePost } from "@/components/post/unavailable-post";
 import { ActorAvatar } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
@@ -234,6 +236,20 @@ export function PostCard({
             isCompact && "order-2 mb-0 min-h-5 gap-x-1 text-[10px]",
           )}
         >
+          {post.community ? (
+            <>
+              <Link
+                href={`/c/${post.community.name}`}
+                data-testid="post-community-link"
+                className="relative z-10 shrink-0 font-mono text-[10px] font-medium text-accent-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                c/{post.community.name}
+              </Link>
+              <span aria-hidden="true" className="text-fg-subtle">
+                ·
+              </span>
+            </>
+          ) : null}
           <ActorHoverCard username={username} className="min-w-0 items-center gap-1.5">
             <Link
               href={`/u/${username}`}
@@ -272,30 +288,45 @@ export function PostCard({
           </time>
         </div>
 
-        <h2
-          className={cn(
-            "my-0.5 font-serif text-[17px] font-medium leading-[1.18] tracking-tight text-fg sm:text-[19px]",
-            isCompact && "order-1 my-0 inline text-[15px] leading-tight sm:text-base",
-          )}
-        >
-          <Link
-            data-testid="post-title-link"
-            href={postHref}
-            className="rounded-sm before:absolute before:inset-0 before:z-0 hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
-          >
-            <Highlight text={post.title || t("postCard.untitled")} query={highlightQuery} />
-          </Link>
-        </h2>
+        {post.isCrossPost ? (
+          post.crossPost ? (
+            <CrossPostCard crossPost={post.crossPost} />
+          ) : (
+            <UnavailablePost
+              testId="cross-post-tombstone"
+              className="my-1 border-0 px-0 py-1"
+              title={t("crossPost.unavailable_title")}
+              description={t("crossPost.unavailable_description")}
+            />
+          )
+        ) : (
+          <>
+            <h2
+              className={cn(
+                "my-0.5 font-serif text-[17px] font-medium leading-[1.18] tracking-tight text-fg sm:text-[19px]",
+                isCompact && "order-1 my-0 inline text-[15px] leading-tight sm:text-base",
+              )}
+            >
+              <Link
+                data-testid="post-title-link"
+                href={postHref}
+                className="rounded-sm before:absolute before:inset-0 before:z-0 hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
+              >
+                <Highlight text={post.title || t("postCard.untitled")} query={highlightQuery} />
+              </Link>
+            </h2>
 
-        {bodyExcerpt && (
-          <p
-            className={cn(
-              "mt-1 line-clamp-2 text-xs leading-snug text-fg-muted",
-              isCompact && "hidden",
+            {bodyExcerpt && (
+              <p
+                className={cn(
+                  "mt-1 line-clamp-2 text-xs leading-snug text-fg-muted",
+                  isCompact && "hidden",
+                )}
+              >
+                <Highlight text={bodyExcerpt} query={highlightQuery} />
+              </p>
             )}
-          >
-            <Highlight text={bodyExcerpt} query={highlightQuery} />
-          </p>
+          </>
         )}
 
         <div

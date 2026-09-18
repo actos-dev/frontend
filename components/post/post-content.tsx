@@ -2,6 +2,8 @@
 
 import type { Post } from "actos";
 import Link from "next/link";
+import { CrossPostCard } from "@/components/post/cross-post-card";
+import { UnavailablePost } from "@/components/post/unavailable-post";
 import { CodeBlockEnhancer } from "@/components/render/code-block-enhancer";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -19,6 +21,42 @@ export interface PostContentProps {
 
 export function PostContent({ post, bodyHtml, className }: PostContentProps) {
   const { t } = useTranslation();
+
+  const tagsNav =
+    post.tags && post.tags.length > 0 ? (
+      <nav className="flex flex-wrap gap-x-3 gap-y-2 pt-2" aria-label={t("tags.nav_label")}>
+        {post.tags.map((tag) => (
+          <Link
+            key={tag}
+            href={`/t/${tag}`}
+            className="font-mono text-xs text-accent-text hover:underline underline-offset-4"
+          >
+            #{tag}
+          </Link>
+        ))}
+      </nav>
+    ) : null;
+
+  // A cross-post carries no title or body of its own: it references a source
+  // resolved at read time (COMMUNITY_PLAN.md §8). An unreachable source is the
+  // same tombstone whether it was deleted or is behind a private door.
+  if (post.isCrossPost) {
+    return (
+      <article data-testid="post-content" className={cn("space-y-6", className)}>
+        {post.crossPost ? (
+          <CrossPostCard crossPost={post.crossPost} />
+        ) : (
+          <UnavailablePost
+            testId="cross-post-tombstone"
+            title={t("crossPost.unavailable_title")}
+            description={t("crossPost.unavailable_description")}
+          />
+        )}
+        {tagsNav}
+      </article>
+    );
+  }
+
   return (
     <article data-testid="post-content" className={cn("space-y-6", className)}>
       {/* 1. Editorial title (Newsreader, ~68ch measure) */}
@@ -38,19 +76,7 @@ export function PostContent({ post, bodyHtml, className }: PostContentProps) {
         </CodeBlockEnhancer>
       </div>
 
-      {post.tags && post.tags.length > 0 ? (
-        <nav className="flex flex-wrap gap-x-3 gap-y-2 pt-2" aria-label={t("tags.nav_label")}>
-          {post.tags.map((tag) => (
-            <Link
-              key={tag}
-              href={`/t/${tag}`}
-              className="font-mono text-xs text-accent-text hover:underline underline-offset-4"
-            >
-              #{tag}
-            </Link>
-          ))}
-        </nav>
-      ) : null}
+      {tagsNav}
     </article>
   );
 }

@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     let tags: string[] = [];
     let files: File[] | undefined;
     let idempotencyKey: string | undefined;
+    let community: string | undefined;
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData().catch(() => null);
@@ -45,10 +46,15 @@ export async function POST(req: NextRequest) {
       const bodyField = formData.get("body");
       const tagsField = formData.get("tags");
       const idempotencyField = formData.get("idempotencyKey");
+      const communityField = formData.get("community");
 
       title = typeof titleField === "string" ? titleField.trim() : "";
       body = typeof bodyField === "string" ? bodyField.trim() : "";
       idempotencyKey = typeof idempotencyField === "string" ? idempotencyField : undefined;
+      community =
+        typeof communityField === "string" && communityField.trim()
+          ? communityField.trim().toLowerCase()
+          : undefined;
 
       if (typeof tagsField === "string") {
         try {
@@ -66,6 +72,10 @@ export async function POST(req: NextRequest) {
       body = typeof json?.body === "string" ? json.body.trim() : "";
       tags = sanitizeTags(json?.tags);
       idempotencyKey = typeof json?.idempotencyKey === "string" ? json.idempotencyKey : undefined;
+      community =
+        typeof json?.community === "string" && json.community.trim()
+          ? json.community.trim().toLowerCase()
+          : undefined;
     }
 
     if (!title) {
@@ -89,6 +99,7 @@ export async function POST(req: NextRequest) {
       title,
       body,
       tags,
+      community,
       files,
       idempotencyKey,
     });

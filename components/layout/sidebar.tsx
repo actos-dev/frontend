@@ -202,8 +202,11 @@ export function Sidebar({
         </div>
 
         {/* Communities section (ROADMAP §3): hidden behind FEATURE_COMMUNITIES
-            until the Phase 7 API lands. Only shown at the full nav width —
-            the icon rail has no room for a labeled section. */}
+            until the Phase 7 read half is verified against the real backend.
+            Only Browse and Create are offered: there is no endpoint that lists
+            the communities the viewer belongs to or owns (BE-016), so a
+            "joined" list here would be invented. Only shown at the full nav
+            width — the icon rail has no room for a labeled section. */}
         {FEATURE_COMMUNITIES && (
           <div className="hidden xl:block pt-2">
             <div className="flex items-center justify-between px-2.5 pb-1">
@@ -212,14 +215,14 @@ export function Sidebar({
               </span>
             </div>
             <Link
-              href="/communities"
+              href="/c"
               onClick={onNavigate}
               className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-fg-muted hover:text-fg hover:bg-bg-subtle transition-colors"
             >
               {t("nav.browseCommunities")}
             </Link>
             <Link
-              href="/communities/new"
+              href="/c/new"
               onClick={onNavigate}
               className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-fg-muted hover:text-fg hover:bg-bg-subtle transition-colors"
             >

@@ -86,8 +86,21 @@ export function PostHeader({ post, className }: PostHeaderProps) {
               />
             </div>
 
-            {/* Community slot lands here when the backend exposes communities. */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+              {post.community ? (
+                <>
+                  <Link
+                    href={`/c/${post.community.name}`}
+                    data-testid="post-community-link"
+                    className="font-mono font-medium text-accent-text hover:underline"
+                  >
+                    c/{post.community.name}
+                  </Link>
+                  <span aria-hidden="true" className="text-muted-foreground/40 select-none">
+                    ·
+                  </span>
+                </>
+              ) : null}
               <time
                 dateTime={post.createdAt}
                 title={fullCreatedDate}

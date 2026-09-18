@@ -5,6 +5,7 @@ import type { Post } from "actos";
 import { Bookmark, Trash2 } from "lucide-react";
 import { PostCard } from "@/components/feed/post-card";
 import { LoadMore } from "@/components/pagination/load-more";
+import { UnavailablePost } from "@/components/post/unavailable-post";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonPostCard } from "@/components/ui/skeleton";
@@ -47,31 +48,26 @@ function UnavailableSavedItem({ post, viewerId }: { post: Post; viewerId: string
   };
 
   return (
-    <article
-      data-testid="saved-tombstone"
-      data-content-id={post.id}
-      className="flex items-center justify-between gap-4 border-b border-border px-4 py-4 sm:px-6"
-    >
-      <div className="flex min-w-0 items-start gap-3">
-        <Bookmark aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-fg-subtle" />
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-fg">{t("saved.unavailable_title")}</p>
-          <p className="mt-1 text-xs text-fg-muted">{t("saved.unavailable_description")}</p>
-        </div>
-      </div>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        disabled={interaction.isSaving}
-        onClick={removeFromSaved}
-        aria-label={t("saved.remove_unavailable")}
-        className="shrink-0"
-      >
-        <Trash2 aria-hidden="true" />
-        <span>{t("saved.remove_unavailable")}</span>
-      </Button>
-    </article>
+    <UnavailablePost
+      testId="saved-tombstone"
+      contentId={post.id}
+      title={t("saved.unavailable_title")}
+      description={t("saved.unavailable_description")}
+      action={
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={interaction.isSaving}
+          onClick={removeFromSaved}
+          aria-label={t("saved.remove_unavailable")}
+          className="shrink-0"
+        >
+          <Trash2 aria-hidden="true" />
+          <span>{t("saved.remove_unavailable")}</span>
+        </Button>
+      }
+    />
   );
 }
 

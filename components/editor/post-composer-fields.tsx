@@ -2,6 +2,7 @@
 
 import type { Attachment } from "actos";
 import { Hash } from "lucide-react";
+import type { ReactNode } from "react";
 import { ImageUploader } from "@/components/editor/image-uploader";
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
 import { TagsInput } from "@/components/editor/tags-input";
@@ -22,6 +23,12 @@ export interface PostComposerFieldsProps {
   existingAttachments?: Attachment[];
   titleInputTestId?: string;
   disabled?: boolean;
+  /**
+   * The `Post to` control. The create form passes a live `PostTargetField`;
+   * the edit form passes a read-only row (the community is fixed after
+   * publish, ROADMAP C-05). Defaults to the plain "Public feed" label.
+   */
+  postTo?: ReactNode;
 }
 
 export function PostComposerFields({
@@ -36,6 +43,7 @@ export function PostComposerFields({
   existingAttachments = [],
   titleInputTestId = "post-title-input",
   disabled = false,
+  postTo,
 }: PostComposerFieldsProps) {
   const { t } = useTranslation();
   const canEditTags = Boolean(onTagsChange);
@@ -45,9 +53,11 @@ export function PostComposerFields({
     <div className="space-y-6" data-testid="post-composer-fields">
       <div className="space-y-2">
         <div className="text-sm font-semibold text-foreground">{t("editor.post_to")}</div>
-        <div className="rounded-lg border border-border bg-surface-1 px-3.5 py-2.5 text-sm text-foreground">
-          {t("editor.public_feed")}
-        </div>
+        {postTo ?? (
+          <div className="rounded-lg border border-border bg-surface-1 px-3.5 py-2.5 text-sm text-foreground">
+            {t("editor.public_feed")}
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
