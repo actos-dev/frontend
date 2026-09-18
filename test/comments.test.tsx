@@ -343,7 +343,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
   });
 
   describe("3. Katlanabilir Ağaç (Collapsible Threads - Plan §4.5)", () => {
-    it("[-] veya sol çizgiye basıldığında alt ağacı katlamalı ve '[+] @yazar (N yanıt gizlendi)' özeti göstermelidir", () => {
+    it("sol dal çizgisine basıldığında alt ağacı katlamalı ve yazar/yanıt özetini göstermelidir", () => {
       const node: CommentNode = {
         id: "c_collapse_root",
         contentType: "comment",
@@ -423,9 +423,9 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       expect(screen.getByText("1. Çocuk yanıt")).toBeDefined();
       expect(screen.getByText("Torun yanıt")).toBeDefined();
 
-      // [-] butonuna bas
-      const collapseBtns = screen.getAllByTestId("collapse-button");
-      fireEvent.click(collapseBtns[0]);
+      // Reddit tarzı sol dal çizgisine bas
+      const threadLines = screen.getAllByTestId("thread-line-toggle");
+      fireEvent.click(threadLines[0]);
 
       // Katlanmış durumda: gövde gizlenir, özet satırı görünür (toplam 2 yanıt gizlendi)
       expect(screen.queryByText("Ana yorum metni")).toBeNull();
@@ -436,9 +436,8 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       expect(summary.textContent).toContain("@efe");
       expect(summary.textContent).toContain("2 yanıt gizlendi");
 
-      // [+] butonuna veya özete basıldığında tekrar açılmalıdır
-      const expandBtn = screen.getByTestId("expand-button");
-      fireEvent.click(expandBtn);
+      // Aynı dal çizgisine basıldığında tekrar açılmalıdır
+      fireEvent.click(screen.getByTestId("thread-line-toggle"));
 
       expect(screen.getByText("Ana yorum metni")).toBeDefined();
       expect(screen.getByText("1. Çocuk yanıt")).toBeDefined();
@@ -505,7 +504,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
         />,
       );
 
-      fireEvent.click(screen.getAllByRole("button", { name: /yanıtla|reply/i })[0]);
+      fireEvent.click(screen.getAllByRole("button", { name: /^(yanıtla|reply)$/i })[0]);
 
       const replyForm = await screen.findByTestId("comment-reply-form");
       expect(replyForm.getAttribute("data-expanded")).toBe("true");

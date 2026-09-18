@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonPostCard } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 import { feedQueryOptions, normalizeFeedFilters } from "@/lib/query/queries";
 import type { FeedQueryPage } from "@/lib/query/types";
 import { useSessionStore } from "@/lib/stores/session-store";
@@ -46,12 +47,16 @@ export function FeedStream({
   window: timeWindow,
   actorType,
   isFollowing = false,
-  emptyTitle = "Henüz gönderi yok",
-  emptyDescription = "İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!",
-  emptyActionLabel = "Yeni Post Oluştur",
+  emptyTitle,
+  emptyDescription,
+  emptyActionLabel,
   emptyActionHref = "/new",
   density = "card",
 }: FeedStreamProps) {
+  const { t } = useTranslation();
+  const resolvedEmptyTitle = emptyTitle ?? t("empty.feed_title");
+  const resolvedEmptyDescription = emptyDescription ?? t("empty.feed_description");
+  const resolvedEmptyActionLabel = emptyActionLabel ?? t("empty.feed_action");
   const authStatus = useSessionStore((state) => state.status);
   const sessionUserId = useSessionStore((state) => state.user?.id ?? null);
   const viewerId =
@@ -184,9 +189,13 @@ export function FeedStream({
     return (
       <div className="py-12 px-4 sm:px-6">
         <EmptyState
-          title={emptyTitle}
-          description={emptyDescription}
-          action={{ label: emptyActionLabel, href: emptyActionHref, icon: MessageSquarePlus }}
+          title={resolvedEmptyTitle}
+          description={resolvedEmptyDescription}
+          action={{
+            label: resolvedEmptyActionLabel,
+            href: emptyActionHref,
+            icon: MessageSquarePlus,
+          }}
         />
       </div>
     );

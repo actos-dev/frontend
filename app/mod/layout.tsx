@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ModLayout({ children }: { children: React.ReactNode }) {
-  const { whoami, isAdmin } = await requireModServer();
+  const { whoami, isAdmin, capabilities } = await requireModServer();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -21,6 +21,7 @@ export default async function ModLayout({ children }: { children: React.ReactNod
           role: isAdmin ? "admin" : "moderator",
           roles: whoami.roles,
         }}
+        capabilities={capabilities}
       />
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6">{children}</main>
     </div>

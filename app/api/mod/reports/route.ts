@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { apiErrorResponse } from "@/lib/errors";
 import { requireModApi } from "@/lib/mod/auth";
 import { listReports } from "@/lib/mod/client-actions";
+import { enrichReports } from "@/lib/mod/report-enrichment";
 
 export const dynamic = "force-dynamic";
 
@@ -23,10 +24,11 @@ export async function GET(req: NextRequest) {
     const limit = searchParams.get("limit") ? Number(searchParams.get("limit")) : undefined;
 
     const page = await listReports(auth.client, { status, cursor, limit });
+    const reports = await enrichReports(auth.client, page.items);
 
     return NextResponse.json({
       ok: true,
-      reports: page.items,
+      reports,
       nextCursor: page.nextCursor,
     });
   } catch (error) {

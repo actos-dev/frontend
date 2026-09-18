@@ -29,7 +29,7 @@ export default async function ActionsPage() {
         </p>
       </div>
 
-      <ActionsList initialActions={actionsPage.items} />
+      <ActionsList initialActions={actionsPage.items} initialNextCursor={actionsPage.nextCursor} />
     </div>
   );
 }

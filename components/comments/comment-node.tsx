@@ -207,7 +207,7 @@ export function CommentNodeComponent({
   const reachedCutoff = depth >= maxDepth - 1;
   const hasReplies = Boolean(comment.replies && comment.replies.length > 0);
   const totalHiddenReplies = countAllReplies(comment);
-  const canCollapseThread = depth > 0 && hasReplies;
+  const canCollapseThread = hasReplies;
 
   return (
     <div
@@ -241,19 +241,10 @@ export function CommentNodeComponent({
       )}
       {/* 1. KATLANMIŞ DURUM GÖRÜNÜMÜ */}
       {isCollapsed ? (
-        <button
-          type="button"
+        <div
           data-testid="collapsed-summary"
-          aria-label={t("comments.expand") || "Genişlet"}
-          className="w-full flex items-center gap-2 py-1.5 px-2 rounded-md bg-muted/40 hover:bg-muted/70 text-xs text-muted-foreground transition-colors cursor-pointer select-none text-left border-0"
-          onClick={() => onToggleCollapse(comment.id)}
+          className="flex w-full select-none items-center gap-2 rounded-md bg-muted/40 px-2 py-1.5 text-left text-xs text-muted-foreground"
         >
-          <span
-            data-testid="expand-button"
-            className="p-0.5 hover:text-foreground font-mono font-bold"
-          >
-            [+]
-          </span>
           <span className="font-semibold text-foreground">
             @{isDeleted || isAuthorDeleted ? "silindi" : username}
           </span>
@@ -279,25 +270,13 @@ export function CommentNodeComponent({
           >
             {formatRelativeTime(comment.createdAt)}
           </time>
-        </button>
+        </div>
       ) : (
         /* 2. AÇIK NORMAL GÖRÜNÜM */
         <div className="space-y-2">
           {/* Başlık: Avatar, Yazar, Glif+Etiket, Tarih, Katlama Butonu */}
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Katlama butonu [-] */}
-              <button
-                type="button"
-                data-testid="collapse-button"
-                onClick={() => onToggleCollapse(comment.id)}
-                className="text-muted-foreground hover:text-foreground p-0.5 rounded-xs hover:bg-muted/50 transition-colors font-mono font-bold text-xs"
-                title={t("comments.collapse") || "Daralt"}
-                aria-label={t("comments.collapse") || "Daralt"}
-              >
-                [-]
-              </button>
-
               {/* Avatar */}
               {isDeleted || isAuthorDeleted ? (
                 <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] text-muted-foreground font-mono">

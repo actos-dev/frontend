@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ReportsQueue } from "@/components/mod/reports-queue";
 import { requireModServer } from "@/lib/mod/auth";
 import { listReports } from "@/lib/mod/client-actions";
+import { enrichReports } from "@/lib/mod/report-enrichment";
 
 export const metadata: Metadata = {
   title: "Rapor Kuyruğu — Moderasyon",
@@ -23,6 +24,7 @@ export default async function ReportsPage(props: ReportsPageProps) {
     items: [],
     nextCursor: null,
   }));
+  const reports = await enrichReports(client, reportsPage.items);
 
   return (
     <div className="space-y-6" data-testid="reports-queue-page">
@@ -36,7 +38,11 @@ export default async function ReportsPage(props: ReportsPageProps) {
         </p>
       </div>
 
-      <ReportsQueue initialReports={reportsPage.items} initialStatus={status} />
+      <ReportsQueue
+        initialReports={reports}
+        initialStatus={status}
+        initialNextCursor={reportsPage.nextCursor}
+      />
     </div>
   );
 }

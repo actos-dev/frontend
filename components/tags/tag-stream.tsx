@@ -7,6 +7,7 @@ import { PostCard } from "@/components/feed/post-card";
 import { LoadMore } from "@/components/pagination/load-more";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 import { syncCursorToUrl } from "@/lib/pagination";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
@@ -29,6 +30,7 @@ export function TagStream({
   initialVotes,
   initialViewerId = null,
 }: TagStreamProps) {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
   const [votes, setVotes] = useState<VoteMap>(initialVotes ?? {});
@@ -120,10 +122,10 @@ export function TagStream({
       <div className="py-12 px-4 sm:px-6">
         <EmptyState
           icon={MessageSquarePlus}
-          title="Bu etikete ait henüz bir gönderi bulunamadı. İlk gönderiyi sen paylaş!"
-          description={`#${tagName} etiketi altında henüz bir tartışma başlatılmamış.`}
+          title={t("tags.empty_title")}
+          description={t("tags.empty_description", { tag: tagName })}
           action={{
-            label: "Yeni Post Paylaş",
+            label: t("empty.feed_action"),
             href: "/new",
           }}
         />

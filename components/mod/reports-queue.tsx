@@ -1,6 +1,5 @@
 "use client";
 
-import type { Report } from "actos";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -9,41 +8,50 @@ import {
   MessageSquare,
   Trash2,
   User,
+  UserX,
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { BanDialog } from "@/components/mod/ban-dialog";
 import { DeleteContentDialog } from "@/components/mod/delete-content-dialog";
 import { ResolveReportDialog } from "@/components/mod/resolve-report-dialog";
+import { LoadMore } from "@/components/pagination/load-more";
+import { ActorAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import type { EnrichedReport } from "@/lib/mod/report-types";
 import { cn } from "@/lib/utils";
 
 interface ReportsQueueProps {
-  initialReports?: Report[];
+  initialReports?: EnrichedReport[];
   initialStatus?: string;
+  initialNextCursor?: string | null;
 }
 
 export function ReportsQueue({
   initialReports = [],
   initialStatus = "pending",
+  initialNextCursor = null,
 }: ReportsQueueProps) {
   const [activeTab, setActiveTab] = useState<"pending" | "resolved" | "dismissed">(
     (initialStatus as "pending" | "resolved" | "dismissed") || "pending",
   );
-  const [reports, setReports] = useState<Report[]>(initialReports);
+  const [reports, setReports] = useState<EnrichedReport[]>(initialReports);
   const [isLoading, setIsLoading] = useState(false);
+  const [nextCursor, setNextCursor] = useState(initialNextCursor);
   const isFirstMount = useRef(true);
 
   // Dialog states
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [selectedReport, setSelectedReport] = useState<EnrichedReport | null>(null);
   const [dialogMode, setDialogMode] = useState<"resolve" | "dismiss">("resolve");
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
 
   // Direct content delete dialog state
   const [deleteContentId, setDeleteContentId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [banUsername, setBanUsername] = useState<string | null>(null);
 
   useEffect(() => {
     if (isFirstMount.current) {
@@ -58,6 +66,7 @@ export function ReportsQueue({
       .then((data) => {
         if (!isCancelled && data.ok && Array.isArray(data.reports)) {
           setReports(data.reports);
+          setNextCursor(data.nextCursor ?? null);
         }
       })
       .catch(() => {})
@@ -72,13 +81,13 @@ export function ReportsQueue({
     };
   }, [activeTab]);
 
-  const handleOpenResolve = (report: Report) => {
+  const handleOpenResolve = (report: EnrichedReport) => {
     setSelectedReport(report);
     setDialogMode("resolve");
     setResolveDialogOpen(true);
   };
 
-  const handleOpenDismiss = (report: Report) => {
+  const handleOpenDismiss = (report: EnrichedReport) => {
     setSelectedReport(report);
     setDialogMode("dismiss");
     setResolveDialogOpen(true);
@@ -89,7 +98,7 @@ export function ReportsQueue({
     setDeleteDialogOpen(true);
   };
 
-  const handleReportUpdated = (updated: Report) => {
+  const handleReportUpdated = (updated: EnrichedReport) => {
     setReports((prev) =>
       prev.map((r) => (r.id === updated.id ? updated : r)).filter((r) => r.status === activeTab),
     );
@@ -102,10 +111,21 @@ export function ReportsQueue({
       .then((data) => {
         if (data.ok && Array.isArray(data.reports)) {
           setReports(data.reports);
+          setNextCursor(data.nextCursor ?? null);
         }
       })
       .catch(() => {})
       .finally(() => setIsLoading(false));
+  };
+
+  const handleLoadMore = async (cursor: string) => {
+    const response = await fetch(
+      `/api/mod/reports?status=${encodeURIComponent(activeTab)}&cursor=${encodeURIComponent(cursor)}&limit=50`,
+    );
+    const data = await response.json();
+    if (!response.ok || !data.ok || !Array.isArray(data.reports)) return;
+    setReports((current) => [...current, ...data.reports]);
+    setNextCursor(data.nextCursor ?? null);
   };
 
   const getTargetIcon = (type: string) => {
@@ -116,6 +136,30 @@ export function ReportsQueue({
         return <User className="w-3.5 h-3.5" />;
       default:
         return <AlertTriangle className="w-3.5 h-3.5" />;
+    }
+  };
+
+  const handleQueueKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const focusedReportId = (event.target as Element)
+      .closest<HTMLElement>("[data-report-id]")
+      ?.getAttribute("data-report-id");
+    const current = reports.findIndex((report) => report.id === focusedReportId);
+    const activeIndex = current >= 0 ? current : 0;
+    let nextIndex = activeIndex;
+    if (event.key === "j") nextIndex = Math.min(activeIndex + 1, reports.length - 1);
+    else if (event.key === "k") nextIndex = Math.max(activeIndex - 1, 0);
+    else if (event.key === "d") handleOpenDismiss(reports[activeIndex]);
+    else if (event.key === "r" && ["post", "comment"].includes(reports[activeIndex]?.targetType)) {
+      handleOpenDeleteContent(reports[activeIndex].targetId);
+    } else if (event.key === "b") {
+      const author = reports[activeIndex]?.targetPreview?.author;
+      if (author?.username) setBanUsername(author.username);
+    } else return;
+
+    event.preventDefault();
+    if (event.key === "j" || event.key === "k") {
+      const report = reports[nextIndex];
+      document.querySelector<HTMLElement>(`[data-report-id="${report.id}"]`)?.focus();
     }
   };
 
@@ -199,12 +243,19 @@ export function ReportsQueue({
           }
         />
       ) : (
-        <div className="space-y-3" data-testid="reports-list">
+        // biome-ignore lint/a11y/noStaticElementInteractions: j/k/d/r/b shortcuts augment the native buttons inside this queue.
+        <div
+          className="divide-y divide-border border-y border-border"
+          data-testid="reports-list"
+          onKeyDown={handleQueueKeyDown}
+        >
           {reports.map((report) => (
-            <div
+            <article
               key={report.id}
               data-testid={`report-card-${report.id}`}
-              className="p-4 rounded-2xl bg-card border border-border/80 shadow-xs hover:border-border transition-colors space-y-3"
+              data-report-id={report.id}
+              tabIndex={-1}
+              className="space-y-3 px-1 py-4 outline-none transition-colors focus:bg-bg-subtle"
             >
               {/* Kart Başlığı: Hedef, Durum ve Tarih */}
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -221,6 +272,12 @@ export function ReportsQueue({
                   <span className="font-mono text-muted-foreground font-medium">
                     ID: {report.targetId}
                   </span>
+
+                  {(report.targetReportCount ?? 1) > 1 && (
+                    <Badge variant="secondary" size="sm" className="font-mono text-[10px]">
+                      {report.targetReportCount} reports
+                    </Badge>
+                  )}
 
                   {report.targetType === "post" && (
                     <Link
@@ -263,6 +320,65 @@ export function ReportsQueue({
                 </div>
               </div>
 
+              {report.targetPreview && (
+                <div
+                  data-testid={`report-preview-${report.id}`}
+                  className="border-l-2 border-border-strong pl-3"
+                >
+                  {report.targetPreview.unavailable ? (
+                    <p className="text-sm text-muted-foreground">
+                      Reported content is unavailable.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        {report.targetPreview.author ? (
+                          <Link
+                            href={`/u/${report.targetPreview.author.username}`}
+                            className="inline-flex min-w-0 items-center gap-2 text-xs"
+                          >
+                            <ActorAvatar
+                              actorType={
+                                report.targetPreview.author.actorType as "human" | "ai_agent"
+                              }
+                              username={report.targetPreview.author.username}
+                              displayName={report.targetPreview.author.displayName || undefined}
+                              src={report.targetPreview.author.avatarUrl}
+                              size={20}
+                            />
+                            <span className="truncate font-medium text-foreground">
+                              {report.targetPreview.author.displayName ||
+                                report.targetPreview.author.username}
+                            </span>
+                            <span className="truncate font-mono text-muted-foreground">
+                              @{report.targetPreview.author.username}
+                            </span>
+                          </Link>
+                        ) : null}
+                        {report.targetPreview.href ? (
+                          <Link
+                            href={report.targetPreview.href}
+                            className="shrink-0 text-xs text-accent-text hover:underline"
+                          >
+                            Open content
+                          </Link>
+                        ) : null}
+                      </div>
+                      {report.targetPreview.title ? (
+                        <p className="font-serif text-base font-semibold text-foreground">
+                          {report.targetPreview.title}
+                        </p>
+                      ) : null}
+                      {report.targetPreview.excerpt ? (
+                        <p className="line-clamp-3 text-sm leading-relaxed text-foreground/90">
+                          {report.targetPreview.excerpt}
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Şikayet Gerekçesi */}
               <div className="space-y-1">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
@@ -302,6 +418,20 @@ export function ReportsQueue({
                     </Button>
                   )}
 
+                  {report.targetPreview?.author?.username && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      data-testid={`ban-author-btn-${report.id}`}
+                      onClick={() => setBanUsername(report.targetPreview?.author?.username || null)}
+                      className="gap-1.5 text-xs"
+                    >
+                      <UserX className="h-3.5 w-3.5" />
+                      <span>Ban author</span>
+                    </Button>
+                  )}
+
                   <Button
                     type="button"
                     variant="outline"
@@ -327,10 +457,18 @@ export function ReportsQueue({
                   </Button>
                 </div>
               )}
-            </div>
+            </article>
           ))}
         </div>
       )}
+
+      <LoadMore
+        nextCursor={nextCursor}
+        onLoadMore={handleLoadMore}
+        syncUrl={false}
+        label="Load more reports"
+        loadingLabel="Loading reports…"
+      />
 
       {/* Çözüm / Reddet Dialog */}
       <ResolveReportDialog
@@ -347,6 +485,15 @@ export function ReportsQueue({
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onSuccess={handleContentDeleted}
+      />
+
+      <BanDialog
+        key={banUsername ?? "no-author"}
+        open={Boolean(banUsername)}
+        onOpenChange={(open) => {
+          if (!open) setBanUsername(null);
+        }}
+        defaultUsername={banUsername ?? ""}
       />
     </div>
   );

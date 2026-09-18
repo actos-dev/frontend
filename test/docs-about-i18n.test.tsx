@@ -30,107 +30,58 @@ describe("Faz 20 — Dokümantasyon, /about Sayfası ve i18n Eşitlemesi", () =>
      1. /about Sayfası Bileşen ve Metadata Doğrulaması (Çift Dilli)
      ========================================================================== */
   describe("1. /about Sayfası (Server Component)", () => {
-    it("sayfa başlığı, felsefi manifestoyu ve kahraman alanını render etmelidir", async () => {
+    it("kısa ve olgusal tanıtım başlığını render etmelidir", async () => {
       const pageUi = await AboutPage();
       render(pageUi);
 
-      // Hero başlığı (Varsayılan EN veya TR)
       const heroHeading = screen.getByRole("heading", {
         level: 1,
-        name: /(The Common Square for Humans and AI Agents|İnsanlar ve Yapay Zeka Ajanları İçin Ortak Meydan)/i,
+        name: /^(About Actos|Actos Hakkında)$/i,
       });
       expect(heroHeading).toBeDefined();
-
-      // Rozet
-      expect(screen.getByText(/(Philosophy & Manifesto|Felsefe & Manifestomuz)/i)).toBeDefined();
     });
 
-    it("4 temel felsefi ilke başlığını ve açıklamalarını eksiksiz render etmelidir", async () => {
+    it("ürün, hesap, AGENT etiketi ve gizlilik bilgilerini render etmelidir", async () => {
       const pageUi = await AboutPage();
       render(pageUi);
 
-      // İlke 1: Eşit Vatandaşlık (Equal Citizens)
-      expect(
-        screen.getByRole("heading", {
-          level: 3,
-          name: /(Equal Citizenship \(Equal Citizens\)|Eşit Vatandaşlık \(Equal Citizens\))/i,
-        }),
-      ).toBeDefined();
-
-      // İlke 2: Metin Kutsaldır (Text is Sacred)
-      expect(
-        screen.getByRole("heading", {
-          level: 3,
-          name: /(Text is Sacred \(Text is Sacred\)|Metin Kutsaldır \(Text is Sacred\))/i,
-        }),
-      ).toBeDefined();
-
-      // İlke 3: API Asıl Sözleşmedir (Radical Transparency)
-      expect(
-        screen.getByRole("heading", {
-          level: 3,
-          name: /(The API is the True Contract \(Radical Transparency\)|API Asıl Sözleşmedir \(Radikal Şeffaflık\))/i,
-        }),
-      ).toBeDefined();
-
-      // İlke 4: Güven ve Şeffaflık
-      expect(
-        screen.getByRole("heading", {
-          level: 3,
-          name: /(Trust & Transparency|Güven ve Şeffaflık)/i,
-        }),
-      ).toBeDefined();
-
-      // Asimetri durum kodları
-      expect(screen.getAllByText(/410 GONE/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/200 OK/i).length).toBeGreaterThan(0);
+      for (const heading of [
+        /^(What it is|Nedir\?)$/i,
+        /^(Accounts and access|Hesaplar ve erişim)$/i,
+        /^(What AGENT means|AGENT ne demek\?)$/i,
+        /^(Privacy|Gizlilik)$/i,
+      ]) {
+        expect(screen.getByRole("heading", { level: 2, name: heading })).toBeDefined();
+      }
     });
 
     it("temel aksiyon butonlarını ve linklerini doğru hedeflerle render etmelidir", async () => {
       const pageUi = await AboutPage();
       render(pageUi);
 
-      // Kayıt & Keşfet Butonları
       const registerLink = screen.getByRole("link", {
-        name: /(Join Community|Aramıza Katıl)/i,
+        name: /^(Create an account|Hesap oluştur)$/i,
       });
       expect(registerLink.getAttribute("href")).toBe("/register");
 
-      const exploreLink = screen.getByRole("link", {
-        name: /(Explore Feed|Akışı Keşfet)/i,
+      const rulesLink = screen.getByRole("link", {
+        name: /^(Read the rules|Kuralları oku)$/i,
       });
-      expect(exploreLink.getAttribute("href")).toBe("/");
-
-      const tagsLink = screen.getByRole("link", {
-        name: /(Popular Tags|Popüler Etiketler)/i,
-      });
-      expect(tagsLink.getAttribute("href")).toBe("/tags");
-
-      // Dış bağlantılar
-      const githubLink = screen.getByRole("link", {
-        name: /(GitHub Source Code|GitHub Kaynak Kodu)/i,
-      });
-      expect(githubLink.getAttribute("href")).toBe("https://github.com/actos-dev");
+      expect(rulesLink.getAttribute("href")).toBe("/rules");
 
       const docsLink = screen.getByRole("link", {
-        name: /(API Documentation|API Dokümantasyonu)/i,
+        name: /^(Develop with the API|API ile geliştir)$/i,
       });
-      // ROADMAP K-05: the dead /docs link now points at the real /developers
-      // stub page instead of a route that never existed.
       expect(docsLink.getAttribute("href")).toBe("/developers");
     });
 
-    it("editoryal okuma sınıflarını (reading-container ve prose) içermelidir", async () => {
+    it("dar okuma düzenini kullanmalıdır", async () => {
       const pageUi = await AboutPage();
       const { container } = render(pageUi);
 
       const readingContainer = container.querySelector(".reading-container");
       expect(readingContainer).toBeDefined();
       expect(readingContainer).not.toBeNull();
-
-      const readingProse = container.querySelector(".prose");
-      expect(readingProse).toBeDefined();
-      expect(readingProse).not.toBeNull();
     });
 
     it("generateMetadata() geçerli SEO etiketleri ve OpenGraph üretmelidir", async () => {
@@ -213,30 +164,20 @@ describe("Faz 20 — Dokümantasyon, /about Sayfası ve i18n Eşitlemesi", () =>
 
     it("about bölümü her iki dilde de tüm gerekli anahtarları içermelidir", () => {
       const requiredAboutKeys = [
-        "about.badge",
         "about.hero_title",
         "about.hero_subtitle",
+        "about.what_title",
+        "about.what_body",
+        "about.accounts_title",
+        "about.accounts_body",
+        "about.agent_title",
+        "about.agent_body",
+        "about.privacy_title",
+        "about.privacy_body",
+        "about.links_label",
         "about.cta_register",
-        "about.cta_explore",
-        "about.cta_tags",
+        "about.cta_rules",
         "about.cta_api_docs",
-        "about.cta_github",
-        "about.principles_title",
-        "about.principle1_title",
-        "about.principle1_desc",
-        "about.principle2_title",
-        "about.principle2_desc",
-        "about.principle3_title",
-        "about.principle3_desc",
-        "about.principle4_title",
-        "about.principle4_desc",
-        "about.architecture_title",
-        "about.architecture_desc",
-        "about.stats_title",
-        "about.stats_bundle",
-        "about.stats_themes",
-        "about.stats_audit",
-        "about.stats_tests",
         "about.meta_title",
         "about.meta_description",
       ];

@@ -51,13 +51,14 @@ Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
 pass. The previous real-backend suite remains at 40 passing journeys; rerun
 it against a running API before deployment.
 
-**In flight:** U-02 hover cards are ready in the working tree. U-08's true
-unavailable-save tombstone remains backend-blocked; Phase 6 moderation is
-next. List responses still omit attachments, so feed rows deliberately have
-no thumbnails until B-04 lands rather than making N+1 detail requests.
+**In flight:** Phase 6 moderation works against the current API and the final
+accessibility/responsive/i18n pass is next. U-08's true unavailable-save
+tombstone remains backend-blocked. List responses still omit attachments, so
+feed rows deliberately have no thumbnails until B-04 lands rather than
+making N+1 detail requests.
 
-**Next:** M-01…M-03 and the final accessibility/responsive/i18n pass.
-Community selection remains behind B-12.
+**Next:** the final accessibility/responsive/i18n pass. Community selection
+remains behind B-12.
 
 ### Running the thing locally
 
@@ -919,11 +920,13 @@ inventing client data.
 
 ## Phase 6 — Moderation
 
-**M-01 · Capability-driven shell.** Navigation and actions from a capability
-list (§3 slot). Unauthorized access keeps returning 404, as it does today
-(`lib/mod/auth.ts:61-77`).
+**M-01 · Capability-driven shell.** 🟡 Frontend complete 2026-09-18 —
+Navigation and actions consume one capability list and unauthorized access
+keeps returning 404. Backend 0.2 only returns roles, so a single compatibility
+adapter maps those roles to capabilities until scoped grants arrive with
+B-12; UI components do not infer roles independently.
 
-**M-02 · Report queue.** Each report shows:
+**M-02 · Report queue.** 🟡 Frontend complete against backend 0.2 — Each report shows:
 
 - **the reported content inline:** title or excerpt, author with shape,
   community later
@@ -931,12 +934,17 @@ list (§3 slot). Unauthorized access keeps returning 404, as it does today
 
 Actions are Dismiss, Remove content, and Ban author, with a duration and the
 scope slot. Keyboard triage: `j/k`, `d`, `r`, `b`. Today the queue shows only
-a content id and an "open content" link. Needs B-04 for the enrichment, or
-N+1 fetches as an interim.
+a content id and an "open content" link. The frontend now enriches the visible
+page with bounded post/comment detail requests and counts duplicate targets
+within that page. Reporter identity and a global same-target count remain
+unavailable because the report DTO does not expose them; B-04 is required.
 
-**M-03 · Bans, audit log, roles.** Dense tables with filters and pagination,
-and consistent problem+json error surfacing. The roles screen becomes
-"Permissions" when scoped grants land.
+**M-03 · Bans, audit log, roles.** 🟡 Frontend complete against backend 0.2 —
+The audit log is a dense filtered, paginated table; ban creation/removal and
+role changes surface API errors consistently. Backend 0.2 exposes neither an
+active-ban listing nor role/permission listing, so those two screens cannot
+render paginated tables yet. The roles screen becomes "Permissions" when
+scoped grants land.
 
 ---
 

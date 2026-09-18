@@ -14,6 +14,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  capabilitiesFromRoles,
+  hasModCapability,
+  type ModCapability,
+} from "@/lib/mod/capabilities";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { cn } from "@/lib/utils";
 
@@ -24,44 +29,50 @@ interface ModNavProps {
     role?: string;
     roles?: string[];
   };
+  capabilities?: ModCapability[];
 }
 
-export function ModNav({ initialUser }: ModNavProps) {
+export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNavProps) {
   const pathname = usePathname();
   const sessionUser = useSessionStore((state) => state.user);
 
   const currentUser = sessionUser || initialUser;
   const roles = currentUser?.roles || (currentUser?.role ? [currentUser.role] : []);
   const isAdmin = roles.includes("admin") || currentUser?.role === "admin";
-  const _isMod = roles.includes("moderator") || currentUser?.role === "moderator";
+  const capabilities = initialCapabilities ?? capabilitiesFromRoles(roles);
 
   const navItems = [
     {
       label: "Özet",
       href: "/mod",
       icon: BarChart3,
+      capability: "reports:read" as const,
     },
     {
       label: "Rapor Kuyruğu",
       href: "/mod/reports",
       icon: AlertTriangle,
+      capability: "reports:read" as const,
     },
     {
       label: "Ban Yönetimi",
       href: "/mod/bans",
       icon: BanIcon,
+      capability: "actors:ban" as const,
     },
     {
       label: "Denetim Kaydı",
       href: "/mod/actions",
       icon: ShieldCheck,
+      capability: "audit:read" as const,
     },
-    ...(isAdmin
+    ...(hasModCapability(capabilities, "roles:manage")
       ? [
           {
             label: "Rol Yönetimi",
             href: "/mod/roles",
             icon: UserCheck,
+            capability: "roles:manage" as const,
           },
         ]
       : []),
@@ -128,28 +139,30 @@ export function ModNav({ initialUser }: ModNavProps) {
         aria-label="Moderasyon Sekmeleri"
         className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-1 overflow-x-auto no-scrollbar"
       >
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            item.href === "/mod" ? pathname === "/mod" : pathname.startsWith(item.href);
+        {navItems
+          .filter((item) => hasModCapability(capabilities, item.capability))
+          .map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.href === "/mod" ? pathname === "/mod" : pathname.startsWith(item.href);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              data-testid={`mod-nav-${item.href.replace("/mod/", "").replace("/mod", "summary")}`}
-              className={cn(
-                "inline-flex items-center gap-2 px-3.5 py-2.5 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
-                isActive
-                  ? "border-primary text-foreground font-semibold"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
-              )}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                data-testid={`mod-nav-${item.href.replace("/mod/", "").replace("/mod", "summary")}`}
+                className={cn(
+                  "inline-flex items-center gap-2 px-3.5 py-2.5 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                  isActive
+                    ? "border-primary text-foreground font-semibold"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
       </nav>
     </header>
   );

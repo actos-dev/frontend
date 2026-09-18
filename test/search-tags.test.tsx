@@ -381,11 +381,9 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     it("etikette gönderi bulunmadığında boş durum ve /new butonu göstermelidir", () => {
       render(<TagStream tagName="bos_etiket" initialPosts={[]} initialNextCursor={null} />);
 
-      expect(
-        screen.getByText("Bu etikete ait henüz bir gönderi bulunamadı. İlk gönderiyi sen paylaş!"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Posts tagged #bos_etiket will appear here.")).toBeInTheDocument();
 
-      const newBtn = screen.getByRole("link", { name: "Yeni Post Paylaş" });
+      const newBtn = screen.getByRole("link", { name: "Create Post" });
       expect(newBtn).toBeInTheDocument();
       expect(newBtn).toHaveAttribute("href", "/new");
     });

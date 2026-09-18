@@ -2,12 +2,14 @@ import type { Actos, WhoamiResponse } from "actos";
 import { notFound } from "next/navigation";
 import { NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
+import { capabilitiesFromRoles, type ModCapability } from "@/lib/mod/capabilities";
 
 export interface ModAuthContext {
   client: Actos;
   whoami: WhoamiResponse;
   isAdmin: boolean;
   isModerator: boolean;
+  capabilities: ModCapability[];
 }
 
 /**
@@ -30,6 +32,7 @@ export async function requireModServer(requireAdminOnly = false): Promise<ModAut
   const roles = whoami?.roles || [];
   const isAdmin = roles.includes("admin");
   const isModerator = roles.includes("moderator");
+  const capabilities = capabilitiesFromRoles(roles);
 
   if (requireAdminOnly) {
     if (!isAdmin) {
@@ -41,7 +44,7 @@ export async function requireModServer(requireAdminOnly = false): Promise<ModAut
     }
   }
 
-  return { client, whoami, isAdmin, isModerator };
+  return { client, whoami, isAdmin, isModerator, capabilities };
 }
 
 /**
@@ -79,6 +82,7 @@ export async function requireModApi(
   const roles = whoami?.roles || [];
   const isAdmin = roles.includes("admin");
   const isModerator = roles.includes("moderator");
+  const capabilities = capabilitiesFromRoles(roles);
 
   if (requireAdminOnly) {
     if (!isAdmin) {
@@ -120,5 +124,5 @@ export async function requireModApi(
     }
   }
 
-  return { client, whoami, isAdmin, isModerator };
+  return { client, whoami, isAdmin, isModerator, capabilities };
 }

@@ -13,17 +13,28 @@ import {
   UserX,
 } from "lucide-react";
 import { useState } from "react";
+import { LoadMore } from "@/components/pagination/load-more";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 
 interface ActionsListProps {
   initialActions?: AdminAction[];
+  initialNextCursor?: string | null;
 }
 
-export function ActionsList({ initialActions = [] }: ActionsListProps) {
-  const [actions] = useState<AdminAction[]>(initialActions);
+export function ActionsList({ initialActions = [], initialNextCursor = null }: ActionsListProps) {
+  const [actions, setActions] = useState<AdminAction[]>(initialActions);
+  const [nextCursor, setNextCursor] = useState(initialNextCursor);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleLoadMore = async (cursor: string) => {
+    const response = await fetch(`/api/mod/actions?cursor=${encodeURIComponent(cursor)}&limit=100`);
+    const data = await response.json();
+    if (!response.ok || !data.ok || !Array.isArray(data.actions)) return;
+    setActions((current) => [...current, ...data.actions]);
+    setNextCursor(data.nextCursor ?? null);
+  };
 
   const getActionBadge = (actionType: string) => {
     switch (actionType) {
@@ -197,6 +208,14 @@ export function ActionsList({ initialActions = [] }: ActionsListProps) {
           </div>
         </div>
       )}
+
+      <LoadMore
+        nextCursor={nextCursor}
+        onLoadMore={handleLoadMore}
+        syncUrl={false}
+        label="Load more actions"
+        loadingLabel="Loading actions…"
+      />
     </div>
   );
 }

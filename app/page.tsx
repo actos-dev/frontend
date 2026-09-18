@@ -127,9 +127,6 @@ export default async function HomePage(props: HomePageProps) {
             initialCursor={cursor}
             initialViewer={viewer}
             initialViewerId={viewerId}
-            emptyTitle="Henüz gönderi yok"
-            emptyDescription="İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!"
-            emptyActionLabel="Yeni Post Oluştur"
             emptyActionHref="/new"
           />
         </HydrationBoundary>

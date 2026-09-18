@@ -27,6 +27,7 @@ import { ResolveReportDialog } from "@/components/mod/resolve-report-dialog";
 import { RolesManager } from "@/components/mod/roles-manager";
 import { toast } from "@/components/ui/toast";
 import * as actosLib from "@/lib/actos";
+import { capabilitiesFromRoles } from "@/lib/mod/capabilities";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { MOCK_USERS } from "@/test/fixtures/users";
 
@@ -236,6 +237,20 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       expect(screen.getByTestId("mod-nav-actions")).toBeInTheDocument();
       expect(screen.getByTestId("mod-nav-roles")).toBeInTheDocument();
     });
+
+    it("moderatör kabiliyetleri rol yönetimini dışarıda bırakır", () => {
+      useSessionStore.setState({ user: null });
+      render(
+        <ModNav
+          initialUser={{ ...mockModeratorWhoami.actor, roles: ["moderator"] }}
+          capabilities={capabilitiesFromRoles(["moderator"])}
+        />,
+      );
+
+      expect(screen.getByTestId("mod-nav-reports")).toBeInTheDocument();
+      expect(screen.getByTestId("mod-nav-bans")).toBeInTheDocument();
+      expect(screen.queryByTestId("mod-nav-roles")).not.toBeInTheDocument();
+    });
   });
 
   /* ==========================================================================
@@ -263,6 +278,37 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       expect(screen.getByText("Zararlı bağlantı")).toBeInTheDocument();
       expect(screen.getByTestId("resolve-report-btn-rep_99")).toBeInTheDocument();
       expect(screen.getByTestId("dismiss-report-btn-rep_99")).toBeInTheDocument();
+    });
+
+    it("zenginleştirilmiş hedefi satır içinde gösterir ve b kısayoluyla yazarı ban formuna taşır", () => {
+      const enrichedReport = {
+        ...sampleReport,
+        targetReportCount: 2,
+        targetPreview: {
+          kind: "post" as const,
+          title: "Raporlanan gönderi",
+          excerpt: "İncelenecek gönderinin gerçek içerik özeti.",
+          href: "/posts/c_spam_99",
+          author: {
+            id: "a_spammer",
+            username: "spam_agent",
+            displayName: "Spam Agent",
+            actorType: "ai_agent",
+            createdAt: new Date().toISOString(),
+          },
+        },
+      };
+
+      render(<ReportsQueue initialReports={[enrichedReport]} initialStatus="pending" />);
+
+      expect(screen.getByTestId("report-preview-rep_99")).toHaveTextContent("Raporlanan gönderi");
+      expect(screen.getByTestId("report-preview-rep_99")).toHaveTextContent(
+        "İncelenecek gönderinin gerçek içerik özeti.",
+      );
+      expect(screen.getByText("2 reports")).toBeInTheDocument();
+
+      fireEvent.keyDown(screen.getByTestId("report-card-rep_99"), { key: "b" });
+      expect(screen.getByTestId("ban-username-input")).toHaveValue("spam_agent");
     });
 
     it("ResolveReportDialog moderatör notu girilmeden gönderildiğinde hata verir ve engeller", async () => {
