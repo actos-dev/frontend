@@ -65,8 +65,19 @@ then rerun the backend's migrations) and seed from scratch.
 ## 3. Run the suite
 
 ```bash
-ACTOS_API_URL=http://127.0.0.1:3100 pnpm test:e2e:real
+pnpm test:e2e:real
 ```
+
+`playwright.real.config.ts` supplies sane local defaults for everything the
+production build validates, so only the backend needs to be running. Each can
+be overridden from the environment:
+
+| Variable | Default | Why |
+|---|---|---|
+| `ACTOS_API_URL` | `http://127.0.0.1:3100` | Server-side API calls |
+| `ACTOS_SITE_URL` | `PLAYWRIGHT_BASE_URL` (`http://localhost:3400`) | Canonical site URL |
+| `NEXT_PUBLIC_ACTOS_API_URL` | `ACTOS_API_URL` | Browser-side API calls |
+| `ACTOS_MEDIA_URL` | `http://127.0.0.1:3103` | MinIO origin folded into the CSP `img-src`/`media-src`; without it avatars/images are blocked and the console-error guard fails |
 
 This builds the app (`next build`), starts it in production mode on port
 **3400** (`next start -p 3400` — don't use another port, `secure` cookies
@@ -74,6 +85,17 @@ rely on Chromium's `localhost` exception), and runs every spec in
 `test/e2e-real/` against it on two projects: `desktop` (1440×900) and
 `mobile` (390×844). If a server is already listening on the configured
 `PLAYWRIGHT_BASE_URL` (default `http://localhost:3400`), it's reused as-is.
+
+## 3a. Locale policy
+
+The app defaults to English, with Turkish negotiated from `Accept-Language`
+or remembered in the `actos_locale` cookie (ROADMAP D-09). This suite asserts
+the **English default**: the Playwright `use.locale` option is pinned to
+`en-US` in `playwright.real.config.ts`, so every request carries
+`Accept-Language: en-US` and the server renders English no matter what locale
+the developer's machine uses. Specs must therefore use English strings and
+must not set `actos_locale` per test. If a future unit changes the default
+locale, update the pinned `locale` and the assertions together, in one place.
 
 ## 4. Look at the screenshots
 

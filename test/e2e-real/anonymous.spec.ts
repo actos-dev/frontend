@@ -34,7 +34,18 @@ const SEEDED_DISPLAY_NAMES = [
   "Nimbus",
 ];
 
-const FORBIDDEN_STRINGS = ["anonim", "İsimsiz Gönderi", "undefined", "NaN"];
+// Placeholder render strings for a broken author/title (postCard.anonymous /
+// postCard.untitled) in both supported locales. The suite runs in the English
+// default (see README §3a), but keeping the Turkish values too makes the guard
+// catch a locale-negotiation regression that silently flipped the page back.
+const FORBIDDEN_STRINGS = [
+  "anonymous",
+  "Untitled post",
+  "anonim",
+  "İsimsiz Gönderi",
+  "undefined",
+  "NaN",
+];
 
 async function assertNoForbiddenStrings(page: import("@playwright/test").Page) {
   const bodyText = await page.locator("body").innerText();
@@ -62,7 +73,7 @@ test("home feed shows seeded posts and authors, with no placeholder content", as
   // flowed through to the page.
   let foundDisplayNames = 0;
   for (const name of SEEDED_DISPLAY_NAMES) {
-    const count = await page.locator(`a[aria-label="${name} profili"]`).count();
+    const count = await page.locator(`a[aria-label="${name}'s profile"]`).count();
     if (count > 0) foundDisplayNames++;
   }
   expect(

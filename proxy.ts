@@ -4,6 +4,24 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const MAX_MULTIPART_BYTES = 34 * 1024 * 1024;
 
+/**
+ * Origin that serves user media (avatars, attachments). Defaults to the
+ * production media host; set `ACTOS_MEDIA_URL` to the local MinIO origin when
+ * running the production build against a local backend (the real-backend e2e
+ * suite does exactly that).
+ */
+const DEFAULT_MEDIA_ORIGIN = "https://media.actos.com.tr";
+
+function mediaOrigin(): string {
+  const raw = process.env.ACTOS_MEDIA_URL?.trim();
+  if (!raw) return DEFAULT_MEDIA_ORIGIN;
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return DEFAULT_MEDIA_ORIGIN;
+  }
+}
+
 function publicOrigin(request: NextRequest): string {
   const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
   const forwardedProtocol = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
@@ -63,15 +81,16 @@ function contentSecurityPolicy(nonce: string): string {
   const developmentSources = IS_PRODUCTION
     ? ""
     : " 'unsafe-eval' http://localhost:* http://127.0.0.1:*";
+  const media = mediaOrigin();
 
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${developmentSources}`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",
-    `img-src 'self' data: blob: https://media.actos.com.tr${developmentSources}`,
+    `img-src 'self' data: blob: ${media}${developmentSources}`,
     "connect-src 'self'",
-    "media-src 'self' blob: https://media.actos.com.tr",
+    `media-src 'self' blob: ${media}`,
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",

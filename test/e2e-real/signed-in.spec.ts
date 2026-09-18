@@ -71,7 +71,7 @@ test("voting on a post changes the displayed score", async ({ page }) => {
   const cardCount = await cards.count();
   let targetIndex = -1;
   for (let i = 0; i < cardCount; i++) {
-    const isOwnPost = await cards.nth(i).locator('a[aria-label="Deniz Aydın profili"]').count();
+    const isOwnPost = await cards.nth(i).locator('a[aria-label="Deniz Aydın\'s profile"]').count();
     if (isOwnPost === 0) {
       targetIndex = i;
       break;
