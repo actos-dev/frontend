@@ -1,0 +1,116 @@
+# Actos web — deploy to production (ROADMAP Phase 8, D-10).
+#
+# Triggered automatically when a commit pushed to `main` finishes CI green,
+# or manually with an explicit image tag (rollback).
+#
+# The server state is `/opt/actos/.env.prod` and
+# `/opt/actos/docker-compose.prod.yml`. Secrets live on the server, not in
+# this repo. Setup: docs/DEPLOYMENT.md in actos-backend.
+#
+# NOTE: the compose file is shipped by the *backend* deploy workflow (its
+# scp step owns `/opt/actos/docker-compose.prod.yml`, which now contains the
+# `web` service). This workflow must not overwrite it, or it would undo the
+# backend's compose changes.
+
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (e.g. sha-abc1234). Empty means latest."
+        required: false
+        default: ""
+
+concurrency:
+  # Deploys must never overlap: two `compose up` runs would race to recreate
+  # the same containers.
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy to server
+    runs-on: ubuntu-latest
+    # `workflow_run` also fires when CI fails — this guard is what keeps a
+    # broken tree from being deployed.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # Host key comes from a secret: `StrictHostKeyChecking=no` would
+          # make the deploy silently vulnerable to a man in the middle.
+          echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          TAG="${IMAGE_TAG:-sha-$(git rev-parse --short=7 HEAD)}"
+          IMAGE="ghcr.io/actos-dev/frontend:${TAG}"
+          echo "deploying image: ${IMAGE}"
+
+          ssh -i ~/.ssh/id_ed25519 \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "IMAGE='${IMAGE}' GHCR_USER='${{ github.actor }}' GHCR_TOKEN='${{ secrets.GITHUB_TOKEN }}' bash -s" <<'REMOTE'
+          set -euo pipefail
+          cd /opt/actos
+
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+          # `WEB_IMAGE` is the compose file's only web input; pass it through
+          # the environment instead of writing it to .env.prod so the file on
+          # the server stays limited to secrets.
+          export WEB_IMAGE="$IMAGE"
+
+          docker compose -f docker-compose.prod.yml --env-file .env.prod pull web
+
+          # `web` is a long-lived service, so `--wait` is correct here. It is
+          # NOT used on one-shot containers (`migrate`, `minio_init`): compose
+          # treats an exited container as a `--wait` failure even on exit 0
+          # (the backend deploy learned this — see actos-backend deploy.yml).
+          docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --wait web
+
+          docker logout ghcr.io
+          # Old images accumulate fast on the 30 GB disk.
+          docker image prune -af --filter "until=168h"
+          REMOTE
+
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 10); do
+            if curl -fsS --max-time 10 "https://actos.com.tr/healthz" > /tmp/healthz.json; then
+              cat /tmp/healthz.json
+              echo
+              echo "healthy"
+              exit 0
+            fi
+            echo "not healthy yet, retrying ($i/10)"
+            sleep 6
+          done
+          echo "server did not become healthy within 60 seconds"
+          exit 1
+
+      - name: Smoke test a real page
+        run: |
+          body=$(curl -fsS --max-time 10 "https://actos.com.tr/")
+          echo "$body" | head -c 400
+          echo
+          echo "$body" | grep -qi "<html" || {
+            echo "home page did not render HTML"
+            exit 1
+          }

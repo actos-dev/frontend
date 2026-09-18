@@ -34,23 +34,26 @@ Production için önerilen ek bileşenler:
 
 ## 2. Ortam değişkenleri
 
-Frontend yalnızca üç URL değişkeni ister:
+Frontend dört URL değişkeni ister (dördüncüsünün varsayılanı vardır):
 
 | Değişken | Yerel örnek | Production örneği | Açıklama |
 |---|---|---|---|
 | `ACTOS_API_URL` | `http://127.0.0.1:3100` | Docker'da `http://api:3100` | Next.js sunucusunun API'ye bağlandığı iç adres. Tarayıcıya açılmaz. |
 | `ACTOS_SITE_URL` | `http://localhost:3000` | `https://actos.com.tr` | Canonical URL, sitemap ve OpenGraph için sitenin dışarıdan görünen origin'i. |
 | `NEXT_PUBLIC_ACTOS_API_URL` | `http://127.0.0.1:3100` | `https://api.actos.com.tr` | Geliştirici sayfasında gösterilen herkese açık API adresi. Tarayıcı paketine gömülür. |
+| `ACTOS_MEDIA_URL` | `http://127.0.0.1:3103` | `https://media.actos.com.tr` | Kullanıcı medyasının (avatar, ek) servis edildiği origin. `proxy.ts` CSP'si ve `next.config.ts` `remotePatterns`'ı buradan türetilir. Boşsa production varsayılanı `https://media.actos.com.tr`. |
 
 Kurallar:
 
 - Değerler tam bir `http://` veya `https://` URL'si olmalıdır.
 - Kullanıcı adı/şifre, query string veya `#fragment` içeremez.
 - `ACTOS_SITE_URL` path içeremez; `https://actos.com.tr/app` geçersizdir.
-- Production'da üçü de zorunludur.
-- `NEXT_PUBLIC_ACTOS_API_URL` build sırasında tarayıcı paketine gömülür. Bu
-  değeri değiştirirsen frontend imajını yeniden build etmelisin.
-- Bu üç değişken sır değildir. Yine de `.env.prod` dosyasını genel olarak
+- Production'da ilk üçü zorunludur; `ACTOS_MEDIA_URL` boş bırakılırsa
+  production medya origin'ine düşer.
+- `NEXT_PUBLIC_ACTOS_API_URL` build sırasında tarayıcı paketine gömülür.
+  `ACTOS_MEDIA_URL` de `next.config.ts`'te build sırasında okunur. Bu
+  değerleri değiştirirsen frontend imajını yeniden build etmelisin.
+- Bu değişkenler sır değildir. Yine de `.env.prod` dosyasını genel olarak
   gizli tut; backend sırlarıyla aynı dosyada bulunabilir.
 
 ## 3. Yerelde çalıştırma
@@ -124,6 +127,7 @@ docker build \
   --build-arg ACTOS_API_URL=http://api:3100 \
   --build-arg ACTOS_SITE_URL=https://actos.com.tr \
   --build-arg NEXT_PUBLIC_ACTOS_API_URL=https://api.actos.com.tr \
+  --build-arg ACTOS_MEDIA_URL=https://media.actos.com.tr \
   -t ghcr.io/actos-dev/frontend:sha-<git-sha> \
   .
 ```
@@ -156,6 +160,15 @@ Backend'in `docker-compose.prod.yml` dosyasında hâlen frontend servisi yoksa
       ACTOS_API_URL: http://api:3100
       ACTOS_SITE_URL: https://actos.com.tr
       NEXT_PUBLIC_ACTOS_API_URL: https://api.actos.com.tr
+      ACTOS_MEDIA_URL: https://media.actos.com.tr
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/healthz >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     networks: [actos_network]
 ```
 
@@ -207,6 +220,7 @@ NODE_ENV=production \
 ACTOS_API_URL=http://127.0.0.1:3100 \
 ACTOS_SITE_URL=https://actos.com.tr \
 NEXT_PUBLIC_ACTOS_API_URL=https://api.actos.com.tr \
+ACTOS_MEDIA_URL=https://media.actos.com.tr \
 pnpm build
 ```
 
@@ -219,6 +233,7 @@ HOSTNAME=127.0.0.1
 ACTOS_API_URL=http://127.0.0.1:3100
 ACTOS_SITE_URL=https://actos.com.tr
 NEXT_PUBLIC_ACTOS_API_URL=https://api.actos.com.tr
+ACTOS_MEDIA_URL=https://media.actos.com.tr
 ```
 
 Dosyayı koru:
@@ -268,10 +283,9 @@ edilebilir olduğu için önerilir.
 
 ## 6. nginx'e bağlama
 
-Depoda başlangıç şablonu
-`../actos-backend/deploy/nginx/actos.com.tr.conf` altında bulunur. İçindeki
-geçici `return 503` bloğunu kaldırıp proxy bloğunu etkinleştir. Sonuç şu
-şekilde olmalıdır:
+Depodaki yapılandırma
+`../actos-backend/deploy/nginx/actos.com.tr.conf` altında bulunur ve `web`
+servisine proxy'lemeyi zaten içerir. Dosya şöyledir:
 
 ```nginx
 server {

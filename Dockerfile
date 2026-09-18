@@ -41,9 +41,14 @@ ENV NODE_ENV=production
 ARG ACTOS_API_URL
 ARG ACTOS_SITE_URL
 ARG NEXT_PUBLIC_ACTOS_API_URL
+# Consumed at build time by next.config.ts (image remotePatterns) and at
+# runtime by proxy.ts (CSP img-src/media-src). Optional: the code defaults to
+# the production media origin when it is unset.
+ARG ACTOS_MEDIA_URL
 ENV ACTOS_API_URL=$ACTOS_API_URL
 ENV ACTOS_SITE_URL=$ACTOS_SITE_URL
 ENV NEXT_PUBLIC_ACTOS_API_URL=$NEXT_PUBLIC_ACTOS_API_URL
+ENV ACTOS_MEDIA_URL=$ACTOS_MEDIA_URL
 
 # Standalone build produces .next/standalone and .next/static
 RUN test -n "$ACTOS_API_URL" \
