@@ -61,29 +61,27 @@ describe("Faz 19 — Performans ve Paketleme Test Paketi", () => {
       expect(images?.contentSecurityPolicy).toContain("script-src 'none'");
     });
 
-    it("MinIO, S3 ve Actos alan adları için remotePatterns tanımlanmış olmalıdır", () => {
+    it("yalnızca yerel geliştirme ve Actos medya alan adları için remotePatterns tanımlanmalıdır", () => {
       const patterns = nextConfig.images?.remotePatterns || [];
-      expect(patterns.length).toBeGreaterThanOrEqual(8);
+      expect(patterns.length).toBeGreaterThanOrEqual(3);
 
       const hasBackendLocal = patterns.some(
         (p) => (p.hostname === "localhost" || p.hostname === "127.0.0.1") && p.port === "3100",
       );
       expect(hasBackendLocal).toBe(true);
 
-      const hasMinioLocal = patterns.some(
-        (p) => (p.hostname === "localhost" || p.hostname === "127.0.0.1") && p.port === "9000",
-      );
-      expect(hasMinioLocal).toBe(true);
-
-      const hasActosDomain = patterns.some(
-        (p) => p.hostname === "actos.com.tr" || p.hostname === "*.actos.com.tr",
-      );
+      const hasActosDomain = patterns.some((p) => p.hostname === "*.actos.com.tr");
       expect(hasActosDomain).toBe(true);
 
-      const hasS3Domain = patterns.some(
-        (p) => p.hostname.includes("amazonaws.com") || p.hostname === "*.s3.amazonaws.com",
+      // D-04: the open-web S3 wildcards and the plain-HTTP Actos wildcard are
+      // gone — user media is served from `media.actos.com.tr`.
+      const hasAwsDomain = patterns.some((p) => p.hostname.includes("amazonaws.com"));
+      expect(hasAwsDomain).toBe(false);
+
+      const hasPlainHttpActos = patterns.some(
+        (p) => p.hostname === "*.actos.com.tr" && p.protocol === "http",
       );
-      expect(hasS3Domain).toBe(true);
+      expect(hasPlainHttpActos).toBe(false);
     });
   });
 

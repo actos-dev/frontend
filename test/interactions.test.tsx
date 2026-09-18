@@ -248,6 +248,24 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       });
     });
 
+    it("429 yanıtında Retry-After süresini içeren yerelleştirilmiş hata tostu göstermelidir", async () => {
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        json: async () => ({ ok: false, code: "RATE_LIMITED", retryAfter: 40 }),
+      } as Response);
+
+      render(<PostCard post={sampleOtherPost} initialUserVote={0} />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Yukarı oy ver" }));
+
+      // D-03: the mutation surface benefits from the centralized 429 formatting
+      // without any per-form rate-limit code.
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("40"));
+      });
+    });
+
     it("geç başarısız bir oyun rollback'i başka gönderideki daha yeni başarılı oyu geri almamalıdır", async () => {
       let finishFailedVote: (response: Response) => void = () => {};
       const failedRequest = new Promise<Response>((resolve) => {

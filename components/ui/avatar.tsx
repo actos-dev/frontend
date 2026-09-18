@@ -1,6 +1,7 @@
 "use client";
 
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import Image from "next/image";
 import * as React from "react";
 import type { ActorType } from "@/components/ui/badge";
 import { getAvatarTintColor } from "@/lib/avatar-tint";
@@ -21,17 +22,46 @@ const Avatar = React.forwardRef<
 ));
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
-const AvatarImage = React.forwardRef<
-  React.ComponentRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full object-cover", className)}
-    {...props}
-  />
-));
-AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+export interface AvatarImageProps {
+  src?: string | null;
+  alt?: string;
+  className?: string;
+  /** Rendered sizes hint for the optimizer; avatars are small, so keep it tight. */
+  sizes?: string;
+}
+
+/**
+ * `next/image` under the same `Avatar.Root` as `AvatarFallback` (ROADMAP D-04).
+ * Radix's own `Image` was a bare `<img>`; swapping it for the optimizer keeps
+ * the fill/object-cover look while the fallback stays deterministic initials.
+ *
+ * `fill` positions the image over the fallback (which stays mounted because no
+ * Radix image ever reports "loaded"), and `onError` unmounts the image so the
+ * initials show whenever the media host fails.
+ */
+const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
+  ({ src, alt = "", className, sizes = "96px" }, ref) => {
+    // Track which source failed instead of a boolean, so a new `src` starts
+    // fresh without an effect (the failed source is simply no longer current).
+    const [failedSrc, setFailedSrc] = React.useState<string | null>(null);
+    const failed = src != null && failedSrc === src;
+
+    if (!src || failed) return null;
+
+    return (
+      <Image
+        ref={ref}
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        onError={() => setFailedSrc(src)}
+        className={cn("aspect-square object-cover", className)}
+      />
+    );
+  },
+);
+AvatarImage.displayName = "AvatarImage";
 
 const AvatarFallback = React.forwardRef<
   React.ComponentRef<typeof AvatarPrimitive.Fallback>,

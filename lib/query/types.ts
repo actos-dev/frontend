@@ -36,4 +36,6 @@ export interface ApiProblem extends Error {
   status: number;
   code?: string;
   detail?: string;
+  /** Seconds from a 429 `Retry-After`, when the server sent one. */
+  retryAfter?: number | null;
 }

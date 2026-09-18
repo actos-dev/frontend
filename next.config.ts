@@ -51,20 +51,14 @@ const nextConfig: NextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     dangerouslyAllowLocalIP: media !== null && isLocalHostname(media.hostname),
     remotePatterns: [
+      // Local development only: the backend origin, for setups that serve
+      // media straight from the API. The MinIO origin is covered by the
+      // `ACTOS_MEDIA_URL`-derived pattern below.
       { protocol: "http", hostname: "localhost", port: "3100" },
       { protocol: "http", hostname: "127.0.0.1", port: "3100" },
-      { protocol: "http", hostname: "localhost", port: "9000" },
-      { protocol: "http", hostname: "127.0.0.1", port: "9000" },
-      { protocol: "http", hostname: "localhost" },
-      { protocol: "http", hostname: "127.0.0.1" },
-      { protocol: "https", hostname: "localhost" },
-      { protocol: "https", hostname: "127.0.0.1" },
-      { protocol: "https", hostname: "actos.com.tr" },
+      // Production media lives on `media.actos.com.tr`; the wildcard keeps
+      // any other Actos subdomain working without widening to the open web.
       { protocol: "https", hostname: "*.actos.com.tr" },
-      { protocol: "http", hostname: "*.actos.com.tr" },
-      { protocol: "https", hostname: "*.amazonaws.com" },
-      { protocol: "https", hostname: "*.s3.amazonaws.com" },
-      { protocol: "https", hostname: "s3.*.amazonaws.com" },
       ...(media
         ? [
             {

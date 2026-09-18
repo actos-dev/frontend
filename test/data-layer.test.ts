@@ -241,6 +241,28 @@ describe("Faz 4 — Veri Katmanı ve i18n Altyapısı", () => {
       expect(body.code).toBe("TIMEOUT_ERROR");
       expect(body.detail).toBe("The request timed out. Please try again.");
     });
+
+    it("429 yanıtında Retry-After başlığını ve saniyeyi taşıyan yerelleştirilmiş detay üretmelidir", async () => {
+      const res = apiErrorResponse(
+        { status: 429, code: "RATE_LIMITED", retryAfter: 40 },
+        { locale: "en" },
+      );
+
+      expect(res.status).toBe(429);
+      expect(res.headers.get("Retry-After")).toBe("40");
+
+      const body = await res.json();
+      expect(body.code).toBe("RATE_LIMITED");
+      expect(body.retryAfter).toBe(40);
+      expect(body.detail).toBe("Slow down. Try again in 40 s");
+
+      const tr = apiErrorResponse(
+        { status: 429, code: "RATE_LIMITED", retryAfter: 40 },
+        { locale: "tr" },
+      );
+      const trBody = await tr.json();
+      expect(trBody.detail).toBe("Yavaşla. 40 saniye sonra tekrar dene");
+    });
   });
 
   // --------------------------------------------------------------------------

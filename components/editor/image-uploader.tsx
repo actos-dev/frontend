@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, ArrowLeft, ArrowRight, ImageIcon, UploadCloud, X } from "lucide-react";
+import Image from "next/image";
 import * as React from "react";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -148,8 +149,14 @@ export function ImageUploader({
               data-testid={`staged-image-${index}`}
               className="relative w-20 h-20 rounded-lg overflow-hidden border border-border bg-surface-2 shrink-0"
             >
-              {/* biome-ignore lint/performance/noImgElement: local object URL preview */}
-              <img src={url} alt={file.name} className="w-full h-full object-cover" />
+              <Image
+                src={url}
+                alt={file.name}
+                width={80}
+                height={80}
+                unoptimized
+                className="w-full h-full object-cover"
+              />
               <button
                 type="button"
                 data-testid={`remove-staged-image-${index}`}
