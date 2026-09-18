@@ -253,11 +253,11 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
     it("oy butonları, skor, kaydet ve paylaş butonlarını render etmelidir", () => {
       render(<PostActions post={samplePost} />);
 
-      expect(screen.getByLabelText("Yukarı oy ver")).toBeDefined();
-      expect(screen.getByLabelText("Aşağı oy ver")).toBeDefined();
+      expect(screen.getByLabelText("Upvote")).toBeDefined();
+      expect(screen.getByLabelText("Downvote")).toBeDefined();
       expect(screen.getByTestId("post-score").textContent).toBe("142");
-      expect(screen.getByLabelText("Kaydet")).toBeDefined();
-      expect(screen.getByLabelText("Paylaş")).toBeDefined();
+      expect(screen.getByLabelText("Save")).toBeDefined();
+      expect(screen.getByLabelText("Share")).toBeDefined();
     });
 
     it("yazar oturum açmış ise 'Düzenle' butonu görünmelidir", () => {
@@ -265,7 +265,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
       expect(screen.queryByTestId("post-edit-button")).toBeNull();
 
       rerender(<PostActions post={samplePost} isAuthor={true} />);
-      fireEvent.click(screen.getByRole("button", { name: "Diğer işlemler" }));
+      fireEvent.click(screen.getByRole("button", { name: "More actions" }));
       const editButton = screen.getByTestId("post-edit-button");
       expect(editButton).toBeDefined();
       expect(editButton.getAttribute("href")).toBe(`/posts/${samplePost.id}/edit`);
@@ -279,7 +279,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
       globalThis.fetch = mockFetch;
 
       render(<PostActions post={samplePost} />);
-      const upvoteBtn = screen.getByLabelText("Yukarı oy ver");
+      const upvoteBtn = screen.getByLabelText("Upvote");
 
       await act(async () => {
         fireEvent.click(upvoteBtn);
@@ -299,7 +299,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
 
     it("paylaş butonu tıklandığında panoya kopyalama yapmalıdır", async () => {
       render(<PostActions post={samplePost} />);
-      const shareBtn = screen.getByLabelText("Paylaş");
+      const shareBtn = screen.getByLabelText("Share");
 
       await act(async () => {
         fireEvent.click(shareBtn);
@@ -390,7 +390,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
 
       expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(samplePost.title);
       expect(screen.getByTestId("post-actor-badge")).toBeDefined();
-      fireEvent.click(screen.getByRole("button", { name: "Diğer işlemler" }));
+      fireEvent.click(screen.getByRole("button", { name: "More actions" }));
       expect(screen.getByTestId("post-edit-button")).toBeDefined(); // isAuthor true
     });
 

@@ -241,10 +241,10 @@ describe("Faz 17 — Erişilebilirlik ve Tema Denetimi (WCAG 2.1 AA)", () => {
         }),
       );
 
-      const upvoteBtn = screen.getByRole("button", { name: "Yukarı oy ver" });
+      const upvoteBtn = screen.getByRole("button", { name: "Upvote" });
       expect(upvoteBtn.getAttribute("aria-pressed")).toBe("false");
 
-      const downvoteBtn = screen.getByRole("button", { name: "Aşağı oy ver" });
+      const downvoteBtn = screen.getByRole("button", { name: "Downvote" });
       expect(downvoteBtn.getAttribute("aria-pressed")).toBe("true");
 
       const saveBtn = screen.getByRole("button", { name: "Gönderiyi kaydet" });

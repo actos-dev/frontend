@@ -105,7 +105,7 @@ export function PostActions({
     }
 
     if (isUserAuthor) {
-      toast.error("Kendi içeriğinize oy veremezsiniz.");
+      toast.error(t("postCard.own_vote_error"));
       return;
     }
 
@@ -119,7 +119,7 @@ export function PostActions({
             : postHref;
         router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
       } else {
-        toast.error((error as { detail?: string }).detail || "Oy kaydedilemedi.");
+        toast.error((error as { detail?: string }).detail || t("postCard.vote_failed"));
       }
     }
   };
@@ -141,7 +141,7 @@ export function PostActions({
 
     try {
       await interaction.save(nextSaved);
-      toast.success(nextSaved ? "Post kaydedildi!" : "Kayıt kaldırıldı.");
+      toast.success(nextSaved ? t("postCard.saved_success") : t("postCard.unsaved_success"));
     } catch (error) {
       if (isAuthenticationProblem(error)) {
         const currentPath =
@@ -150,7 +150,7 @@ export function PostActions({
             : postHref;
         router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
       } else {
-        toast.error((error as { detail?: string }).detail || "Kayıt işlemi gerçekleştirilemedi.");
+        toast.error((error as { detail?: string }).detail || t("postCard.save_failed"));
       }
     }
   };
@@ -163,7 +163,7 @@ export function PostActions({
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({
-          title: post.title || "Actos Gönderisi",
+          title: post.title || t("postCard.share_title"),
           url: fullUrl,
         });
         return;
@@ -171,10 +171,10 @@ export function PostActions({
 
       if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(fullUrl);
-        toast.success("Bağlantı panoya kopyalandı!");
+        toast.success(t("postCard.link_copied"));
       }
     } catch {
-      toast.info(`Bağlantı: ${fullUrl}`);
+      toast.info(t("postCard.link_fallback", { url: fullUrl }));
     }
   };
 
@@ -214,12 +214,12 @@ export function PostActions({
             disabled={isVoting || isUserAuthor}
             title={
               isUserAuthor
-                ? "Kendi içeriğinize oy veremezsiniz"
+                ? t("postCard.own_vote_error")
                 : userVote === 1
-                  ? "Oyu geri çek"
-                  : "Yukarı oy ver"
+                  ? t("postCard.withdraw_vote")
+                  : t("postCard.upvote")
             }
-            aria-label="Yukarı oy ver"
+            aria-label={t("postCard.upvote")}
             aria-pressed={userVote === 1}
             className={`p-2 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring ${
               isUserAuthor
@@ -251,12 +251,12 @@ export function PostActions({
             disabled={isVoting || isUserAuthor}
             title={
               isUserAuthor
-                ? "Kendi içeriğinize oy veremezsiniz"
+                ? t("postCard.own_vote_error")
                 : userVote === -1
-                  ? "Oyu geri çek"
-                  : "Aşağı oy ver"
+                  ? t("postCard.withdraw_vote")
+                  : t("postCard.downvote")
             }
-            aria-label="Aşağı oy ver"
+            aria-label={t("postCard.downvote")}
             aria-pressed={userVote === -1}
             className={`p-2 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring ${
               isUserAuthor
@@ -276,7 +276,7 @@ export function PostActions({
         >
           <MessageSquare className="h-4 w-4" />
           <span>{post.commentCount ?? 0}</span>
-          <span className="hidden sm:inline">yorum</span>
+          <span className="hidden sm:inline">{t("postCard.comments_short")}</span>
         </Link>
       </div>
 
@@ -289,13 +289,15 @@ export function PostActions({
           size="sm"
           onClick={handleSave}
           disabled={isSaving}
-          title={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Gönderiyi kaydet")}
-          aria-label={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Kaydet")}
+          title={saved ? t("postCard.remove_saved") : (saveAriaLabel ?? t("postCard.save_post"))}
+          aria-label={saved ? t("postCard.remove_saved") : (saveAriaLabel ?? t("common.save"))}
           aria-pressed={saved}
           className={`min-h-10 gap-1.5 ${saved ? "text-accent-text" : ""}`}
         >
           <Bookmark className={`w-4 h-4 ${saved ? "fill-current" : ""}`} />
-          <span className="text-xs hidden sm:inline">{saved ? "Kaydedildi" : "Kaydet"}</span>
+          <span className="text-xs hidden sm:inline">
+            {saved ? t("common.saved") : t("common.save")}
+          </span>
         </Button>
 
         {/* Paylaş Butonu */}
@@ -304,11 +306,11 @@ export function PostActions({
           variant="ghost"
           size="sm"
           onClick={handleShare}
-          aria-label="Paylaş"
+          aria-label={t("postCard.share")}
           className="min-h-10 gap-1.5"
         >
           <Share2 className="w-4 h-4" />
-          <span className="text-xs hidden sm:inline">Paylaş</span>
+          <span className="text-xs hidden sm:inline">{t("postCard.share")}</span>
         </Button>
 
         <Popover open={menuOpen} onOpenChange={setMenuOpen}>
@@ -317,7 +319,7 @@ export function PostActions({
               type="button"
               variant="ghost"
               size="sm"
-              aria-label="Diğer işlemler"
+              aria-label={t("postCard.more_actions")}
               className="min-h-10"
             >
               <MoreHorizontal className="h-4 w-4" />
@@ -330,7 +332,7 @@ export function PostActions({
                 data-testid="post-edit-button"
                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-bg-subtle"
               >
-                <Pencil className="h-4 w-4" /> Düzenle
+                <Pencil className="h-4 w-4" /> {t("common.edit")}
               </Link>
             ) : null}
             <button
@@ -342,7 +344,7 @@ export function PostActions({
               data-testid="post-report-button"
               className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-bg-subtle"
             >
-              <Flag className="h-4 w-4" /> Şikayet et
+              <Flag className="h-4 w-4" /> {t("common.report")}
             </button>
             {isUserAuthor ? (
               <button

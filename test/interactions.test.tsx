@@ -370,7 +370,7 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
 
       expect(upvoteBtn.hasAttribute("disabled")).toBe(true);
       expect(downvoteBtn.hasAttribute("disabled")).toBe(true);
-      expect(upvoteBtn.getAttribute("title")).toBe("Kendi içeriğinize oy veremezsiniz");
+      expect(upvoteBtn.getAttribute("title")).toBe("Kendi içeriğinize oy veremezsiniz.");
     });
 
     it("kendi içeriğindeyken oy butonları devre dışı olmalı, tıklama engellenmeli ve API çağrısı yapılmamalıdır", () => {

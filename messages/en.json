@@ -169,6 +169,9 @@
     "remove_saved": "Remove from saved items",
     "save_post": "Save post",
     "share": "Share",
+    "share_title": "Actos post",
+    "comments_short": "comments",
+    "more_actions": "More actions",
     "open_post": "Open post: {title}"
   },
   "postAttachments": {

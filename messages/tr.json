@@ -169,6 +169,9 @@
     "remove_saved": "Kaydedilenlerden çıkar",
     "save_post": "Gönderiyi kaydet",
     "share": "Paylaş",
+    "share_title": "Actos gönderisi",
+    "comments_short": "yorum",
+    "more_actions": "Diğer işlemler",
     "open_post": "Gönderiyi aç: {title}"
   },
   "postAttachments": {
