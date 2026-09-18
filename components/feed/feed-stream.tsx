@@ -155,13 +155,13 @@ export function FeedStream({
     loadLock.current = true;
     try {
       const result = await feed.fetchNextPage({ cancelRefetch: false });
-      if (result.isFetchNextPageError) toast.error("Daha fazla gönderi yüklenemedi.");
+      if (result.isFetchNextPageError) toast.error(t("feed.load_more_error"));
     } catch {
-      toast.error("Daha fazla gönderi yüklenemedi.");
+      toast.error(t("feed.load_more_error"));
     } finally {
       loadLock.current = false;
     }
-  }, [feed.fetchNextPage, feed.hasNextPage, feed.isFetching, pendingNewData]);
+  }, [feed.fetchNextPage, feed.hasNextPage, feed.isFetching, pendingNewData, t]);
 
   const sentinelRef = useInfiniteSentinel({
     enabled: Boolean(feed.hasNextPage && !feed.isFetching && !pendingNewData),
@@ -180,7 +180,7 @@ export function FeedStream({
   if (feed.isError && posts.length === 0) {
     return (
       <div role="alert" className="p-6 text-center text-sm text-muted-foreground">
-        Akış yüklenemedi. Sayfayı yenileyip tekrar deneyin.
+        {t("feed.load_error")}
       </div>
     );
   }
@@ -215,10 +215,10 @@ export function FeedStream({
               setPendingNewCount(0);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            aria-label={`Yeni gönderileri göster: ${pendingNewCount}`}
+            aria-label={t("feed.show_new", { count: pendingNewCount })}
           >
             <ArrowUp className="mr-2 h-4 w-4" aria-hidden="true" />
-            {pendingNewCount} yeni gönderi
+            {t("feed.new_posts", { count: pendingNewCount })}
           </Button>
         </div>
       )}
@@ -246,9 +246,9 @@ export function FeedStream({
           isLoading={feed.isFetchingNextPage}
           onLoadMore={loadMore}
           syncUrl={false}
-          label="Daha fazla"
-          loadingLabel="Yükleniyor..."
-          endMessage="Tüm akışın sonuna ulaştınız."
+          label={t("feed.load_more")}
+          loadingLabel={t("feed.loading")}
+          endMessage={t("feed.end")}
         />
       </div>
 

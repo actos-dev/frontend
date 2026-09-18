@@ -2,6 +2,7 @@
 
 import { AlertCircle, ArrowLeft, ArrowRight, ImageIcon, UploadCloud, X } from "lucide-react";
 import * as React from "react";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function getImageLimitUserMessage(contentLabel = "gönderi"): string {
@@ -41,6 +42,7 @@ export function ImageUploader({
   disabled = false,
   className,
 }: ImageUploaderProps) {
+  const { t } = useTranslation();
   const [isDragging, setIsDragging] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -63,7 +65,7 @@ export function ImageUploader({
 
     const remainingSlots = maxFiles - files.length;
     if (remainingSlots <= 0) {
-      setErrorMessage(getImageLimitUserMessage(contentLabel));
+      setErrorMessage(t("editor.image_limit_error", { content: contentLabel }));
       return;
     }
 
@@ -84,7 +86,7 @@ export function ImageUploader({
     if (accepted.length > 0) {
       onFilesChange([...files, ...accepted]);
     }
-    setErrorMessage(rejectedAny ? getImageLimitUserMessage(contentLabel) : null);
+    setErrorMessage(rejectedAny ? t("editor.image_limit_error", { content: contentLabel }) : null);
   };
 
   const removeFile = (index: number) => {
@@ -153,7 +155,7 @@ export function ImageUploader({
                 data-testid={`remove-staged-image-${index}`}
                 onClick={() => removeFile(index)}
                 disabled={disabled}
-                aria-label={`${file.name} görselini kaldır`}
+                aria-label={t("editor.image_remove", { name: file.name })}
                 className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-background/80 text-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors cursor-pointer"
               >
                 <X className="w-3 h-3" />
@@ -165,7 +167,7 @@ export function ImageUploader({
                     data-testid={`move-staged-image-left-${index}`}
                     onClick={() => moveFile(index, -1)}
                     disabled={disabled || index === 0}
-                    aria-label={`${file.name} görselini sola taşı`}
+                    aria-label={t("editor.image_move_left", { name: file.name })}
                     className="rounded-full bg-background/85 p-0.5 text-foreground disabled:opacity-35"
                   >
                     <ArrowLeft className="h-3 w-3" />
@@ -175,7 +177,7 @@ export function ImageUploader({
                     data-testid={`move-staged-image-right-${index}`}
                     onClick={() => moveFile(index, 1)}
                     disabled={disabled || index === files.length - 1}
-                    aria-label={`${file.name} görselini sağa taşı`}
+                    aria-label={t("editor.image_move_right", { name: file.name })}
                     className="rounded-full bg-background/85 p-0.5 text-foreground disabled:opacity-35"
                   >
                     <ArrowRight className="h-3 w-3" />
@@ -227,11 +229,10 @@ export function ImageUploader({
               )}
             </div>
             <p className="text-xs text-foreground font-medium">
-              {isDragging ? "Bırak, eklensin" : "Görsel eklemek için tıkla veya sürükle"}
+              {isDragging ? t("editor.image_drop_active") : t("editor.image_drop_idle")}
             </p>
             <p data-testid="upload-quota-note" className="text-[11px] text-muted-foreground">
-              PNG, JPEG, WebP veya GIF · Görsel başına maks. 8 MiB · {contentLabel} başına en fazla{" "}
-              {maxFiles} görsel
+              {t("editor.image_quota", { content: contentLabel, count: maxFiles })}
             </p>
           </div>
         </button>
@@ -246,7 +247,7 @@ export function ImageUploader({
         >
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <p className="font-semibold">Görsel Sınırı</p>
+            <p className="font-semibold">{t("editor.image_limit_title")}</p>
             <p>{errorMessage}</p>
           </div>
         </div>

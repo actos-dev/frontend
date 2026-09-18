@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 
 export interface ReportDialogProps {
   open: boolean;
@@ -30,12 +31,15 @@ export const REPORT_REASONS = [
   "Diğer",
 ] as const;
 
+const REPORT_REASON_KEYS = ["spam", "harassment", "misinformation", "harmful", "rules", "other"];
+
 export function ReportDialog({
   open,
   onOpenChange,
   targetId,
   targetType = "content",
 }: ReportDialogProps) {
+  const { t } = useTranslation();
   const [selectedReason, setSelectedReason] = useState<string>(REPORT_REASONS[0]);
   const [details, setDetails] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,16 +64,16 @@ export function ReportDialog({
 
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Şikayet iletilemedi.");
+        toast.error(data.detail || data.title || t("reports.error"));
         return;
       }
 
-      toast.success("Şikayetiniz moderasyon ekibine iletildi. Teşekkür ederiz.");
+      toast.success(t("reports.success"));
       onOpenChange(false);
       setSelectedReason(REPORT_REASONS[0]);
       setDetails("");
     } catch {
-      toast.error("Bağlantı hatası: Şikayet iletilemedi.");
+      toast.error(t("reports.network_error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -81,20 +85,18 @@ export function ReportDialog({
         <DialogHeader>
           <div className="flex items-center gap-2 text-destructive mb-1">
             <AlertTriangle className="w-5 h-5" />
-            <DialogTitle>İçeriği Şikayet Et</DialogTitle>
+            <DialogTitle>{t("reports.title")}</DialogTitle>
           </div>
-          <DialogDescription>
-            Topluluk kurallarını ihlal ettiğini düşündüğünüz bu içeriği moderatörlere bildirin.
-          </DialogDescription>
+          <DialogDescription>{t("reports.description")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-2">
             <label htmlFor="report-reason" className="text-xs font-semibold text-foreground">
-              Şikayet Sebebi
+              {t("reports.reason_label")}
             </label>
             <div className="space-y-1.5" id="report-reason">
-              {REPORT_REASONS.map((reason) => (
+              {REPORT_REASONS.map((reason, index) => (
                 <label
                   key={reason}
                   className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
@@ -112,7 +114,7 @@ export function ReportDialog({
                     onChange={() => setSelectedReason(reason)}
                     className="accent-primary"
                   />
-                  <span>{reason}</span>
+                  <span>{t(`reports.reasons.${REPORT_REASON_KEYS[index]}`)}</span>
                 </label>
               ))}
             </div>
@@ -120,12 +122,12 @@ export function ReportDialog({
 
           <div className="space-y-1.5">
             <label htmlFor="report-details" className="text-xs font-semibold text-foreground">
-              Ek Açıklama (Opsiyonel)
+              {t("reports.details_label")}
             </label>
             <Textarea
               id="report-details"
               data-testid="report-details-textarea"
-              placeholder="Moderatörlerin değerlendirmesine yardımcı olacak ayrıntılar..."
+              placeholder={t("reports.details_placeholder")}
               rows={3}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
@@ -142,7 +144,7 @@ export function ReportDialog({
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
-              İptal
+              {t("reports.cancel")}
             </Button>
             <Button
               type="submit"
@@ -153,7 +155,7 @@ export function ReportDialog({
               className="gap-1.5"
             >
               {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Şikayet Et</span>
+              <span>{isSubmitting ? t("reports.submitting") : t("reports.submit")}</span>
             </Button>
           </DialogFooter>
         </form>

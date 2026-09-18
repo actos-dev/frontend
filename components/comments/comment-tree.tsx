@@ -250,7 +250,7 @@ export function CommentTree({
             data-testid="sort-top"
           >
             <Sparkles className="w-3 h-3 mr-1" />
-            {t("comments.sort_top") || "En İyi"}
+            {t("comments.sort_top")}
           </Button>
 
           <Button
@@ -280,9 +280,7 @@ export function CommentTree({
           className="py-12 px-4 text-center rounded-xl border border-dashed border-border/80 bg-card/40"
         >
           <MessageSquare className="w-8 h-8 mx-auto text-muted-foreground/50 mb-3" />
-          <p className="text-sm font-medium text-foreground">
-            {t("comments.empty") || "Henüz yorum yapılmamış. İlk yorumu sen yap!"}
-          </p>
+          <p className="text-sm font-medium text-foreground">{t("comments.empty")}</p>
         </div>
       ) : (
         <div className="divide-y divide-border/40 space-y-4">
@@ -308,12 +306,12 @@ export function CommentTree({
 
       {commentsQuery.isError && comments.length > 0 && (
         <p role="alert" className="text-sm text-destructive">
-          Yorumlar güncellenemedi. Yeniden deneyin.
+          {t("comments.refresh_error")}
         </p>
       )}
       {commentsQuery.isError && comments.length === 0 && (
         <Button type="button" variant="outline" onClick={() => commentsQuery.refetch()}>
-          Yorumlar yüklenemedi — yeniden dene
+          {t("comments.load_error")}
         </Button>
       )}
       <LoadMore
@@ -321,11 +319,11 @@ export function CommentTree({
         isLoading={commentsQuery.isFetchingNextPage}
         onLoadMore={async () => {
           const result = await commentsQuery.fetchNextPage();
-          if (result.isFetchNextPageError) toast.error("Daha fazla yorum yüklenemedi.");
+          if (result.isFetchNextPageError) toast.error(t("comments.load_more_error"));
         }}
         syncUrl={false}
-        label="Daha fazla yorum"
-        loadingLabel="Yorumlar yükleniyor..."
+        label={t("comments.load_more")}
+        loadingLabel={t("comments.loading_more")}
         endMessage={null}
       />
     </section>

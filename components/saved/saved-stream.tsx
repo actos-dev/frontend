@@ -132,7 +132,7 @@ export function SavedStream({
   if (saved.isError && posts.length === 0) {
     return (
       <div role="alert" className="p-6 text-center text-sm text-muted-foreground">
-        {t("states.savedLoadFailed") || "Kaydedilenler yüklenemedi. Yeniden deneyin."}
+        {t("saved.load_error")}
       </div>
     );
   }
@@ -141,13 +141,10 @@ export function SavedStream({
     return (
       <div className="py-12 px-4 sm:px-6" data-testid="saved-empty-state">
         <EmptyState
-          title={t("saved.empty_title") || "Henüz kaydedilmiş bir gönderi yok"}
-          description={
-            t("saved.empty_description") ||
-            "İlginizi çeken gönderileri daha sonra okumak için kaydedebilirsiniz."
-          }
+          title={t("saved.empty_title")}
+          description={t("saved.empty_description")}
           action={{
-            label: t("saved.back_to_feed") || "Akışa Dön",
+            label: t("saved.back_to_feed"),
             href: "/",
             icon: Bookmark,
           }}
@@ -179,7 +176,7 @@ export function SavedStream({
       )}
       {saved.isFetchNextPageError && (
         <p role="alert" className="p-4 text-center text-sm text-destructive">
-          Kaydedilenler yüklenemedi.
+          {t("saved.load_error")}
         </p>
       )}
       <div className="p-4 sm:p-6 flex justify-center">
@@ -188,13 +185,12 @@ export function SavedStream({
           isLoading={saved.isFetchingNextPage}
           onLoadMore={async () => {
             const result = await saved.fetchNextPage();
-            if (result.isFetchNextPageError)
-              toast.error("Daha fazla kaydedilen gönderi yüklenemedi.");
+            if (result.isFetchNextPageError) toast.error(t("saved.load_more_error"));
           }}
           syncUrl={false}
-          label="Daha fazla"
-          loadingLabel="Yükleniyor..."
-          endMessage="Tüm kaydedilenlerin sonuna ulaştınız."
+          label={t("saved.load_more")}
+          loadingLabel={t("saved.loading")}
+          endMessage={t("saved.end")}
         />
       </div>
     </div>

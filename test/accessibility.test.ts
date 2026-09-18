@@ -276,10 +276,10 @@ describe("Faz 17 — Erişilebilirlik ve Tema Denetimi (WCAG 2.1 AA)", () => {
         }),
       );
 
-      const upBtn = screen.getByRole("button", { name: "Yukarı oy ver" });
+      const upBtn = screen.getByRole("button", { name: "Upvote" });
       expect(upBtn.getAttribute("aria-pressed")).toBe("false");
 
-      const downBtn = screen.getByRole("button", { name: "Aşağı oy ver" });
+      const downBtn = screen.getByRole("button", { name: "Downvote" });
       expect(downBtn.getAttribute("aria-pressed")).toBe("false");
     });
 
@@ -314,8 +314,8 @@ describe("Faz 17 — Erişilebilirlik ve Tema Denetimi (WCAG 2.1 AA)", () => {
         }),
       );
 
-      expect(screen.getByText("İçeriği Şikayet Et")).toBeDefined();
-      expect(screen.getByText(/Topluluk kurallarını ihlal ettiğini düşündüğünüz/i)).toBeDefined();
+      expect(screen.getByText("Report Content")).toBeDefined();
+      expect(screen.getByText(/Report this content to moderators/i)).toBeDefined();
     });
   });
 

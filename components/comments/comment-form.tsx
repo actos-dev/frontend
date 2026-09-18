@@ -67,7 +67,7 @@ export function CommentForm({
       setText((prev) => (prev.trim() ? prev : saved));
       setIsExpanded(true);
       if (urlDraftKey === draftKey) {
-        toast.info(t("comments.draft_restored") || "Yazdığın taslak geri yüklendi.");
+        toast.info(t("comments.draft_restored"));
       }
     }
   }, [draftKey, searchParams, t]);
@@ -89,7 +89,7 @@ export function CommentForm({
     e.preventDefault();
     const trimmed = text.trim();
     if (!trimmed) {
-      toast.error("Lütfen bir yorum metni yazın.");
+      toast.error(t("comments.empty_error"));
       return;
     }
 
@@ -101,7 +101,7 @@ export function CommentForm({
         typeof window !== "undefined" ? window.location.pathname : `/posts/${postId}`;
       saveDraft(draftKey, trimmed, returnUrl);
       const loginUrl = createLoginRedirectUrl(returnUrl, draftKey, trimmed);
-      toast.info("Yorumunu göndermek için lütfen giriş yap. Yazdığın metin korundu.");
+      toast.info(t("comments.login_required"));
       router.push(loginUrl);
       return;
     }
@@ -130,7 +130,7 @@ export function CommentForm({
 
       const json = await res.json();
       if (!res.ok || !json.ok) {
-        toast.error(json.detail || json.title || "Yorum gönderilemedi.");
+        toast.error(json.detail || json.title || t("comments.create_error"));
         return;
       }
 
@@ -138,18 +138,20 @@ export function CommentForm({
       setText("");
       setFiles([]);
       if (!parentId) setIsExpanded(false);
-      toast.success(t("comments.created_success") || "Yorum başarıyla paylaşıldı.");
+      toast.success(t("comments.created_success"));
       onSuccess?.(json.data);
     } catch {
-      toast.error("Bağlantı hatası: Yorum paylaşılamadı.");
+      toast.error(t("comments.create_network_error"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const defaultPlaceholder = parentId
-    ? t("comments.reply_placeholder") || `@${replyToUsername || "yazar"}'a yanıt yaz...`
-    : t("comments.write_placeholder") || "Düşüncelerini paylaş...";
+    ? replyToUsername
+      ? t("comments.reply_placeholder_to", { username: replyToUsername })
+      : t("comments.reply_placeholder")
+    : t("comments.write_placeholder");
 
   return (
     <form
@@ -163,10 +165,7 @@ export function CommentForm({
       {replyToUsername && (
         <div className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
           <MessageSquare className="w-3.5 h-3.5 text-primary" />
-          <span>
-            <span className="font-semibold text-foreground">@{replyToUsername}</span> adlı
-            kullanıcıya yanıt veriyorsun:
-          </span>
+          <span>{t("comments.replying_to", { username: replyToUsername })}</span>
         </div>
       )}
 
@@ -188,10 +187,10 @@ export function CommentForm({
             expandAndFocus();
           }}
           onFocus={expandAndFocus}
-          placeholder={placeholder || t("comments.add_comment") || "Add a comment"}
+          placeholder={placeholder || t("comments.add_comment")}
           rows={1}
           className="min-h-10 w-full resize-none bg-transparent border-0 p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/70"
-          aria-label={placeholder || t("comments.add_comment") || "Add a comment"}
+          aria-label={placeholder || t("comments.add_comment")}
         />
       )}
 
@@ -201,14 +200,11 @@ export function CommentForm({
             files={files}
             onFilesChange={setFiles}
             maxFiles={MAX_COMMENT_IMAGES}
-            contentLabel="yorum"
+            contentLabel={t("comments.content_label")}
             disabled={isSubmitting}
           />
           <div className="flex items-center justify-between gap-2 border-t border-border/50 pt-2 flex-wrap">
-            <span className="text-[11px] text-muted-foreground">
-              {t("comments.markdown_hint") ||
-                "Markdown desteklenir · Göndermek için Ctrl/⌘ + Enter"}
-            </span>
+            <span className="text-[11px] text-muted-foreground">{t("comments.markdown_hint")}</span>
 
             <div className="flex items-center gap-2">
               {onCancel && (
@@ -220,7 +216,7 @@ export function CommentForm({
                   disabled={isSubmitting}
                   className="text-xs h-8 px-3"
                 >
-                  {t("comments.cancel") || "İptal"}
+                  {t("comments.cancel")}
                 </Button>
               )}
 
@@ -231,11 +227,11 @@ export function CommentForm({
                 className="text-xs h-8 px-3.5 gap-1.5 font-medium shadow-2xs"
               >
                 {isSubmitting ? (
-                  <span>{t("comments.sending") || "Gönderiliyor..."}</span>
+                  <span>{t("comments.sending")}</span>
                 ) : (
                   <>
                     <Send className="w-3 h-3" />
-                    <span>{t("comments.send") || "Gönder"}</span>
+                    <span>{t("comments.send")}</span>
                   </>
                 )}
               </Button>

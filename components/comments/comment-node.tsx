@@ -73,7 +73,7 @@ export function CommentNodeComponent({
   onReplyAdded,
 }: CommentNodeProps) {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const { user } = useSessionStore();
 
   const [isReplying, setIsReplying] = useState(false);
@@ -97,7 +97,7 @@ export function CommentNodeComponent({
   // Author identity
   const author = comment.author;
   const authorType = (author?.actorType || "human") as ActorType;
-  const username = author?.username || "anonim";
+  const username = author?.username || t("comments.anonymous");
   const displayName = author?.displayName || username;
   const isOriginalPoster =
     !isDeleted &&
@@ -129,7 +129,7 @@ export function CommentNodeComponent({
     }
 
     if (isAuthor) {
-      toast.error(t("interactions.vote_own_forbidden") || "Kendi içeriğinize oy veremezsiniz.");
+      toast.error(t("interactions.vote_own_forbidden"));
       return;
     }
 
@@ -143,7 +143,7 @@ export function CommentNodeComponent({
             : `/posts/${postId}`;
         router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
       } else {
-        toast.error((error as { detail?: string }).detail || "Oy kaydedilemedi.");
+        toast.error((error as { detail?: string }).detail || t("comments.vote_error"));
       }
     }
   };
@@ -152,7 +152,7 @@ export function CommentNodeComponent({
   const handleSaveEdit = async () => {
     const trimmed = editBody.trim();
     if (!trimmed) {
-      toast.error("Yorum metni boş olamaz.");
+      toast.error(t("comments.edit_empty_error"));
       return;
     }
 
@@ -166,15 +166,15 @@ export function CommentNodeComponent({
 
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Yorum güncellenemedi.");
+        toast.error(data.detail || data.title || t("comments.update_error"));
         return;
       }
 
       setIsEditing(false);
       onCommentUpdated?.(comment.id, trimmed);
-      toast.success(t("comments.updated_success") || "Yorum güncellendi.");
+      toast.success(t("comments.updated_success"));
     } catch {
-      toast.error("Bağlantı hatası: Yorum güncellenemedi.");
+      toast.error(t("comments.update_network_error"));
     } finally {
       setIsSavingEdit(false);
     }
@@ -183,11 +183,11 @@ export function CommentNodeComponent({
   // Handle Delete
   const handleConfirmDelete = async () => {
     try {
-      const deletedBody = `[${t("comments.deleted_comment") || "Bu yorum silindi"}]`;
+      const deletedBody = `[${t("comments.deleted_comment")}]`;
       await deleteComment.mutateAsync(deletedBody);
       setDeleteDialogOpen(false);
       onCommentDeleted?.(comment.id);
-      toast.success(t("comments.deleted_success") || "Yorum silindi.");
+      toast.success(t("comments.deleted_success"));
     } catch (error) {
       if (isAuthenticationProblem(error)) {
         const currentPath =
@@ -196,7 +196,7 @@ export function CommentNodeComponent({
             : `/posts/${postId}`;
         router.push(`/login?returnUrl=${encodeURIComponent(currentPath)}`);
       } else {
-        toast.error((error as { detail?: string }).detail || "Yorum silinemedi.");
+        toast.error((error as { detail?: string }).detail || t("comments.delete_error"));
       }
     }
   };
@@ -224,11 +224,7 @@ export function CommentNodeComponent({
         <button
           type="button"
           data-testid="thread-line-toggle"
-          aria-label={
-            isCollapsed
-              ? t("comments.expand_thread") || "Yanıtları genişlet"
-              : t("comments.collapse_thread") || "Yanıtları daralt"
-          }
+          aria-label={isCollapsed ? t("comments.expand_thread") : t("comments.collapse_thread")}
           aria-expanded={!isCollapsed}
           onClick={() => onToggleCollapse(comment.id)}
           className="absolute left-0 top-0 bottom-0 z-10 w-3 -translate-x-1/2 cursor-pointer border-0 bg-transparent p-0 hover:[&>span]:bg-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:[&>span]:bg-primary"
@@ -246,29 +242,26 @@ export function CommentNodeComponent({
           className="flex w-full select-none items-center gap-2 rounded-md bg-muted/40 px-2 py-1.5 text-left text-xs text-muted-foreground"
         >
           <span className="font-semibold text-foreground">
-            @{isDeleted || isAuthorDeleted ? "silindi" : username}
+            @{isDeleted || isAuthorDeleted ? t("comments.deleted_author") : username}
           </span>
           {isOriginalPoster && (
             <abbr
               data-testid="original-poster-badge"
-              title={t("comments.original_poster") || "Gönderi yazarı"}
+              title={t("comments.original_poster")}
               className="inline-flex h-4 items-center rounded-sm border border-border px-1 font-mono text-[9px] font-semibold leading-none text-muted-foreground"
             >
               OP
             </abbr>
           )}
           <span className="text-muted-foreground/80">
-            ({totalHiddenReplies}{" "}
-            {t("comments.hidden_replies")?.replace("{count}", String(totalHiddenReplies)) ||
-              `${totalHiddenReplies} yanıt gizlendi`}
-            )
+            ({totalHiddenReplies} {t("comments.hidden_replies", { count: totalHiddenReplies })})
           </span>
           <time
             dateTime={comment.createdAt}
             className="text-[11px] text-muted-foreground/60 ml-auto"
             suppressHydrationWarning
           >
-            {formatRelativeTime(comment.createdAt)}
+            {formatRelativeTime(comment.createdAt, locale)}
           </time>
         </div>
       ) : (
@@ -305,11 +298,11 @@ export function CommentNodeComponent({
                   data-testid="deleted-author"
                   className="font-semibold text-muted-foreground italic text-xs"
                 >
-                  [{t("comments.deleted_author") || "silindi"}]
+                  [{t("comments.deleted_author")}]
                 </span>
               ) : isAuthorDeleted ? (
                 <span className="font-semibold text-muted-foreground italic text-xs">
-                  [{t("comments.deleted_author") || "silindi"}]
+                  [{t("comments.deleted_author")}]
                 </span>
               ) : (
                 <ActorHoverCard username={username} className="items-center gap-2">
@@ -335,7 +328,7 @@ export function CommentNodeComponent({
               {!isDeleted && !isAuthorDeleted && isOriginalPoster && (
                 <abbr
                   data-testid="original-poster-badge"
-                  title={t("comments.original_poster") || "Gönderi yazarı"}
+                  title={t("comments.original_poster")}
                   className="inline-flex h-4 items-center rounded-sm border border-border px-1 font-mono text-[9px] font-semibold leading-none text-muted-foreground"
                 >
                   OP
@@ -349,7 +342,7 @@ export function CommentNodeComponent({
                 title={comment.createdAt}
                 suppressHydrationWarning
               >
-                {formatRelativeTime(comment.createdAt)}
+                {formatRelativeTime(comment.createdAt, locale)}
               </time>
 
               {/* Düzenlendi Göstergesi */}
@@ -357,10 +350,10 @@ export function CommentNodeComponent({
                 <span
                   data-testid="edited-badge"
                   className="text-[11px] text-muted-foreground/60 italic"
-                  title={comment.editedAt ? `Düzenlendi: ${comment.editedAt}` : "Düzenlendi"}
+                  title={t("comments.edited_title", { date: comment.editedAt })}
                   suppressHydrationWarning
                 >
-                  ({t("comments.edited") || "düzenlendi"})
+                  ({t("comments.edited")})
                 </span>
               )}
             </div>
@@ -385,7 +378,7 @@ export function CommentNodeComponent({
                   disabled={isSavingEdit}
                   className="text-xs h-7 px-2.5"
                 >
-                  {t("comments.cancel") || "İptal"}
+                  {t("comments.cancel")}
                 </Button>
                 <Button
                   type="button"
@@ -394,9 +387,7 @@ export function CommentNodeComponent({
                   disabled={isSavingEdit || !editBody.trim()}
                   className="text-xs h-7 px-3"
                 >
-                  {isSavingEdit
-                    ? t("comments.saving") || "Kaydediliyor..."
-                    : t("comments.save") || "Kaydet"}
+                  {isSavingEdit ? t("comments.saving") : t("comments.save")}
                 </Button>
               </div>
             </div>
@@ -406,7 +397,7 @@ export function CommentNodeComponent({
               data-testid="deleted-comment-notice"
               className="italic text-muted-foreground/70 text-xs sm:text-sm py-1"
             >
-              [{t("comments.deleted_comment") || "Bu yorum silindi"}]
+              [{t("comments.deleted_comment")}]
             </p>
           ) : (
             <div className="text-foreground/90 text-sm leading-relaxed break-words py-0.5">
@@ -435,12 +426,12 @@ export function CommentNodeComponent({
                   disabled={isVoting || isAuthor}
                   title={
                     isAuthor
-                      ? "Kendi içeriğinize oy veremezsiniz"
+                      ? t("interactions.vote_own_forbidden")
                       : userVote === 1
-                        ? "Oyu geri çek"
-                        : "Yukarı oy ver"
+                        ? t("comments.vote_remove")
+                        : t("comments.upvote")
                   }
-                  aria-label="Yukarı oy ver"
+                  aria-label={t("comments.upvote")}
                   aria-pressed={userVote === 1}
                   className={`p-0.5 rounded-xs transition-colors ${
                     isAuthor
@@ -470,12 +461,12 @@ export function CommentNodeComponent({
                   disabled={isVoting || isAuthor}
                   title={
                     isAuthor
-                      ? "Kendi içeriğinize oy veremezsiniz"
+                      ? t("interactions.vote_own_forbidden")
                       : userVote === -1
-                        ? "Oyu geri çek"
-                        : "Aşağı oy ver"
+                        ? t("comments.vote_remove")
+                        : t("comments.downvote")
                   }
-                  aria-label="Aşağı oy ver"
+                  aria-label={t("comments.downvote")}
                   aria-pressed={userVote === -1}
                   className={`p-0.5 rounded-xs transition-colors ${
                     isAuthor
@@ -496,7 +487,7 @@ export function CommentNodeComponent({
                 className="inline-flex items-center gap-1 hover:text-foreground transition-colors font-medium py-1 px-1.5 rounded-sm hover:bg-muted/40 cursor-pointer"
               >
                 <MessageSquare className="w-3 h-3" />
-                <span>{t("comments.reply") || "Yanıtla"}</span>
+                <span>{t("comments.reply")}</span>
               </button>
 
               {/* Sahiplik Butonları: Düzenle & Sil */}
@@ -508,7 +499,7 @@ export function CommentNodeComponent({
                     className="inline-flex items-center gap-1 hover:text-foreground transition-colors font-medium py-1 px-1.5 rounded-sm hover:bg-muted/40 cursor-pointer"
                   >
                     <Pencil className="w-3 h-3" />
-                    <span>{t("comments.edit") || "Düzenle"}</span>
+                    <span>{t("comments.edit")}</span>
                   </button>
 
                   <button
@@ -517,7 +508,7 @@ export function CommentNodeComponent({
                     className="inline-flex items-center gap-1 hover:text-destructive transition-colors font-medium py-1 px-1.5 rounded-sm hover:bg-destructive/10 cursor-pointer"
                   >
                     <Trash2 className="w-3 h-3" />
-                    <span>{t("comments.delete") || "Sil"}</span>
+                    <span>{t("comments.delete")}</span>
                   </button>
                 </>
               )}
@@ -553,9 +544,9 @@ export function CommentNodeComponent({
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline hover:text-primary/80 transition-colors p-1.5 rounded-md bg-primary/5 border border-primary/20"
                   >
                     <CornerDownRight className="w-3.5 h-3.5" />
-                    <span>{t("comments.continue_thread") || "Devamını gör →"}</span>
+                    <span>{t("comments.continue_thread")}</span>
                     <span className="text-muted-foreground font-normal">
-                      ({comment.replies.length} doğrudan yanıt)
+                      ({t("comments.direct_replies", { count: comment.replies.length })})
                     </span>
                   </Link>
                 </div>
@@ -588,16 +579,13 @@ export function CommentNodeComponent({
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("comments.delete_confirm_title") || "Yorumu Sil"}</DialogTitle>
-            <DialogDescription>
-              {t("comments.delete_confirm_desc") ||
-                "Bu yorumu silmek istediğinden emin misin? Altındaki yanıtlar korunacaktır ancak içerik maskelenecektir."}
-            </DialogDescription>
+            <DialogTitle>{t("comments.delete_confirm_title")}</DialogTitle>
+            <DialogDescription>{t("comments.delete_confirm_desc")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4 gap-2">
             <DialogClose asChild>
               <Button type="button" variant="outline" disabled={isDeleting}>
-                {t("comments.cancel") || "İptal"}
+                {t("comments.cancel")}
               </Button>
             </DialogClose>
             <Button
@@ -607,7 +595,7 @@ export function CommentNodeComponent({
               onClick={handleConfirmDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? "Siliniyor..." : t("comments.delete") || "Sil"}
+              {isDeleting ? t("comments.deleting") : t("comments.delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
