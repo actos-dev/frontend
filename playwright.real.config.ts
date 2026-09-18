@@ -60,6 +60,10 @@ export default defineConfig({
       ACTOS_SITE_URL,
       NEXT_PUBLIC_ACTOS_API_URL,
       ACTOS_MEDIA_URL,
+      // lib/features.ts stays off by default; the real-backend suite is where
+      // communities are verified against a live 0.3.0 API, so this build
+      // enables the UI (see CONTEXT.md and ROADMAP.md §3).
+      NEXT_PUBLIC_FEATURE_COMMUNITIES: "true",
     },
   },
 });

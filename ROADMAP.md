@@ -54,21 +54,22 @@ running backend, not only by its tests):
 | Accessibility/EN–TR i18n cleanup, recovery downloads and the Node SDK 0.3.0 upgrade | uncommitted working tree |
 
 Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(546), `pnpm check:contrast` (3/3), the client-secret bundle audit,
-`next build`, and the production-browser Markstone WASM test all pass. The
-previous real-backend suite remains at 40 passing journeys; rerun it against
-a running API before deployment.
+(636), `pnpm test:e2e` (34 mocked), `pnpm test:e2e:real` (44 against the live
+backend, desktop + mobile, including a communities journey), `pnpm check:contrast`
+(3/3), the client-secret bundle audit, `next build`, and the
+production-browser Markstone WASM test all pass. Re-run the real-backend suite
+against a running API before deployment.
 
-**In flight:** nothing. The i18n/recovery-file cleanup is finished and the
-frontend now depends on `@actos-dev/actos@^0.3.0`; the whole working tree is
-uncommitted and green. U-08's true unavailable-save tombstone remains
-backend-blocked. List responses still omit attachments, so feed rows
-deliberately have no thumbnails rather than making N+1 detail requests.
+**In flight:** nothing. The i18n cleanup, the SDK bump to `^0.3.0`, the full
+Phase 7 communities frontend, the production polish (retry-after, next/image,
+`/developers`), CI/CD and the infra web service are all committed and green.
+U-08's true unavailable-save tombstone remains backend-blocked (BE-005). List
+responses still omit attachments, so feed rows deliberately have no
+thumbnails rather than making N+1 detail requests (BE-004).
 
-**Next:** implement Phase 7 communities against the API that is live today —
-the SDK upgrade to ^0.3.0 is done, so Phase 7 is unblocked. Afterwards rerun
-the real-backend browser suite and review 390 px/1440 px screenshots before
-release.
+**Next:** the work is code-complete. What remains is release work: the legal
+texts (D-07, owner), the staging host (D-12, owner), the remote-images
+decision (D-03b), then a final real-backend pass and deployment.
 
 ### Authoritative completion matrix (2026-09-19)
 
@@ -79,14 +80,15 @@ is actually left.
 | Track | Status | Remaining work / exit condition |
 |---|---|---|
 | Phases 0–6 core frontend refactor | **Complete** | Keep unit/type/lint/build gates green. |
-| Accessibility, responsive behavior and EN/TR i18n | **Complete** | All hardcoded strings localized, recovery downloads localized, full suite and build green (uncommitted working tree). |
-| Production runtime and operator guide | **Complete, deployment verification pending** | `PUBLISH.md` exists; run the documented production and nginx checks on the target server. |
-| Real-backend validation | **Must rerun** | Seed backend 0.3.0, run `test:e2e:real`, inspect mobile/desktop screenshots and browser console. |
-| Communities backend/API | **Live in production (0.3.0, deployed 2026-09-18)** | Verify `docs/API.md` §5 against `api.actos.com.tr`. |
-| Communities Node SDK | **Published 0.3.0 to npm (2026-09-18)** | Frontend consumes `@actos-dev/actos@^0.3.0`; keep verifying generated types against the live API. |
-| Communities frontend | **Not implemented — unblocked** | SDK dependency is upgraded; build the Phase 7 routes/flows and enable the feature. |
-| Backend/SDK asks outside communities | **Open or needs 0.3 revalidation** | `../EKSIKLIKLER.md` is the backlog; do not implement an old 0.2 ask before checking 0.3. |
-| Owner inputs | **Blocked on owner** | Legal text (D-07) and staging hostname/access method (D-12). |
+| Accessibility, responsive behavior and EN/TR i18n | **Complete** | All hardcoded strings localized; unit, mocked-e2e and real-e2e suites green. |
+| Production runtime and operator guide | **Complete, deployment verification pending** | `PUBLISH.md`; production/nginx checks on the target server at deploy time. |
+| Real-backend validation | **Green (44 journeys, desktop + mobile)** | Re-run before deployment; the suite now includes a communities journey. |
+| Communities backend/API | **Live (0.3.0)** | — |
+| Communities Node SDK | **Published 0.3.0** | Frontend consumes `^0.3.0`. |
+| Communities frontend | **Implemented, flag on by default** | Read/create/post/cross-post/cover verified against the real backend; the moderation surfaces (mod console, applications, invitations, permissions, settings) are unit-covered only — residual risk for launch. |
+| CI/CD and infra | **Implemented, not yet activated** | `.github/workflows/{ci,deploy}.yml` and the backend `web` service + nginx exist; the frontend repo still needs the `production` environment secrets, and `WEB_IMAGE` must be built/pushed. |
+| Backend/SDK asks outside communities | **Tracked in `../EKSIKLIKLER.md`** | Several gaps recorded during Phase 7 (BE-016–BE-024). |
+| Owner inputs | **Blocked on owner** | Legal text (D-07), staging host (D-12), remote-images decision (D-03b). |
 
 ### Running the thing locally
 
