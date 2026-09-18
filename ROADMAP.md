@@ -1,7 +1,9 @@
 # Actos Web — Overhaul Roadmap
 
-> Written 2026-09-15 against branch `sync/backend-0.2.0` (`dcdea27`), backend
-> 0.2.0 (`3186821`, live at `api.actos.com.tr`) and `COMMUNITY_PLAN.md`.
+> Written 2026-09-15 against backend 0.2.0 and reconciled on 2026-09-18
+> against the repository's backend 0.3.0, Node SDK 0.3.0 and the current
+> `overhaul` frontend branch. The frontend dependency is still
+> `@actos-dev/actos@^0.2.0`; that version gap is now tracked explicitly below.
 >
 > This file replaces `TODO.md`, `YAPILACAKLAR.md` and the phase checklist in
 > `PLAN.md` as the single source of what happens next in this repository.
@@ -44,22 +46,44 @@ running backend, not only by its tests):
 | P-01…P-07 — feed, post, OG and sitemap; C-01 — comment tree polish | `d3a5f01` |
 | C-02…C-05; U-01, U-03…U-07 — compose, identity and account surfaces | `7be3f51` |
 | Production startup and nginx/operator guide | `7552a6f` |
+| Actor hover cards and content/moderation polish | `f9a4d7e`, `0ccb660` |
+| Production runtime hardening (PWA, CSP, guards, logging) | `f56dbed` |
+| Feed, gallery and post-action localization | `b1f67ae`, `85a96ba` |
+| Discovery, settings, search and moderation localization | `3ecb9e5`, `c57c32c`, `a0bcfdc` |
+| Conversations, uploads, reports and streams localization | `5f42915` |
 
 Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(533), `pnpm check:contrast` (3/3), the client-secret bundle audit,
+(545), `pnpm check:contrast` (3/3), the client-secret bundle audit,
 `next build --webpack`, and the production-browser Markstone WASM test all
 pass. The previous real-backend suite remains at 40 passing journeys; rerun
 it against a running API before deployment.
 
-**In flight:** Phase 6 moderation works against the current API. Brand/PWA
-assets, nonce CSP, mutation guards and structured request-error logging are
-complete; the final accessibility/responsive/i18n pass is in progress. U-08's true unavailable-save
-tombstone remains backend-blocked. List responses still omit attachments, so
-feed rows deliberately have no thumbnails until B-04 lands rather than
-making N+1 detail requests.
+**In flight:** The final i18n/recovery-file cleanup and its full quality gates.
+U-08's true unavailable-save tombstone remains backend-blocked. List responses
+still omit attachments, so feed rows deliberately have no thumbnails rather
+than making N+1 detail requests.
 
-**Next:** the final accessibility/responsive/i18n pass. Community selection
-remains behind B-12.
+**Next:** upgrade the frontend from Node SDK 0.2.x to 0.3.x, then implement
+Phase 7 communities against the API that now exists. After that, rerun the
+real-backend browser suite and review 390 px/1440 px screenshots before release.
+
+### Authoritative completion matrix (2026-09-18)
+
+This table overrides older historical wording later in this document. Older
+sections explain the decisions and acceptance criteria; this table says what
+is actually left.
+
+| Track | Status | Remaining work / exit condition |
+|---|---|---|
+| Phases 0–6 core frontend refactor | **Complete** | Keep unit/type/lint/build gates green. |
+| Accessibility, responsive behavior and EN/TR i18n | **Final cleanup in progress** | Remove the last user-facing hardcoded strings; localize recovery downloads; pass the complete suite and build. |
+| Production runtime and operator guide | **Complete, deployment verification pending** | `PUBLISH.md` exists; run the documented production and nginx checks on the target server. |
+| Real-backend validation | **Must rerun** | Seed backend 0.3.0, run `test:e2e:real`, inspect mobile/desktop screenshots and browser console. |
+| Communities backend/API | **Available in backend 0.3.0** | No longer a backend blocker; see backend `docs/API.md` §5. |
+| Communities Node SDK | **Available in repository SDK 0.3.0** | Publish/consume the intended 0.3.x package and verify its generated types/contract tests. |
+| Communities frontend | **Not implemented** | Upgrade the frontend SDK dependency, replace the disabled feature slots with Phase 7 routes/flows, then enable the feature. |
+| Backend/SDK asks outside communities | **Open or needs 0.3 revalidation** | `../EKSIKLIKLER.md` is the backlog; do not implement an old 0.2 ask before checking 0.3. |
+| Owner inputs | **Blocked on owner** | Legal text (D-07) and staging hostname/access method (D-12). |
 
 ### Running the thing locally
 
@@ -139,10 +163,10 @@ production compose file and nginx serves a 503 placeholder. There are no
 security headers, no favicon and no legal pages. Half the UI stays Turkish
 when the locale is English.
 
-**Communities are designed, not implemented.** The backend has no community
-code or endpoint as of 0.2.0. This roadmap still designs the UI against
-`COMMUNITY_PLAN.md` so nothing gets rebuilt later. Phases 1–6 leave explicit
-slots (§3), and Phase 7 specifies the screens and the API the UI needs.
+**Communities are implemented in backend/Node SDK 0.3.0, but not in this
+frontend.** The frontend still installs SDK 0.2.x and keeps its community
+slots disabled. Phase 7 is therefore an active frontend integration phase,
+not a backend-design waiting room.
 
 ---
 
@@ -391,10 +415,10 @@ A unit is one coherent commit. It is done only when all of these hold:
 
 ## 3. Community slots built into Phases 1–6
 
-Communities come later, but these decisions are taken now so that no
-component is rebuilt when the API lands. Each one is implemented in the phase
-named. Community-specific parts stay behind `FEATURE_COMMUNITIES` until the
-backend ships them.
+The backend and Node SDK API have landed in 0.3.0. These slots were prepared
+so the Phase 7 frontend can be added without rebuilding the shell. They stay
+behind `FEATURE_COMMUNITIES` until the frontend dependency and screens are
+upgraded and verified.
 
 | Slot | Decision | Phase |
 |---|---|---|
@@ -949,11 +973,12 @@ scoped grants land.
 
 ---
 
-## Phase 7 — Communities, contract-first
+## Phase 7 — Communities frontend integration (remaining)
 
-All of this follows `COMMUNITY_PLAN.md`. The screens are built when the
-matching backend phase ships, behind `FEATURE_COMMUNITIES`. The §3 slots are
-already in place by then.
+Backend 0.3.0 and Node SDK 0.3.0 now provide the community contract. The
+frontend still consumes SDK 0.2.x and has no `/c` screens. First upgrade and
+contract-test the dependency; then build the screens below behind
+`FEATURE_COMMUNITIES`, using the §3 slots already in place.
 
 ### 7.1 Routes and screens
 
@@ -993,10 +1018,13 @@ already in place by then.
 - **Global moderation.** Reports from communities appear with a community
   column. Global admins see everything unfiltered (§7).
 
-### 7.3 What the UI needs from the communities API
+### 7.3 Communities contract status
 
-This is input for the backend design. Without these, the screens above need
-N+1 requests or guesswork.
+The original requirements below are retained as the frontend acceptance
+checklist. Backend/SDK 0.3.0 implement the core endpoints and typed
+`client.communities.*` surface. During frontend integration, check each item
+against the exact 0.3 response shape; record only genuine gaps in
+`../EKSIKLIKLER.md`.
 
 1. `GET /communities` (public, search, sort) and `GET /communities/{name}`.
    The second returns `visibility`, `member_count`, a short description,
@@ -1236,7 +1264,7 @@ the interim behavior.
 | B-09 | Always include `id` in sparse fieldset responses | Defense against P0-01-class bugs in every client | — |
 | B-10 | ✅ Published `@actos-dev/actos@0.2.0`; frontend installs the registry alias | F-01, all CI and deploy | Resolved 2026-09-17 |
 | B-11 | ✅ Published Markstone 0.1.0; server uses native rendering and preview uses browser WASM | F-02 | Resolved 2026-09-17 |
-| B-12 | Communities API (§7.3) | Phase 7 | Slots behind the flag |
+| B-12 | ✅ Communities API and typed Node SDK surface shipped in repository 0.3.0 | Phase 7 frontend integration | Frontend remains on SDK 0.2.x with slots behind the flag |
 | B-13 | Honour `Idempotency-Key` on `POST /posts/{id}/comments`, as `POST /posts` already does | P0-11's server half | The client sends the key; a double submit can still duplicate |
 
 ---
@@ -1290,7 +1318,7 @@ Phase 0 (P0-01…P0-12)
   └─ Phase 1: F-01 → F-04 → F-05/F-06 → F-02, F-03, F-07, F-08, T-01
        ├─ Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
        └─ Phase 8 track (D-01…D-12) in parallel, D-13 at the end
-Phase 7 screens: as backend community phases 1–5 ship
+Phase 7 screens: upgrade frontend SDK to 0.3.x → implement routes/flows → enable flag
 ```
 
 The craft details (§1.5, X-01…X-25) are not a phase. Each one is part of the
