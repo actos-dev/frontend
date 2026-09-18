@@ -13,10 +13,33 @@ export interface MarkdownEditorProps {
   placeholder?: string;
   disabled?: boolean;
   minRows?: number;
+  compact?: boolean;
   className?: string;
 }
 
 type PreviewRenderer = (markdown: string) => Promise<string>;
+
+interface AutocompleteToken {
+  trigger: "@" | "#";
+  query: string;
+  start: number;
+  end: number;
+}
+
+interface AutocompleteSuggestion {
+  value: string;
+  label: string;
+  detail?: string;
+}
+
+function tokenAtCursor(value: string, cursor: number): AutocompleteToken | null {
+  const beforeCursor = value.slice(0, cursor);
+  const match = beforeCursor.match(/(?:^|\s)([@#])([a-zA-Z0-9_-]{1,32})$/);
+  if (!match || (match[1] !== "@" && match[1] !== "#")) return null;
+  const triggerOffset = match[0].lastIndexOf(match[1]);
+  const start = (match.index ?? 0) + triggerOffset;
+  return { trigger: match[1], query: match[2], start, end: cursor };
+}
 
 // Loaded once per page, on demand, and shared by every editor instance. The
 // Markstone WASM renderer only reaches the browser when Preview is opened.
@@ -34,11 +57,17 @@ export function MarkdownEditor({
   placeholder,
   disabled = false,
   minRows = 12,
+  compact = false,
   className,
 }: MarkdownEditorProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = React.useState<"write" | "preview">("write");
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const autocompleteId = React.useId();
+  const [autocompleteToken, setAutocompleteToken] = React.useState<AutocompleteToken | null>(null);
+  const [autocompleteItems, setAutocompleteItems] = React.useState<AutocompleteSuggestion[]>([]);
+  const [activeSuggestion, setActiveSuggestion] = React.useState(0);
+  const [autocompleteLoading, setAutocompleteLoading] = React.useState(false);
 
   // The write path (textarea, onChange, drafts, submit) never touches any
   // of this — it only feeds `value` in as a plain string.
@@ -86,6 +115,100 @@ export function MarkdownEditor({
       cancelled = true;
     };
   }, [activeTab, value, previewAttempt]);
+
+  React.useEffect(() => {
+    if (!autocompleteToken) {
+      setAutocompleteItems([]);
+      setAutocompleteLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setAutocompleteLoading(true);
+      try {
+        const url =
+          autocompleteToken.trigger === "@"
+            ? `/api/search?type=actor&limit=8&q=${encodeURIComponent(autocompleteToken.query)}`
+            : `/api/tags/search?q=${encodeURIComponent(autocompleteToken.query)}`;
+        const response = await fetch(url, { signal: controller.signal });
+        const json = await response.json();
+        if (!response.ok || controller.signal.aborted) return;
+
+        const rawItems = autocompleteToken.trigger === "@" ? json.items : json.data;
+        const nextItems: AutocompleteSuggestion[] = Array.isArray(rawItems)
+          ? rawItems.slice(0, 8).flatMap((item: Record<string, unknown>) => {
+              if (autocompleteToken.trigger === "@" && typeof item.username === "string") {
+                return [
+                  {
+                    value: item.username,
+                    label:
+                      typeof item.displayName === "string" && item.displayName
+                        ? item.displayName
+                        : item.username,
+                    detail: `@${item.username}`,
+                  },
+                ];
+              }
+              if (autocompleteToken.trigger === "#" && typeof item.name === "string") {
+                return [{ value: item.name, label: `#${item.name}` }];
+              }
+              return [];
+            })
+          : [];
+        setAutocompleteItems(nextItems);
+        setActiveSuggestion(0);
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") setAutocompleteItems([]);
+      } finally {
+        if (!controller.signal.aborted) setAutocompleteLoading(false);
+      }
+    }, 200);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [autocompleteToken]);
+
+  const updateAutocompleteToken = (nextValue: string, cursor: number) => {
+    setAutocompleteToken(tokenAtCursor(nextValue, cursor));
+  };
+
+  const selectSuggestion = (suggestion: AutocompleteSuggestion) => {
+    if (!autocompleteToken) return;
+    const insertion = `${autocompleteToken.trigger}${suggestion.value} `;
+    const nextValue =
+      value.slice(0, autocompleteToken.start) + insertion + value.slice(autocompleteToken.end);
+    const nextCursor = autocompleteToken.start + insertion.length;
+    onChange(nextValue);
+    setAutocompleteToken(null);
+    setAutocompleteItems([]);
+    window.setTimeout(() => {
+      textareaRef.current?.focus();
+      textareaRef.current?.setSelectionRange(nextCursor, nextCursor);
+    }, 0);
+  };
+
+  const handleAutocompleteKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!autocompleteToken || autocompleteItems.length === 0) {
+      if (event.key === "Escape") setAutocompleteToken(null);
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const direction = event.key === "ArrowDown" ? 1 : -1;
+      setActiveSuggestion(
+        (current) => (current + direction + autocompleteItems.length) % autocompleteItems.length,
+      );
+    } else if (event.key === "Enter" || event.key === "Tab") {
+      event.preventDefault();
+      selectSuggestion(autocompleteItems[activeSuggestion]);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      setAutocompleteToken(null);
+    }
+  };
 
   const applyFormatting = (
     formatType: "bold" | "italic" | "heading" | "link" | "code" | "quote" | "list",
@@ -292,22 +415,80 @@ export function MarkdownEditor({
         </div>
 
         {/* Write Tab */}
-        <TabsContent value="write" className="m-0 p-0 focus-visible:outline-hidden">
+        <TabsContent value="write" className="relative m-0 p-0 focus-visible:outline-hidden">
           <textarea
             ref={textareaRef}
             data-testid="markdown-textarea"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => {
+              onChange(e.target.value);
+              updateAutocompleteToken(e.target.value, e.target.selectionStart);
+            }}
+            onClick={(e) =>
+              updateAutocompleteToken(e.currentTarget.value, e.currentTarget.selectionStart)
+            }
+            onKeyDown={handleAutocompleteKeyDown}
             placeholder={placeholder || t("editor.body_placeholder")}
             disabled={disabled}
             rows={minRows}
-            className="w-full min-h-[300px] resize-y p-3.5 font-mono text-sm leading-relaxed bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-hidden selection:bg-primary/20"
+            aria-autocomplete="list"
+            aria-controls={autocompleteItems.length > 0 ? autocompleteId : undefined}
+            aria-activedescendant={
+              autocompleteItems.length > 0 ? `${autocompleteId}-${activeSuggestion}` : undefined
+            }
+            className={cn(
+              "w-full resize-y font-mono text-sm leading-relaxed bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-hidden selection:bg-primary/20",
+              compact ? "min-h-24 p-3" : "min-h-[300px] p-3.5",
+            )}
           />
+          {(autocompleteItems.length > 0 || autocompleteLoading) && autocompleteToken && (
+            <div
+              id={autocompleteId}
+              role="listbox"
+              aria-label={autocompleteToken.trigger === "@" ? "Kişi önerileri" : "Etiket önerileri"}
+              className="absolute bottom-2 left-3 right-3 z-20 max-h-52 overflow-y-auto rounded-lg border border-border bg-popover p-1 shadow-lg"
+            >
+              {autocompleteLoading && autocompleteItems.length === 0 ? (
+                <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {t("common.loading")}
+                </div>
+              ) : (
+                autocompleteItems.map((item, index) => (
+                  <button
+                    key={`${autocompleteToken.trigger}${item.value}`}
+                    id={`${autocompleteId}-${index}`}
+                    type="button"
+                    role="option"
+                    aria-selected={index === activeSuggestion}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => selectSuggestion(item)}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm",
+                      index === activeSuggestion
+                        ? "bg-surface-2 text-foreground"
+                        : "text-foreground",
+                    )}
+                  >
+                    <span className="truncate font-medium">{item.label}</span>
+                    {item.detail && (
+                      <span className="truncate font-mono text-xs text-muted-foreground">
+                        {item.detail}
+                      </span>
+                    )}
+                  </button>
+                ))
+              )}
+            </div>
+          )}
         </TabsContent>
 
         {/* Preview Tab */}
         <TabsContent value="preview" className="m-0 p-0 focus-visible:outline-hidden">
-          <div data-testid="markdown-preview" className="min-h-[300px] p-5 overflow-y-auto">
+          <div
+            data-testid="markdown-preview"
+            className={cn(compact ? "min-h-24 p-3" : "min-h-[300px] p-5", "overflow-y-auto")}
+          >
             {previewLoading ? (
               <div
                 data-testid="preview-loading"

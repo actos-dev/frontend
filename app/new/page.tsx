@@ -4,11 +4,8 @@ import { Check, Loader2, LogIn, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { ImageUploader } from "@/components/editor/image-uploader";
-import { MarkdownEditor } from "@/components/editor/markdown-editor";
-import { TagsInput } from "@/components/editor/tags-input";
+import { PostComposerFields } from "@/components/editor/post-composer-fields";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
 import { useEditorDraftStore } from "@/lib/stores/editor-draft";
@@ -142,47 +139,17 @@ export default function NewPostPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Title Field */}
-        <div className="space-y-2">
-          <label htmlFor="post-title" className="block text-sm font-semibold text-foreground">
-            {t("editor.title_label")}
-          </label>
-          <Input
-            id="post-title"
-            data-testid="post-title-input"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={t("editor.title_placeholder")}
-            disabled={isSubmitting}
-            maxLength={300}
-            className="text-lg font-medium py-2.5 px-3.5 h-auto bg-card"
-            required
-          />
-        </div>
-
-        {/* Tags Field */}
-        <div className="space-y-2">
-          <div className="text-sm font-semibold text-foreground">{t("editor.tags_label")}</div>
-          <TagsInput value={tags} onChange={setTags} maxTags={5} disabled={isSubmitting} />
-          <p className="text-[11px] text-muted-foreground">{t("editor.tags_hint")}</p>
-        </div>
-
-        {/* Image Uploader */}
-        <div className="space-y-2">
-          <div className="text-sm font-semibold text-foreground">{t("editor.upload_image")}</div>
-          <ImageUploader files={images} onFilesChange={setImages} disabled={isSubmitting} />
-        </div>
-
-        {/* Markdown Editor */}
-        <div className="space-y-2">
-          <div className="text-sm font-semibold text-foreground">{t("editor.body_label")}</div>
-          <MarkdownEditor
-            value={body}
-            onChange={setBody}
-            placeholder={t("editor.body_placeholder")}
-            disabled={isSubmitting}
-          />
-        </div>
+        <PostComposerFields
+          title={title}
+          onTitleChange={setTitle}
+          body={body}
+          onBodyChange={setBody}
+          tags={tags}
+          onTagsChange={setTags}
+          images={images}
+          onImagesChange={setImages}
+          disabled={isSubmitting}
+        />
 
         {/* Submit Actions */}
         <div className="flex items-center justify-between pt-4 border-t border-border">

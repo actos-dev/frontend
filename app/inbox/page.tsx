@@ -27,8 +27,7 @@ interface InboxPageProps {
 export default async function InboxPage(props: InboxPageProps) {
   const rawParams = props.searchParams ? await props.searchParams : {};
   const cursor = typeof rawParams.cursor === "string" ? rawParams.cursor : undefined;
-  const unreadOnly = rawParams.unread === "true";
-  const initialFilter: InboxFilterTab = unreadOnly ? "unread" : "all";
+  const initialFilter: InboxFilterTab = "all";
 
   const client = await getServerClient();
 
@@ -100,7 +99,6 @@ export default async function InboxPage(props: InboxPageProps) {
   try {
     const res = await client.inbox.list({
       cursor,
-      unread: unreadOnly ? true : undefined,
       limit: 25,
     });
     notifications = res.notifications || [];

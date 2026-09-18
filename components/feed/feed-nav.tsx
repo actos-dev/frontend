@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { setFeedDensityPreference } from "@/lib/feed-density";
 
 export type FeedSortOption = "hot" | "new" | "top";
 export type FeedWindowOption = FeedWindow;
@@ -114,6 +115,7 @@ export function FeedNav({
   };
 
   const selectDensity = (density: FeedDensityOption) => {
+    setFeedDensityPreference(density);
     router.push(buildUrl({ density }));
   };
 

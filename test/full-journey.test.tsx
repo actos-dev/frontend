@@ -298,7 +298,7 @@ describe("Faz 18 — Kapsamlı Vitest Entegrasyon Testi (Full Journey & Boundari
 
       render(<CommentTree postId="p_journey_1" initialComments={[]} />);
 
-      const textarea = screen.getByPlaceholderText(/Düşüncelerini paylaş|Share your thoughts/i);
+      const textarea = screen.getByPlaceholderText(/Yorum ekle|Add a comment/i);
       fireEvent.change(textarea, { target: { value: "Entegrasyon testi harika çalışıyor!" } });
 
       const submitBtn = screen.getByRole("button", { name: /Gönder|Send/i });

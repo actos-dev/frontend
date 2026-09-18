@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const unread = searchParams.get("unread") === "true";
     const cursor = searchParams.get("cursor") || undefined;
     const limit = Number.parseInt(searchParams.get("limit") || "25", 10);
-    const filter = searchParams.get("filter") || undefined; // "replies" | "mentions" | "unread" | "all"
+    const filter = searchParams.get("filter") || undefined;
 
     const client = await getServerClient();
 
@@ -32,6 +32,8 @@ export async function GET(req: NextRequest) {
       );
     } else if (filter === "mentions") {
       items = items.filter((n) => n.kind === "mention");
+    } else if (filter === "follows") {
+      items = items.filter((n) => n.kind === "new_follower" || n.kind === "follow");
     }
 
     return NextResponse.json(

@@ -129,7 +129,6 @@ async function fetchInboxPage(
   signal?: AbortSignal,
 ): Promise<InboxQueryPage> {
   const params = new URLSearchParams({ filter, limit: String(PAGE_SIZE) });
-  if (filter === "unread") params.set("unread", "true");
   if (cursor) params.set("cursor", cursor);
   const response = await fetch(`/api/inbox?${params}`, {
     credentials: "same-origin",

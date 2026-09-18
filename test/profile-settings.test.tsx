@@ -5,6 +5,7 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import type { Actor, ActorProfile, ApiKey } from "actos";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "@/app/u/[username]/page";
+import { ProfileActorList } from "@/components/profile/profile-actor-list";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileTabs } from "@/components/profile/profile-tabs";
 import { ApiKeysManager } from "@/components/settings/api-keys-manager";
@@ -148,15 +149,19 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
       // İstatistikler
       expect(screen.getByTestId("stat-posts")).toHaveTextContent("14");
       expect(screen.getByTestId("stat-comments")).toHaveTextContent("42");
+      expect(screen.getByTestId("stat-score")).toHaveTextContent("180");
       expect(screen.getByTestId("stat-followers")).toHaveTextContent("12");
       expect(screen.getByTestId("stat-following")).toHaveTextContent("8");
+      expect(
+        screen.getByTestId("profile-header").querySelector("[data-actor-type='human']"),
+      ).toHaveClass("rounded-full");
 
       // Profil sahibi oturumda olduğu için "Profili Düzenle" butonu render edilir
       expect(screen.getByTestId("edit-profile-button")).toBeInTheDocument();
       expect(screen.queryByTestId("follow-button")).not.toBeInTheDocument();
     });
 
-    it("yapay zekâ ajanı için doğru glif + etiket (✦ AI agent) gösterir ve ziyaretçi için FollowButton sunar", () => {
+    it("ajanın beyan etiketini tooltip ile açıklar ve ziyaretçi için FollowButton sunar", async () => {
       // Ziyaretçi olarak oturum aç (efe, dila_ai'nin profiline bakıyor)
       useSessionStore.getState().setUser({
         id: "a_efe",
@@ -175,14 +180,59 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
         />,
       );
 
-      // ROADMAP K-08: agents get the mono AgentLabel chip, no ✦ glyph.
+      // Agents use the squircle avatar and accessible mono label.
       const badge = screen.getByTestId("profile-actor-badge");
       expect(badge).toBeInTheDocument();
       expect(badge).toHaveTextContent("Agent");
+      expect(badge).toHaveAttribute("aria-label", "Agent account, self-declared");
+      expect(badge.closest("button")).toHaveAttribute("aria-label", "Ajan hesabı, öz beyan");
+      fireEvent.focus(badge.closest("button") as HTMLButtonElement);
+      await waitFor(() => {
+        expect(screen.getByRole("tooltip")).toHaveTextContent(
+          "İşletmecisi tarafından beyan edilmiştir",
+        );
+      });
+      expect(
+        screen.getByTestId("profile-header").querySelector("[data-actor-type='ai_agent']"),
+      ).toHaveClass("rounded-[28%]");
 
       // Ziyaretçi olduğu için FollowButton görünür, "Profili Düzenle" görünmez
       expect(screen.getByTestId("follow-button")).toBeInTheDocument();
       expect(screen.queryByTestId("edit-profile-button")).not.toBeInTheDocument();
+    });
+
+    it("profil takip listesini API imlecine göre daha fazla yükler", async () => {
+      vi.spyOn(global, "fetch").mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          ok: true,
+          items: [
+            {
+              ...sampleAgentActor,
+              id: "a_more",
+              username: "more_agent",
+              displayName: "More Agent",
+            },
+          ],
+          nextCursor: null,
+        }),
+      } as Response);
+
+      render(
+        <ProfileActorList
+          username="efe"
+          relation="followers"
+          initialActors={[sampleHumanActor]}
+          initialNextCursor="cursor-next"
+        />,
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "Daha fazla" }));
+
+      await waitFor(() => expect(screen.getByText("More Agent")).toBeInTheDocument());
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/actors/efe/followers?cursor=cursor-next&limit=50",
+      );
     });
   });
 

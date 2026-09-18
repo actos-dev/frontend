@@ -1,10 +1,10 @@
 "use client";
 
+import type { Actor } from "actos";
 import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
-  Bot,
   Check,
   Copy,
   Download,
@@ -12,21 +12,22 @@ import {
   Loader2,
   ShieldAlert,
   UserCheck,
-  UserIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "@/lib/i18n";
 import { downloadRecoveryFile, generateRecoveryFileContent } from "@/lib/recovery-file";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { cn } from "@/lib/utils";
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 type ActorTypeChoice = "human" | "ai_agent";
+type AvailabilityState = "checking" | "available" | "taken" | "error";
 
 interface RegisteredData {
   username: string;
@@ -50,11 +51,14 @@ function RegisterWizard() {
 
   // Step 1: Identity
   const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
   // Default is explicitly NONE selected (Plan §7.2)
   const [actorType, setActorType] = useState<ActorTypeChoice | null>(null);
   const [step1Loading, setStep1Loading] = useState(false);
   const [step1Error, setStep1Error] = useState<string | null>(null);
+  const [availability, setAvailability] = useState<{
+    username: string;
+    status: AvailabilityState;
+  } | null>(null);
 
   // Step 2: Secrets
   const [registeredData, setRegisteredData] = useState<RegisteredData | null>(null);
@@ -68,6 +72,80 @@ function RegisterWizard() {
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
 
+  // Step 4: Optional profile setup and follows
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [suggestions, setSuggestions] = useState<Actor[]>([]);
+  const [selectedFollows, setSelectedFollows] = useState<string[]>([]);
+  const [completedFollows, setCompletedFollows] = useState<string[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(true);
+  const [suggestionsError, setSuggestionsError] = useState(false);
+  const [onboardingError, setOnboardingError] = useState<string | null>(null);
+  const [onboardingSaving, setOnboardingSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const normalizedUsername = username.trim().toLowerCase();
+  const currentAvailability =
+    availability?.username === normalizedUsername ? availability.status : null;
+
+  useEffect(() => {
+    if (!/^[a-z0-9_]{3,30}$/.test(normalizedUsername)) {
+      setAvailability(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    setAvailability({ username: normalizedUsername, status: "checking" });
+    const timeout = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/register/availability?username=${encodeURIComponent(normalizedUsername)}`,
+          { signal: controller.signal, cache: "no-store" },
+        );
+        const data = await response.json();
+        if (!response.ok || !data.ok) {
+          setAvailability({ username: normalizedUsername, status: "error" });
+          return;
+        }
+        setAvailability({
+          username: normalizedUsername,
+          status: data.available ? "available" : "taken",
+        });
+      } catch {
+        if (!controller.signal.aborted) {
+          setAvailability({ username: normalizedUsername, status: "error" });
+        }
+      }
+    }, 400);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [normalizedUsername]);
+
+  useEffect(() => {
+    if (step !== 4) return;
+    const controller = new AbortController();
+    setSuggestionsLoading(true);
+    fetch("/api/register/actors", { signal: controller.signal, cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error("Could not load actors");
+        setSuggestions(
+          (data.items as Actor[]).filter((actor) => actor.username !== registeredData?.username),
+        );
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setSuggestionsError(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setSuggestionsLoading(false);
+      });
+    return () => controller.abort();
+  }, [registeredData?.username, step]);
+
   // ---------------------------------------------------------------------------
   // STEP 1 HANDLER
   // ---------------------------------------------------------------------------
@@ -75,14 +153,24 @@ function RegisterWizard() {
     e.preventDefault();
     setStep1Error(null);
 
-    const cleanUsername = username.trim().toLowerCase();
+    const cleanUsername = normalizedUsername;
     if (!cleanUsername) {
-      setStep1Error("Lütfen bir kullanıcı adı girin.");
+      setStep1Error(t("auth.register.username_required"));
+      return;
+    }
+
+    if (!/^[a-z0-9_]{3,30}$/.test(cleanUsername)) {
+      setStep1Error(t("auth.register.username_invalid"));
+      return;
+    }
+
+    if (currentAvailability === "taken") {
+      setStep1Error(t("auth.register.username_taken"));
       return;
     }
 
     if (!actorType) {
-      setStep1Error("Lütfen bir aktör tipi seçin.");
+      setStep1Error(t("auth.register.actor_type_required"));
       return;
     }
 
@@ -94,7 +182,6 @@ function RegisterWizard() {
         body: JSON.stringify({
           username: cleanUsername,
           actorType,
-          displayName: displayName.trim() || undefined,
         }),
       });
 
@@ -102,7 +189,8 @@ function RegisterWizard() {
 
       if (!res.ok || !data.ok) {
         if (res.status === 409 || data.code === "CONFLICT") {
-          setStep1Error("Bu kullanıcı adı zaten alınmış. Lütfen başka bir ad seçin.");
+          setAvailability({ username: cleanUsername, status: "taken" });
+          setStep1Error(t("auth.register.username_taken"));
         } else {
           setStep1Error(data.detail || data.title || "Kayıt işlemi başarısız.");
         }
@@ -196,10 +284,9 @@ function RegisterWizard() {
     try {
       const loginRes = await login(registeredData.apiKey, true);
       if (loginRes.ok) {
-        router.push(returnUrl);
-        router.refresh();
+        setStep(4);
       } else {
-        setVerifyError(loginRes.error || "Oturum açılamadı.");
+        setVerifyError(loginRes.error || t("auth.register.session_error"));
       }
     } catch {
       setVerifyError(t("errors.NETWORK_ERROR"));
@@ -208,30 +295,116 @@ function RegisterWizard() {
     }
   };
 
-  // Actor choices configuration
+  // Actor choices are presented as native radio rows.
   const actorChoices = [
     {
       type: "human" as const,
-      glyph: "👤",
-      icon: UserIcon,
       title: t("auth.register.actor_types.human.title"),
       description: t("auth.register.actor_types.human.description"),
     },
     {
       type: "ai_agent" as const,
-      glyph: "✦",
-      icon: Bot,
       title: t("auth.register.actor_types.ai_agent.title"),
       description: t("auth.register.actor_types.ai_agent.description"),
     },
   ];
+
+  const finishOnboarding = () => {
+    router.push(returnUrl);
+    router.refresh();
+  };
+
+  const handleOnboardingSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!registeredData || onboardingSaving) return;
+
+    setOnboardingSaving(true);
+    setOnboardingError(null);
+    try {
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append("file", avatarFile);
+        const avatarResponse = await fetch("/api/actors/me/avatar", {
+          method: "POST",
+          body: formData,
+        });
+        const avatarData = await avatarResponse.json();
+        if (!avatarResponse.ok || !avatarData.ok) {
+          throw new Error(avatarData.detail || avatarData.title || t("auth.register.avatar_error"));
+        }
+        const currentUser = useSessionStore.getState().user;
+        if (currentUser) {
+          useSessionStore.getState().setUser({
+            ...currentUser,
+            avatarUrl: avatarData.data.avatarUrl as string,
+          });
+        }
+      }
+
+      const profileResponse = await fetch("/api/actors/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: displayName.trim() || null,
+          bio: bio.trim() || null,
+        }),
+      });
+      const profileData = await profileResponse.json();
+      if (!profileResponse.ok || !profileData.ok) {
+        throw new Error(
+          profileData.detail || profileData.title || t("auth.register.profile_error"),
+        );
+      }
+
+      const currentUser = useSessionStore.getState().user;
+      if (currentUser) {
+        useSessionStore.getState().setUser({
+          ...currentUser,
+          displayName: profileData.actor.displayName,
+        });
+      }
+
+      const pendingFollows = selectedFollows.filter(
+        (usernameToFollow) => !completedFollows.includes(usernameToFollow),
+      );
+      const failedFollows: string[] = [];
+      for (const usernameToFollow of pendingFollows) {
+        try {
+          const followResponse = await fetch("/api/actions/follow", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: usernameToFollow, action: "follow" }),
+          });
+          const followData = await followResponse.json();
+          if (!followResponse.ok || !followData.ok) throw new Error("Follow failed");
+          setCompletedFollows((current) => [...current, usernameToFollow]);
+        } catch {
+          failedFollows.push(usernameToFollow);
+        }
+      }
+
+      if (failedFollows.length > 0) {
+        setSelectedFollows(failedFollows);
+        setOnboardingError(
+          t("auth.register.follow_error", { usernames: failedFollows.join(", ") }),
+        );
+        return;
+      }
+
+      finishOnboarding();
+    } catch (error) {
+      setOnboardingError(error instanceof Error ? error.message : t("auth.register.profile_error"));
+    } finally {
+      setOnboardingSaving(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-xl w-full px-4 py-8 sm:py-12 space-y-6">
       {/* Step Indicator Header */}
       <div className="space-y-4 text-center">
         <div className="flex items-center justify-center gap-2">
-          {[1, 2, 3].map((stepNum) => (
+          {[1, 2, 3, 4].map((stepNum) => (
             <div key={stepNum} className="flex items-center">
               <div
                 className={cn(
@@ -245,7 +418,7 @@ function RegisterWizard() {
               >
                 {step > stepNum ? "✓" : stepNum}
               </div>
-              {stepNum < 3 && (
+              {stepNum < 4 && (
                 <div
                   className={cn(
                     "h-0.5 w-10 sm:w-16 mx-1.5 transition-colors",
@@ -262,11 +435,13 @@ function RegisterWizard() {
             {step === 1 && t("auth.register.step1_title")}
             {step === 2 && t("auth.register.step2_title")}
             {step === 3 && t("auth.register.step3_title")}
+            {step === 4 && t("auth.register.step4_title")}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {step === 1 && t("auth.register.step1_subtitle")}
             {step === 2 && t("auth.register.step2_subtitle")}
             {step === 3 && t("auth.register.step3_subtitle")}
+            {step === 4 && t("auth.register.step4_subtitle")}
           </p>
         </div>
       </div>
@@ -290,81 +465,77 @@ function RegisterWizard() {
                 name="username"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                onChange={(e) => {
+                  setUsername(e.target.value.toLowerCase());
+                  setStep1Error(null);
+                }}
                 placeholder={t("auth.register.username_placeholder")}
-                pattern="^[a-zA-Z0-9_]{3,30}$"
-                title="3-30 karakter, yalnızca harf, rakam ve alt çizgi"
+                pattern="^[a-z0-9_]{3,30}$"
+                title={t("auth.register.username_invalid")}
                 required
                 autoFocus
                 className="rounded-xl h-11 bg-surface-2/30 font-mono text-sm"
               />
-              <p className="text-[11px] text-muted-foreground">
-                3-30 karakter, küçük harf, rakam ve alt çizgi.
+              <p className="text-[11px] text-muted-foreground" role="status" aria-live="polite">
+                {currentAvailability === "checking" && t("auth.register.username_checking")}
+                {currentAvailability === "available" && (
+                  <span className="text-success">{t("auth.register.username_available")}</span>
+                )}
+                {currentAvailability === "taken" && (
+                  <span className="text-destructive">{t("auth.register.username_taken")}</span>
+                )}
+                {currentAvailability === "error" && t("auth.register.username_check_unavailable")}
+                {!currentAvailability && t("auth.register.username_hint")}
               </p>
             </div>
 
-            {/* Display Name Input */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="displayName"
-                className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-              >
-                {t("auth.register.display_name_label")}
-              </label>
-              <Input
-                id="displayName"
-                name="displayName"
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder={t("auth.register.display_name_placeholder")}
-                className="rounded-xl h-11 bg-surface-2/30 text-sm"
-              />
-            </div>
-
-            {/* Actor Type Cards (2 options, default none selected) */}
             <fieldset className="space-y-2 border-0 p-0 m-0">
               <div className="flex items-center justify-between">
                 <legend className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground p-0">
                   {t("auth.register.actor_type_label")} <span className="text-destructive">*</span>
                 </legend>
-                <span className="text-[11px] text-muted-foreground">Seçim zorunludur</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="space-y-2">
                 {actorChoices.map((choice) => {
                   const isSelected = actorType === choice.type;
-                  const Icon = choice.icon;
                   return (
-                    <button
+                    <label
                       key={choice.type}
-                      type="button"
-                      onClick={() => setActorType(choice.type)}
                       className={cn(
-                        "flex flex-col text-left p-3.5 rounded-xl border transition-all cursor-pointer select-none",
+                        "flex items-start gap-3 rounded-lg border px-3 py-3 cursor-pointer transition-colors",
                         isSelected
-                          ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-xs"
-                          : "border-border bg-surface-2/40 hover:bg-surface-2/80 hover:border-border-strong",
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:bg-surface-2/60",
                       )}
                     >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4 text-primary shrink-0" />
-                          <span className="text-xs font-bold text-foreground">{choice.title}</span>
-                        </div>
-                        {isSelected && (
-                          <div className="h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                            <Check className="h-2.5 w-2.5 stroke-[3]" />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-snug">
-                        {choice.description}
-                      </p>
-                    </button>
+                      <input
+                        type="radio"
+                        name="actorType"
+                        value={choice.type}
+                        checked={isSelected}
+                        onChange={() => setActorType(choice.type)}
+                        required
+                        className="mt-0.5 accent-primary"
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium text-foreground">
+                          {choice.title}
+                        </span>
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          {choice.description}
+                        </span>
+                      </span>
+                    </label>
                   );
                 })}
               </div>
+              <p className="text-xs text-muted-foreground">
+                {t("auth.register.developer_api_prefix")}{" "}
+                <Link href="/developers" className="text-primary hover:underline">
+                  {t("auth.register.developer_api_link")}
+                </Link>
+              </p>
             </fieldset>
           </div>
 
@@ -383,7 +554,9 @@ function RegisterWizard() {
           <Button
             type="submit"
             size="lg"
-            disabled={step1Loading || !username.trim() || !actorType}
+            disabled={
+              step1Loading || !username.trim() || !actorType || currentAvailability === "taken"
+            }
             className="w-full h-11 rounded-xl text-sm font-semibold shadow-xs cursor-pointer"
           >
             {step1Loading ? (
@@ -609,6 +782,165 @@ function RegisterWizard() {
             >
               <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
               <span>{t("auth.register.verify_back")}</span>
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {step === 4 && registeredData && (
+        <form onSubmit={handleOnboardingSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="onboarding-display-name" className="text-sm font-medium">
+                {t("auth.register.display_name_label")}
+              </label>
+              <Input
+                id="onboarding-display-name"
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                placeholder={t("auth.register.display_name_placeholder")}
+                maxLength={80}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="onboarding-bio" className="text-sm font-medium">
+                {t("auth.register.bio_label")}
+              </label>
+              <Textarea
+                id="onboarding-bio"
+                value={bio}
+                onChange={(event) => setBio(event.target.value)}
+                placeholder={t("auth.register.bio_placeholder")}
+                maxLength={500}
+                rows={4}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="onboarding-avatar" className="text-sm font-medium">
+                {t("auth.register.avatar_label")}
+              </label>
+              <Input
+                ref={fileInputRef}
+                id="onboarding-avatar"
+                type="file"
+                accept="image/*"
+                onChange={(event) => setAvatarFile(event.target.files?.[0] || null)}
+                className="h-auto py-2"
+              />
+              <p className="text-xs text-muted-foreground">
+                {avatarFile?.name || t("auth.register.avatar_optional")}
+              </p>
+            </div>
+          </div>
+
+          <section
+            className="space-y-3 border-t border-border pt-5"
+            aria-labelledby="follow-suggestions-title"
+          >
+            <div>
+              <h2 id="follow-suggestions-title" className="text-sm font-semibold">
+                {t("auth.register.follow_title")}
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("auth.register.follow_description")}
+              </p>
+            </div>
+
+            {suggestionsLoading && (
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                {t("auth.register.follow_loading")}
+              </p>
+            )}
+            {suggestionsError && (
+              <p className="text-xs text-muted-foreground">
+                {t("auth.register.follow_unavailable")}
+              </p>
+            )}
+            {!suggestionsLoading && !suggestionsError && suggestions.length === 0 && (
+              <p className="text-xs text-muted-foreground">{t("auth.register.follow_empty")}</p>
+            )}
+            {suggestions.length > 0 && (
+              <div className="space-y-2">
+                {suggestions.map((actor) => {
+                  const checked = selectedFollows.includes(actor.username);
+                  const alreadyFollowed = completedFollows.includes(actor.username);
+                  return (
+                    <label
+                      key={actor.username}
+                      className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5 cursor-pointer hover:bg-surface-2/60"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked || alreadyFollowed}
+                        disabled={alreadyFollowed || onboardingSaving}
+                        onChange={(event) => {
+                          setSelectedFollows((current) =>
+                            event.target.checked
+                              ? [...current, actor.username]
+                              : current.filter(
+                                  (usernameToFollow) => usernameToFollow !== actor.username,
+                                ),
+                          );
+                        }}
+                        className="accent-primary"
+                        aria-label={t("auth.register.follow_actor", {
+                          name: actor.displayName || actor.username,
+                        })}
+                      />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium">
+                          {actor.displayName || actor.username}
+                        </span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          @{actor.username}
+                        </span>
+                      </span>
+                      {alreadyFollowed && (
+                        <span className="ml-auto text-xs text-success">
+                          {t("auth.register.followed")}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {onboardingError && (
+            <div
+              role="alert"
+              className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+            >
+              {onboardingError}
+            </div>
+          )}
+
+          <div className="space-y-2 border-t border-border pt-4">
+            <Button type="submit" disabled={onboardingSaving} className="w-full">
+              {onboardingSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t("auth.register.onboarding_saving")}
+                </>
+              ) : (
+                <>
+                  {t("auth.register.onboarding_finish")}
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-muted-foreground"
+              onClick={finishOnboarding}
+              disabled={onboardingSaving}
+            >
+              {t("auth.register.onboarding_skip")}
             </Button>
           </div>
         </form>

@@ -41,7 +41,7 @@ running backend, not only by its tests):
 | K-19 — the repository docs rewritten, the superseded ones deleted | `1b726e4` |
 | S-01…S-06, P0-09, K-01, K-02, K-03, K-05, K-07, K-09, K-11 — the shell | `3fa3bfa` |
 | F-01, F-03, F-07, F-08 and the published Markstone renderer | `2625f0e` |
-| P-01…P-07 — feed, post, OG and sitemap; C-01 — comment tree polish | this checkpoint |
+| P-01…P-07 — feed, post, OG and sitemap; C-01 — comment tree polish | `d3a5f01` |
 
 Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
 (509), `pnpm check:contrast` (3/3), the client-secret bundle audit,
@@ -49,13 +49,19 @@ Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
 pass. The previous real-backend suite remains at 40 passing journeys; rerun
 it against a running API before deployment.
 
-**In flight:** Phase 4. C-01 is complete; the comment composer and the shared
-compose experience are next. List responses still omit attachments, so feed
-rows deliberately have no thumbnails until B-04 lands rather than making
-N+1 detail requests.
+**Ready for the next checkpoint (working tree):** C-02…C-05 and U-01,
+U-03…U-07. This batch has 532 passing unit/integration tests; typecheck,
+lint, contrast and the client-secret bundle audit pass. Its production build
+passes. The real-backend browser pass must still run against a live local API
+before deployment.
 
-**Next:** C-02 comment composer, then the shared C-03/C-04/C-05 post compose,
-autocomplete and edit package. Community selection remains behind B-12.
+**In flight:** U-02 hover cards and U-08's unavailable-save contract, then
+Phase 6 moderation. List responses still omit attachments, so feed rows
+deliberately have no thumbnails until B-04 lands rather than making N+1
+detail requests.
+
+**Next:** U-02, then M-01…M-03 and the final accessibility/responsive/i18n
+pass. Community selection remains behind B-12.
 
 ### Running the thing locally
 
@@ -822,12 +828,12 @@ alphabetical and popular list, with no cards.
 - Deleted-comment rendering keeps branching on the `deleted` and
   `author_deleted` booleans, as it does today.
 
-**C-02 · Comment composer.** Collapsed as a single line, "Add a comment",
+**C-02 · Comment composer.** ✅ 2026-09-18 — Collapsed as a single line, "Add a comment",
 expanding on focus. It supports markdown with a preview toggle, image
 attachments (up to 4, matching the backend), `@mention` autocomplete, and
 ⌘/Ctrl+Enter to submit.
 
-**C-03 · Post composer (`/new`, and the mobile sheet).**
+**C-03 · Post composer (`/new`, and the mobile sheet).** ✅ 2026-09-18
 
 - Fields in order: `Post to` (§3 slot), Title, Body (write/preview tabs, a
   compact toolbar), images (inline thumbnails, reorder, remove), Tags
@@ -836,18 +842,18 @@ attachments (up to 4, matching the backend), `@mention` autocomplete, and
 - Error copy that says what happened.
 - Placeholder copy is plain: "Title", "Text (markdown supported)".
 
-**C-04 · Mentions and tags autocomplete.** `@` queries `search?type=actor`
+**C-04 · Mentions and tags autocomplete.** ✅ 2026-09-18 — `@` queries `search?type=actor`
 and `#` queries `tags/search`. It appears in both composers and is keyboard
 navigable.
 
-**C-05 · Edit post.** The same composer in edit mode. Images are read-only;
+**C-05 · Edit post.** ✅ 2026-09-18 — The same composer in edit mode. Images are read-only;
 the backend has no path to edit them. The community is read-only.
 
 ---
 
 ## Phase 5 — People, inbox, search, account
 
-**U-01 · Profile.**
+**U-01 · Profile.** ✅ 2026-09-18
 
 - **Header without a card container:** avatar 88 (with shape), display name,
   `AGENT` label with a "Self-declared" tooltip, handle, bio, joined date.
@@ -861,7 +867,7 @@ the backend has no path to edit them. The community is read-only.
 **U-02 · Hover cards.** Desktop only, cached per username, as described in
 §1.4.
 
-**U-03 · Registration.**
+**U-03 · Registration.** ✅ 2026-09-18
 
 - **Step 1: username.** Live availability check, debounced, via
   `GET /actors/{u}` returning 404 until B-08 lands.
@@ -877,11 +883,11 @@ the backend has no path to edit them. The community is read-only.
 - **Then onboarding:** display name, avatar, bio, and an optional "follow a
   few accounts".
 
-**U-04 · Login and recovery.** API key field, "Remember this device",
+**U-04 · Login and recovery.** ✅ 2026-09-18 — API key field, "Remember this device",
 "Lost your key? Recover with a recovery code". One sentence explaining what
 an API key is. No marketing.
 
-**U-05 · Inbox.**
+**U-05 · Inbox.** ✅ 2026-09-18
 
 - **Rows grouped by day:** actor avatar, action text, **target context**
   (post title or comment excerpt), time.
@@ -892,11 +898,11 @@ an API key is. No marketing.
 - Rows render through the kind registry (§3).
 - Target context depends on the `payload` contents (B-05).
 
-**U-06 · Search.** Tabs from the registry: Posts, Comments, People, Tags. The
+**U-06 · Search.** ✅ 2026-09-18 — Tabs from the registry: Posts, Comments, People, Tags. The
 query stays in the URL, highlighting stays, and there are recent searches
 (local only).
 
-**U-07 · Settings.**
+**U-07 · Settings.** ✅ 2026-09-18
 
 | Section | Contents |
 |---|---|
@@ -904,8 +910,13 @@ query stays in the URL, highlighting stays, and there are recent searches
 | Account | API keys, recovery codes, delete account |
 | Preferences | theme, language, feed density |
 
-**U-08 · Saved.** The standard feed rows; tombstones for items that became
-unavailable.
+**U-08 · Saved.** 🟡 Partial 2026-09-18 — Uses the standard feed rows and
+renders tombstones when the API explicitly returns `deleted: true`. A true
+"item became unavailable" tombstone cannot be reconstructed yet: the
+current `/me/saves` response filters deleted content and hard deletion
+cascades the save row, so it exposes neither the missing content id nor a
+tombstone record. Backend support is required to finish this without
+inventing client data.
 
 ---
 

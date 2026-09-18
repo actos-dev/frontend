@@ -3,7 +3,11 @@
 import { type InfiniteData, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCheck, Inbox, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { NotificationCard, type NotificationRow } from "@/components/inbox/notification-card";
+import {
+  getNotificationPresentation,
+  NotificationCard,
+  type NotificationRow,
+} from "@/components/inbox/notification-card";
 import { LoadMore } from "@/components/pagination/load-more";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -15,7 +19,7 @@ import { inboxQueryOptions } from "@/lib/query/queries";
 import type { InboxQueryPage } from "@/lib/query/types";
 import { useSessionStore } from "@/lib/stores/session-store";
 
-export type InboxFilterTab = "all" | "unread" | "replies" | "mentions";
+export type InboxFilterTab = "all" | "replies" | "mentions" | "follows";
 
 export interface InboxViewProps {
   initialNotifications?: NotificationRow[];
@@ -26,6 +30,60 @@ export interface InboxViewProps {
   initialViewerId?: string | null;
 }
 
+interface NotificationDayGroup {
+  key: string;
+  label: string;
+  notifications: NotificationRow[];
+}
+
+function getUtcDayKey(createdAt: string): string {
+  const date = new Date(createdAt);
+  return Number.isNaN(date.getTime()) ? "unknown" : date.toISOString().slice(0, 10);
+}
+
+function groupNotificationsByDay(
+  items: NotificationRow[],
+  locale: string,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): NotificationDayGroup[] {
+  const groups = new Map<string, NotificationDayGroup>();
+  const today = new Date();
+  const todayKey = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
+  )
+    .toISOString()
+    .slice(0, 10);
+  const yesterday = new Date(`${todayKey}T00:00:00.000Z`);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const yesterdayKey = yesterday.toISOString().slice(0, 10);
+
+  for (const notification of items) {
+    const key = getUtcDayKey(notification.createdAt);
+    let group = groups.get(key);
+    if (!group) {
+      const date = new Date(`${key}T00:00:00.000Z`);
+      const label =
+        key === "unknown"
+          ? t("inbox.days.unknown")
+          : key === todayKey
+            ? t("inbox.days.today")
+            : key === yesterdayKey
+              ? t("inbox.days.yesterday")
+              : new Intl.DateTimeFormat(locale === "tr" ? "tr-TR" : "en-US", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                  timeZone: "UTC",
+                }).format(date);
+      group = { key, label, notifications: [] };
+      groups.set(key, group);
+    }
+    group.notifications.push(notification);
+  }
+
+  return [...groups.values()];
+}
+
 export function InboxView({
   initialNotifications,
   initialNextCursor = null,
@@ -34,7 +92,7 @@ export function InboxView({
   initialCursor,
   initialViewerId,
 }: InboxViewProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<InboxFilterTab>(initialFilter);
   const [isMarkingAll, setIsMarkingAll] = useState(false);
@@ -133,19 +191,19 @@ export function InboxView({
       });
 
       if (res.ok) {
-        toast.success("Tüm bildirimler okundu olarak işaretlendi.");
+        toast.success(t("inbox.marked_all_success"));
       } else {
         // The write did not actually happen: undo the optimistic update
         // instead of reporting success (ROADMAP.md decision 7).
         for (const [key, data] of snapshots) queryClient.setQueryData(key, data);
         if (useSessionStore.getState().user?.id === viewerId) setUnreadCount(prevUnreadCount);
-        toast.error("Bildirimler okundu olarak işaretlenemedi.");
+        toast.error(t("states.notificationReadFailed"));
       }
     } catch {
       // Revert on serious network failure
       for (const [key, data] of snapshots) queryClient.setQueryData(key, data);
       if (useSessionStore.getState().user?.id === viewerId) setUnreadCount(prevUnreadCount);
-      toast.error("Bildirimler okundu olarak işaretlenemedi.");
+      toast.error(t("states.notificationReadFailed"));
     } finally {
       setIsMarkingAll(false);
     }
@@ -163,14 +221,11 @@ export function InboxView({
   };
 
   // Filtered view items
-  const displayItems = notifications.filter((n) => {
-    if (activeTab === "unread") return !n.readAt;
-    if (activeTab === "replies") {
-      return n.kind === "reply" || n.kind === "comment_on_post" || n.kind === "reply_to_comment";
-    }
-    if (activeTab === "mentions") return n.kind === "mention";
-    return true;
+  const displayItems = notifications.filter((notification) => {
+    if (activeTab === "all") return true;
+    return getNotificationPresentation(notification.kind).category === activeTab;
   });
+  const dayGroups = groupNotificationsByDay(displayItems, locale, t);
 
   return (
     <div className="space-y-6">
@@ -178,19 +233,18 @@ export function InboxView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/80">
         <div>
           <h1 className="text-2xl font-bold font-serif tracking-tight text-foreground flex items-center gap-2.5">
-            <span>Bildirimler</span>
+            <span>{t("inbox.title")}</span>
             {unreadCount > 0 && (
               <span
                 data-testid="inbox-header-badge"
                 className="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-2xs"
               >
-                {unreadCount > 99 ? "99+" : unreadCount} okunmamış
+                {unreadCount > 99 ? "99+" : unreadCount}{" "}
+                {t("inbox.unread").toLocaleLowerCase(locale)}
               </span>
             )}
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Hesabınıza gelen yanıtlar, bahsetmeler ve topluluk etkileşimleri.
-          </p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{t("inbox.description")}</p>
         </div>
 
         {/* "Tümünü Okundu İşaretle" Butonu */}
@@ -208,11 +262,11 @@ export function InboxView({
           ) : (
             <CheckCheck className="w-3.5 h-3.5 text-primary" />
           )}
-          <span>Tümünü Okundu İşaretle</span>
+          <span>{t("inbox.mark_all_read")}</span>
         </Button>
       </div>
 
-      {/* Filtre Sekmeleri: Tümü, Okunmamış, Yanıtlar, Bahsetmeler */}
+      {/* Filtre Sekmeleri */}
       <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full sm:w-auto">
           <TabsList className="bg-surface-2/80 p-1 rounded-xl border border-border/60">
@@ -222,20 +276,7 @@ export function InboxView({
               onClick={() => handleTabChange("all")}
               className="rounded-lg text-xs font-medium px-3.5 py-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
             >
-              Tümü
-            </TabsTrigger>
-            <TabsTrigger
-              value="unread"
-              data-testid="tab-unread"
-              onClick={() => handleTabChange("unread")}
-              className="rounded-lg text-xs font-medium px-3.5 py-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
-            >
-              <span>Okunmamış</span>
-              {unreadCount > 0 && (
-                <span className="ml-1.5 text-[10px] px-1.5 py-0.2 rounded-full bg-primary text-primary-foreground font-mono font-bold">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
+              {t("inbox.tabs.all")}
             </TabsTrigger>
             <TabsTrigger
               value="replies"
@@ -243,7 +284,7 @@ export function InboxView({
               onClick={() => handleTabChange("replies")}
               className="rounded-lg text-xs font-medium px-3.5 py-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
             >
-              Yanıtlar
+              {t("inbox.tabs.replies")}
             </TabsTrigger>
             <TabsTrigger
               value="mentions"
@@ -251,58 +292,73 @@ export function InboxView({
               onClick={() => handleTabChange("mentions")}
               className="rounded-lg text-xs font-medium px-3.5 py-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
             >
-              Bahsetmeler
+              {t("inbox.tabs.mentions")}
+            </TabsTrigger>
+            <TabsTrigger
+              value="follows"
+              data-testid="tab-follows"
+              onClick={() => handleTabChange("follows")}
+              className="rounded-lg text-xs font-medium px-3.5 py-1.5 cursor-pointer data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs"
+            >
+              {t("inbox.tabs.follows")}
             </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {/* Bildirimler Listesi */}
-      <div className="space-y-3" data-testid="inbox-list">
+      <div className="space-y-7" data-testid="inbox-list">
         {displayItems.length > 0 ? (
-          <>
-            {displayItems.map((notification) => (
-              <NotificationCard
-                key={notification.id}
-                notification={notification}
-                onRead={handleSingleRead}
-              />
-            ))}
-
-            {/* Keyset Cursor Sayfalama */}
-            <LoadMore
-              nextCursor={nextCursor}
-              hasMore={Boolean(nextCursor)}
-              onLoadMore={async () => {
-                const result = await inbox.fetchNextPage();
-                if (result.isFetchNextPageError) toast.error(t("states.inboxLoadFailed"));
-              }}
-              isLoading={inbox.isFetchingNextPage}
-              syncUrl={false}
-              label="Daha fazla bildirim yükle"
-              loadingLabel="Bildirimler yükleniyor..."
-            />
-          </>
+          dayGroups.map((group) => (
+            <section
+              key={group.key}
+              data-testid="notification-day-group"
+              data-day={group.key}
+              aria-label={group.label}
+              className="space-y-3"
+            >
+              <h2 className="px-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                {group.label}
+              </h2>
+              <div className="space-y-2.5">
+                {group.notifications.map((notification) => (
+                  <NotificationCard
+                    key={notification.id}
+                    notification={notification}
+                    onRead={handleSingleRead}
+                  />
+                ))}
+              </div>
+            </section>
+          ))
         ) : (
           /* Boş Durum (EmptyState) */
           <div className="py-8">
             <EmptyState
               icon={Inbox}
-              title={
-                activeTab === "unread" ? "Okunmamış bildiriminiz yok" : "Henüz bir bildiriminiz yok"
-              }
-              description={
-                activeTab === "unread"
-                  ? "Tüm bildirimlerinizi okudunuz. Yeni bir etkileşim olduğunda burada görünecektir."
-                  : "Gönderileriniz etkileşim aldığında burada göreceksiniz."
-              }
+              title={t("inbox.empty.title")}
+              description={t("inbox.empty.description")}
               action={{
-                label: "Akışa Göz At",
+                label: t("inbox.empty.action"),
                 href: "/",
               }}
             />
           </div>
         )}
+
+        {/* A filtered page can be empty while later cursor pages still contain matches. */}
+        <LoadMore
+          nextCursor={nextCursor}
+          hasMore={Boolean(nextCursor)}
+          onLoadMore={async () => {
+            const result = await inbox.fetchNextPage();
+            if (result.isFetchNextPageError) toast.error(t("states.inboxLoadFailed"));
+          }}
+          isLoading={inbox.isFetchingNextPage}
+          syncUrl={false}
+          label={t("inbox.load_more")}
+          loadingLabel={t("inbox.loading")}
+        />
       </div>
     </div>
   );

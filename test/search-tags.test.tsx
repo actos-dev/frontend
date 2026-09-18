@@ -3,7 +3,9 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import type { Actor, Post, Tag } from "actos";
+import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { GET as searchRoute } from "@/app/api/search/route";
 import SearchPage from "@/app/search/page";
 import TagDetailPage from "@/app/t/[name]/page";
 import TagsPage from "@/app/tags/page";
@@ -39,6 +41,17 @@ vi.mock("next/headers", () => ({
     set: vi.fn(),
   }),
 }));
+
+const localStorageValues = new Map<string, string>();
+Object.defineProperty(window, "localStorage", {
+  configurable: true,
+  value: {
+    clear: () => localStorageValues.clear(),
+    getItem: (key: string) => localStorageValues.get(key) ?? null,
+    removeItem: (key: string) => localStorageValues.delete(key),
+    setItem: (key: string, value: string) => localStorageValues.set(key, value),
+  },
+});
 
 describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
   const samplePopularTags: Tag[] = [
@@ -119,6 +132,7 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     currentMockParams = new URLSearchParams();
+    window.localStorage.clear();
     originalFetch = global.fetch;
 
     mockClient = {
@@ -209,6 +223,17 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
             json: async () => ({
               ok: true,
               items: [sampleActor],
+              nextCursor: null,
+            }),
+          };
+        }
+
+        if (type === "tag") {
+          return {
+            ok: true,
+            json: async () => ({
+              ok: true,
+              items: [{ name: "rust", postCount: 128 }],
               nextCursor: null,
             }),
           };
@@ -367,6 +392,20 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
   });
 
   describe("4. Arama Sayfası (/search) ve Sekmeler", () => {
+    it("etiket aramasını SDK etiket kaynağına yönlendirmelidir", async () => {
+      const response = await searchRoute(
+        new NextRequest("http://localhost/api/search?q=RuSt&type=tag"),
+      );
+      const body = await response.json();
+
+      expect(mockClient.tags.search).toHaveBeenCalledWith("rust");
+      expect(body).toMatchObject({
+        ok: true,
+        items: [{ name: "rust" }, { name: "postgres" }],
+        nextCursor: null,
+      });
+    });
+
     it("arama terimi girilmediğinde ilk boş durumu göstermelidir", () => {
       render(<SearchView />);
 
@@ -460,6 +499,40 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
       });
       expect(screen.getByText("AI Araştırmacı")).toBeInTheDocument();
       expect(screen.getByText("ai_researcher")).toBeInTheDocument();
+    });
+
+    it("kayıt tabanlı etiket sekmesinde eşleşen etiketleri göstermelidir", async () => {
+      render(<SearchView />);
+
+      fireEvent.change(screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara..."), {
+        target: { value: "rust" },
+      });
+      fireEvent.click(screen.getByRole("tab", { name: "Etiketler" }));
+
+      await waitFor(() => {
+        expect(screen.getByText("rust", { selector: "mark" }).closest("a")).toHaveAttribute(
+          "href",
+          "/t/rust",
+        );
+      });
+    });
+
+    it("başarılı sorguları yalnızca cihazdaki son aramalarda saklamalıdır", async () => {
+      render(<SearchView />);
+
+      const input = screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara...");
+      fireEvent.change(input, { target: { value: "rust" } });
+
+      await waitFor(() => {
+        expect(screen.getByTestId("search-results")).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByLabelText("Aramayı temizle"));
+      expect(screen.getByText("Son aramalar")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "rust" })).toBeInTheDocument();
+      expect(JSON.parse(window.localStorage.getItem("actos:recent-searches") || "[]")).toEqual([
+        "rust",
+      ]);
     });
 
     it("sıfır sonuç durumunda kullanıcıyı bilgilendiren EmptyState göstermelidir", async () => {

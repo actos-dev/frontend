@@ -110,6 +110,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
 
   afterEach(() => {
     window.sessionStorage.clear();
+    vi.unstubAllGlobals();
   });
 
   describe("1. Kritik Girinti Sınırı (Plan §4.5: 6. Seviye Cutoff)", () => {
@@ -475,6 +476,117 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
 
       const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
       expect(textarea.value).toBe("Önceki oturumdan kalan değerli düşünceler...");
+    });
+  });
+
+  describe("4a. C-02 comment composer", () => {
+    it("tek satır olarak açılır, odaklanınca Markdown write/preview editörüne genişler", async () => {
+      render(<CommentForm postId="c_post_composer" />);
+
+      expect(screen.queryByTestId("markdown-editor")).toBeNull();
+      expect(screen.getByRole("textbox").getAttribute("rows")).toBe("1");
+
+      fireEvent.focus(screen.getByRole("textbox"));
+
+      expect(await screen.findByTestId("markdown-editor")).toBeDefined();
+      fireEvent.click(screen.getByTestId("tab-preview"));
+      expect(await screen.findByTestId("markdown-preview")).toBeDefined();
+    });
+
+    it("satır içi yanıt formunu başlangıçta açık tutar ve iptal davranışını korur", async () => {
+      render(
+        <CommentNodeComponent
+          comment={createDeepCommentTree()}
+          postId="c_post_composer"
+          depth={0}
+          maxDepth={6}
+          collapsedIds={new Set()}
+          onToggleCollapse={vi.fn()}
+        />,
+      );
+
+      fireEvent.click(screen.getAllByRole("button", { name: /yanıtla|reply/i })[0]);
+
+      const replyForm = await screen.findByTestId("comment-reply-form");
+      expect(replyForm.getAttribute("data-expanded")).toBe("true");
+      expect(within(replyForm).getByTestId("markdown-editor")).toBeDefined();
+      fireEvent.click(within(replyForm).getByRole("button", { name: /İptal|Cancel/ }));
+      expect(screen.queryByTestId("comment-reply-form")).toBeNull();
+    });
+
+    it.each([
+      ["Ctrl", { ctrlKey: true }],
+      ["⌘", { metaKey: true }],
+    ])("%s+Enter yorum formunu gönderir", async (_label, modifier) => {
+      useSessionStore.setState({
+        user: {
+          id: "usr_composer",
+          username: "composer",
+          displayName: "Composer",
+          actorType: "human",
+          role: "user",
+        },
+        status: "authenticated",
+      });
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        json: async () => ({ ok: true, data: { id: "c_created" } }),
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      render(<CommentForm postId="c_post_composer" />);
+      fireEvent.change(screen.getByRole("textbox"), { target: { value: "Keyboard comment" } });
+      const editor = await screen.findByTestId("markdown-textarea");
+      fireEvent.keyDown(editor, { key: "Enter", ...modifier });
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      const [, request] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(JSON.parse(request.body as string)).toEqual({
+        postId: "c_post_composer",
+        body: "Keyboard comment",
+        parentId: null,
+      });
+    });
+
+    it("yorum başına en fazla dört görseli multipart formuyla yollar", async () => {
+      useSessionStore.setState({
+        user: {
+          id: "usr_composer",
+          username: "composer",
+          displayName: "Composer",
+          actorType: "human",
+          role: "user",
+        },
+        status: "authenticated",
+      });
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        json: async () => ({ ok: true, data: { id: "c_created" } }),
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      render(<CommentForm postId="c_post_composer" />);
+      fireEvent.change(screen.getByRole("textbox"), { target: { value: "Image comment" } });
+      await screen.findByTestId("markdown-editor");
+
+      const files = Array.from(
+        { length: 5 },
+        (_, index) => new File([`image ${index}`], `image-${index}.png`, { type: "image/png" }),
+      );
+      fireEvent.change(screen.getByTestId("image-file-input"), { target: { files } });
+      expect(screen.getByTestId("upload-quota-error")).toBeDefined();
+      fireEvent.click(screen.getByRole("button", { name: /gönder/i }));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      const [, request] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(request.headers).toEqual({});
+      expect(request.body).toBeInstanceOf(FormData);
+      const formData = request.body as FormData;
+      expect(formData.get("postId")).toBe("c_post_composer");
+      expect(formData.get("body")).toBe("Image comment");
+      expect(formData.getAll("files")).toHaveLength(4);
     });
   });
 

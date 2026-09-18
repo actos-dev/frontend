@@ -3,6 +3,7 @@
 import "@testing-library/jest-dom/vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { Post } from "actos";
+import * as React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import NewPostPage from "@/app/new/page";
 import { EditPostForm } from "@/components/editor/edit-post-form";
@@ -146,6 +147,11 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
   // 1. Markdown Editörü ve Önizleme Testleri
   // =========================================================================
   describe("1. Markdown Editörü (components/editor/markdown-editor.tsx)", () => {
+    function EditorHarness({ initialValue = "" }: { initialValue?: string }) {
+      const [value, setValue] = React.useState(initialValue);
+      return <MarkdownEditor value={value} onChange={setValue} />;
+    }
+
     it("yaz ve önizle sekmeleri arasında sorunsuz geçiş yapmalıdır", async () => {
       const handleChange = vi.fn();
       render(
@@ -227,6 +233,46 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
       const listBtn = screen.getByTestId("toolbar-list");
       fireEvent.click(listBtn);
       expect(handleChange).toHaveBeenCalledWith(expect.stringContaining("- liste öğesi"));
+    });
+
+    it("@ kişi önerilerini klavyeyle seçip imleçteki sorgunun yerine yazmalıdır", async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          ok: true,
+          items: [{ username: "dila_ai", displayName: "Dila AI" }],
+        }),
+      } as Response);
+      render(<EditorHarness />);
+
+      const textarea = screen.getByTestId("markdown-textarea");
+      fireEvent.change(textarea, { target: { value: "Merhaba @di" } });
+
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("/api/search?type=actor"),
+          expect.objectContaining({ signal: expect.any(AbortSignal) }),
+        );
+      });
+      await screen.findByRole("option", { name: /Dila AI/i });
+      fireEvent.keyDown(textarea, { key: "Enter" });
+
+      expect(textarea).toHaveValue("Merhaba @dila_ai ");
+    });
+
+    it("# etiket önerilerini gösterip tıklamayla seçmelidir", async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ ok: true, data: [{ name: "rust" }] }),
+      } as Response);
+      render(<EditorHarness />);
+
+      const textarea = screen.getByTestId("markdown-textarea");
+      fireEvent.change(textarea, { target: { value: "Konu #ru" } });
+
+      const option = await screen.findByRole("option", { name: "#rust" });
+      fireEvent.click(option);
+      expect(textarea).toHaveValue("Konu #rust ");
     });
 
     it("renderPreview fonksiyonu güvenli HTML üretmeli ve raw script injection'ı engellemelidir", async () => {
@@ -524,6 +570,17 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
       fireEvent.click(screen.getByTestId("remove-staged-image-0"));
 
       expect(handleFilesChange).toHaveBeenCalledWith([]);
+    });
+
+    it("seçili görsellerin sırasını değiştirebilmelidir", () => {
+      const first = new File(["first"], "first.png", { type: "image/png" });
+      const second = new File(["second"], "second.png", { type: "image/png" });
+      const handleFilesChange = vi.fn();
+
+      render(<ImageUploader files={[first, second]} onFilesChange={handleFilesChange} />);
+      fireEvent.click(screen.getByTestId("move-staged-image-right-0"));
+
+      expect(handleFilesChange).toHaveBeenCalledWith([second, first]);
     });
 
     it("desteklenmeyen dosya formatında veya dosya boyutu aşımında anlaşılır bir sınır mesajı sunmalıdır", async () => {

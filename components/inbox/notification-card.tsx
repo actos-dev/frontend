@@ -3,13 +3,13 @@
 import {
   ArrowBigUp,
   AtSign,
-  Check,
   CornerDownRight,
   MessageSquare,
   ShieldAlert,
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
+import type { ComponentType } from "react";
 import { useState } from "react";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ActorType } from "@/components/ui/badge";
@@ -47,6 +47,89 @@ export interface NotificationCardProps {
   className?: string;
 }
 
+type NotificationCategory = "replies" | "mentions" | "follows" | "activity";
+
+interface NotificationPresentation {
+  actionKey: string;
+  category: NotificationCategory;
+  icon: ComponentType<{ className?: string }>;
+  iconColor: string;
+}
+
+const notificationKindRegistry: Record<string, NotificationPresentation> = {
+  comment_on_post: {
+    actionKey: "reply_post",
+    category: "replies",
+    icon: MessageSquare,
+    iconColor: "text-sky-500",
+  },
+  reply: {
+    actionKey: "reply_post",
+    category: "replies",
+    icon: MessageSquare,
+    iconColor: "text-sky-500",
+  },
+  reply_to_comment: {
+    actionKey: "reply_comment",
+    category: "replies",
+    icon: CornerDownRight,
+    iconColor: "text-sky-500",
+  },
+  mention: {
+    actionKey: "mention",
+    category: "mentions",
+    icon: AtSign,
+    iconColor: "text-indigo-500",
+  },
+  vote: {
+    actionKey: "vote",
+    category: "activity",
+    icon: ArrowBigUp,
+    iconColor: "text-amber-500",
+  },
+  upvote: {
+    actionKey: "vote",
+    category: "activity",
+    icon: ArrowBigUp,
+    iconColor: "text-amber-500",
+  },
+  new_follower: {
+    actionKey: "follow",
+    category: "follows",
+    icon: UserPlus,
+    iconColor: "text-emerald-500",
+  },
+  follow: {
+    actionKey: "follow",
+    category: "follows",
+    icon: UserPlus,
+    iconColor: "text-emerald-500",
+  },
+  moderation_action: {
+    actionKey: "system",
+    category: "activity",
+    icon: ShieldAlert,
+    iconColor: "text-purple-500",
+  },
+  system: {
+    actionKey: "system",
+    category: "activity",
+    icon: ShieldAlert,
+    iconColor: "text-purple-500",
+  },
+};
+
+const unknownNotification: NotificationPresentation = {
+  actionKey: "unknown",
+  category: "activity",
+  icon: MessageSquare,
+  iconColor: "text-primary",
+};
+
+export function getNotificationPresentation(kind: string): NotificationPresentation {
+  return notificationKindRegistry[kind] ?? unknownNotification;
+}
+
 export function NotificationCard({ notification, onRead, className }: NotificationCardProps) {
   const { t } = useTranslation();
   const [internalRead, setInternalRead] = useState(false);
@@ -55,71 +138,51 @@ export function NotificationCard({ notification, onRead, className }: Notificati
 
   const actor = notification.actor;
   const actorType = (actor?.actorType || "human") as ActorType;
-  const username = actor?.username || "anonim";
-  const displayName = actor?.displayName || username;
+  const displayName = actor?.displayName || actor?.username || t("inbox.unknown_actor");
 
-  // Notification type & action label resolution
-  const kind = notification.kind;
-  let actionText = "etkileşimde bulundu";
-  let TypeIcon = MessageSquare;
-  let iconColor = "text-primary";
-
-  if (kind === "reply" || kind === "comment_on_post") {
-    actionText = "gönderinize yanıt verdi";
-    TypeIcon = MessageSquare;
-    iconColor = "text-sky-500";
-  } else if (kind === "reply_to_comment") {
-    actionText = "yorumunuza yanıt verdi";
-    TypeIcon = CornerDownRight;
-    iconColor = "text-sky-500";
-  } else if (kind === "mention") {
-    actionText = "sizden bahsetti";
-    TypeIcon = AtSign;
-    iconColor = "text-indigo-500";
-  } else if (kind === "vote" || kind === "upvote") {
-    actionText = "gönderinizi beğendi";
-    TypeIcon = ArrowBigUp;
-    iconColor = "text-amber-500";
-  } else if (kind === "follow" || kind === "new_follower") {
-    actionText = "sizi takip etmeye başladı";
-    TypeIcon = UserPlus;
-    iconColor = "text-emerald-500";
-  } else if (kind === "system" || kind === "moderation_action") {
-    actionText = "sistem bildirimi";
-    TypeIcon = ShieldAlert;
-    iconColor = "text-purple-500";
-  }
+  const presentation = getNotificationPresentation(notification.kind);
+  const TypeIcon = presentation.icon;
+  const actionText = t(`inbox.actions.${presentation.actionKey}`);
 
   // Payload content excerpt extraction
   const payload = (notification.payload || {}) as Record<string, unknown>;
   const excerpt =
-    typeof payload.body === "string"
-      ? payload.body
-      : typeof payload.text === "string"
-        ? payload.text
-        : typeof payload.excerpt === "string"
-          ? payload.excerpt
-          : typeof payload.comment_body === "string"
-            ? payload.comment_body
-            : typeof payload.commentBody === "string"
-              ? payload.commentBody
-              : typeof payload.preview === "string"
-                ? payload.preview
-                : typeof payload.reason === "string"
-                  ? payload.reason
-                  : null;
+    typeof payload.postTitle === "string"
+      ? payload.postTitle
+      : typeof payload.post_title === "string"
+        ? payload.post_title
+        : typeof payload.title === "string"
+          ? payload.title
+          : typeof payload.commentExcerpt === "string"
+            ? payload.commentExcerpt
+            : typeof payload.comment_excerpt === "string"
+              ? payload.comment_excerpt
+              : typeof payload.body === "string"
+                ? payload.body
+                : typeof payload.text === "string"
+                  ? payload.text
+                  : typeof payload.excerpt === "string"
+                    ? payload.excerpt
+                    : typeof payload.comment_body === "string"
+                      ? payload.comment_body
+                      : typeof payload.commentBody === "string"
+                        ? payload.commentBody
+                        : typeof payload.preview === "string"
+                          ? payload.preview
+                          : typeof payload.reason === "string"
+                            ? payload.reason
+                            : null;
 
   // Target navigation link
   // YAPILACAKLAR.md §3: Hedefi silinmiş bildirim: Bağlantı 410 ekranına gider, bildirim durur.
   const targetHref =
-    notification.targetType === "actor" || kind === "follow" || kind === "new_follower"
-      ? `/u/${actor?.username || notification.targetId}`
+    notification.targetType === "actor"
+      ? actor?.username
+        ? `/u/${actor.username}`
+        : null
       : `/posts/${notification.targetId}`;
 
-  const handleMarkRead = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleOpen = async () => {
     if (isRead || isMarking) return;
 
     setIsMarking(true);
@@ -152,14 +215,16 @@ export function NotificationCard({ notification, onRead, className }: Notificati
   };
 
   return (
-    <div
+    <Link
+      href={targetHref ?? "/inbox"}
+      onClick={handleOpen}
       data-testid="notification-card"
       data-notification-id={notification.id}
       data-read={isRead ? "true" : "false"}
       className={cn(
-        "group relative flex items-start gap-3.5 p-4 rounded-xl border transition-all duration-200",
+        "group relative flex items-start gap-3.5 p-4 rounded-xl border transition-colors duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
         !isRead
-          ? "bg-primary/[0.04] hover:bg-primary/[0.08] border-primary/20 shadow-2xs"
+          ? "bg-primary/[0.04] hover:bg-primary/[0.08] border-primary/25 shadow-2xs"
           : "bg-card/40 hover:bg-surface-2/60 border-border/70",
         className,
       )}
@@ -170,9 +235,9 @@ export function NotificationCard({ notification, onRead, className }: Notificati
           <span
             role="status"
             data-testid="unread-indicator"
-            aria-label="Okunmamış"
-            title="Okunmamış"
-            className="w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-primary/20 shrink-0 animate-in zoom-in-50"
+            aria-label={t("inbox.unread")}
+            title={t("inbox.unread")}
+            className="w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-primary/15 shrink-0 animate-in zoom-in-50"
           />
         ) : (
           <span className="w-2.5 h-2.5 shrink-0" />
@@ -181,28 +246,22 @@ export function NotificationCard({ notification, onRead, className }: Notificati
 
       {/* Aktör Avatarı & Tip Rozeti */}
       <div className="relative shrink-0 pt-0.5">
-        <Link
-          href={actor ? `/u/${username}` : targetHref}
-          className="focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring rounded-full block"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Avatar className="h-10 w-10 border border-border/80 shadow-2xs">
-            <AvatarImage src={actor?.avatarUrl || undefined} alt={displayName} />
-            <AvatarFallback className="text-xs font-semibold bg-surface-2">
-              {actor ? displayName.slice(0, 2).toUpperCase() : "✦"}
-            </AvatarFallback>
-          </Avatar>
-          {actor && <AvatarActorBadge actorType={actorType} size="sm" />}
-        </Link>
+        <Avatar className="h-10 w-10 border border-border/80 shadow-2xs">
+          <AvatarImage src={actor?.avatarUrl || undefined} alt="" />
+          <AvatarFallback className="text-xs font-semibold bg-surface-2">
+            {actor ? displayName.slice(0, 2).toUpperCase() : "✦"}
+          </AvatarFallback>
+        </Avatar>
+        {actor && <AvatarActorBadge actorType={actorType} size="sm" />}
 
         {/* Küçük Eylem Rozeti */}
         <div
           data-testid="notification-kind-badge"
           className={cn(
             "absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-background border border-border shadow-xs flex items-center justify-center",
-            iconColor,
+            presentation.iconColor,
           )}
-          title={kind}
+          title={notification.kind}
         >
           <TypeIcon className="w-3 h-3" />
         </div>
@@ -212,18 +271,24 @@ export function NotificationCard({ notification, onRead, className }: Notificati
       <div className="min-w-0 flex-1 space-y-1.5">
         <div className="flex items-baseline justify-between gap-2">
           <div className="text-sm leading-snug">
-            {actor ? (
-              <Link
-                href={`/u/${username}`}
-                className="font-semibold text-foreground hover:underline mr-1.5"
-                onClick={(e) => e.stopPropagation()}
+            {presentation.actionKey === "unknown" ? (
+              <span
+                className={cn(!isRead ? "font-medium text-foreground" : "text-muted-foreground")}
               >
-                {displayName}
-              </Link>
+                {actionText}
+              </span>
             ) : (
-              <span className="font-semibold text-foreground mr-1.5">Sistem</span>
+              <>
+                <span className={cn("mr-1.5", !isRead && "font-bold", isRead && "font-semibold")}>
+                  {actor ? displayName : t("inbox.system_actor")}
+                </span>
+                <span
+                  className={cn(!isRead ? "font-medium text-foreground" : "text-muted-foreground")}
+                >
+                  {actionText}
+                </span>
+              </>
             )}
-            <span className="text-muted-foreground">{actionText}</span>
           </div>
 
           <time
@@ -245,35 +310,8 @@ export function NotificationCard({ notification, onRead, className }: Notificati
             {excerpt}
           </p>
         )}
-
-        {/* Hedefe Gidiş Bağlantısı */}
-        <div className="pt-0.5">
-          <Link
-            href={targetHref}
-            data-testid="notification-target-link"
-            className="text-xs font-medium text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1"
-          >
-            <span>Detayları gör →</span>
-          </Link>
-        </div>
       </div>
-
-      {/* Tekil Okundu İşaretleme Butonu */}
-      <div className="pt-1 shrink-0">
-        {!isRead && (
-          <button
-            type="button"
-            data-testid="mark-read-button"
-            onClick={handleMarkRead}
-            disabled={isMarking}
-            title="Okundu olarak işaretle"
-            aria-label="Okundu olarak işaretle"
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-          >
-            <Check className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-    </div>
+      {targetHref === null && <span className="sr-only">{t("inbox.target_unavailable")}</span>}
+    </Link>
   );
 }

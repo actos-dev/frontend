@@ -2,13 +2,16 @@
 
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { Post } from "actos";
-import { Bookmark } from "lucide-react";
+import { Bookmark, Trash2 } from "lucide-react";
 import { PostCard } from "@/components/feed/post-card";
 import { LoadMore } from "@/components/pagination/load-more";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonPostCard } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
+import { isAuthenticationProblem } from "@/lib/query/http";
+import { useContentInteraction } from "@/lib/query/mutations";
 import { savedQueryOptions } from "@/lib/query/queries";
 import type { SavedQueryPage } from "@/lib/query/types";
 import { useSessionStore } from "@/lib/stores/session-store";
@@ -20,6 +23,56 @@ export interface SavedStreamProps {
   initialVotes?: VoteMap;
   initialCursor?: string;
   initialViewerId?: string | null;
+}
+
+function UnavailableSavedItem({ post, viewerId }: { post: Post; viewerId: string | null }) {
+  const { t } = useTranslation();
+  const interaction = useContentInteraction(
+    post.id,
+    { score: post.score ?? 0, userVote: 0, saved: true },
+    viewerId,
+  );
+
+  const removeFromSaved = async () => {
+    try {
+      await interaction.save(false);
+      toast.success(t("saved.removed_unavailable"));
+    } catch (error) {
+      if (isAuthenticationProblem(error)) {
+        window.location.assign(`/login?returnUrl=${encodeURIComponent(window.location.pathname)}`);
+        return;
+      }
+      toast.error(t("saved.remove_unavailable_failed"));
+    }
+  };
+
+  return (
+    <article
+      data-testid="saved-tombstone"
+      data-content-id={post.id}
+      className="flex items-center justify-between gap-4 border-b border-border px-4 py-4 sm:px-6"
+    >
+      <div className="flex min-w-0 items-start gap-3">
+        <Bookmark aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-fg-subtle" />
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-fg">{t("saved.unavailable_title")}</p>
+          <p className="mt-1 text-xs text-fg-muted">{t("saved.unavailable_description")}</p>
+        </div>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={interaction.isSaving}
+        onClick={removeFromSaved}
+        aria-label={t("saved.remove_unavailable")}
+        className="shrink-0"
+      >
+        <Trash2 aria-hidden="true" />
+        <span>{t("saved.remove_unavailable")}</span>
+      </Button>
+    </article>
+  );
 }
 
 export function SavedStream({
@@ -105,15 +158,19 @@ export function SavedStream({
 
   return (
     <div className="divide-y divide-border/50" data-testid="saved-stream">
-      {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          initialSaved={true}
-          initialUserVote={votes[post.id] ?? 0}
-          initialViewerId={viewerId}
-        />
-      ))}
+      {posts.map((post) =>
+        post.deleted ? (
+          <UnavailableSavedItem key={post.id} post={post} viewerId={viewerId} />
+        ) : (
+          <PostCard
+            key={post.id}
+            post={post}
+            initialSaved={true}
+            initialUserVote={votes[post.id] ?? 0}
+            initialViewerId={viewerId}
+          />
+        ),
+      )}
       {saved.isFetchingNextPage && (
         <div className="divide-y divide-border/50">
           <SkeletonPostCard />

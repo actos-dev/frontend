@@ -1,20 +1,9 @@
 "use client";
 
-import {
-  AlertCircle,
-  ArrowRight,
-  Check,
-  Copy,
-  Download,
-  KeyRound,
-  LifeBuoy,
-  Loader2,
-  ShieldCheck,
-} from "lucide-react";
+import { AlertCircle, ArrowRight, Check, Copy, Download, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n";
@@ -43,9 +32,7 @@ export default function RecoverPage() {
     const cleanCode = recoveryCode.trim();
 
     if (!cleanUsername || !cleanCode) {
-      setErrorMessage(
-        `${t("auth.recover.username_label")} ve ${t("auth.recover.code_label")} gereklidir.`,
-      );
+      setErrorMessage(t("auth.recover.required_error"));
       return;
     }
 
@@ -64,7 +51,7 @@ export default function RecoverPage() {
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
-        setErrorMessage(data.detail || data.title || "Kurtarma kodu geçersiz veya kullanılmış.");
+        setErrorMessage(data.detail || data.title || t("auth.recover.invalid_error"));
         return;
       }
 
@@ -111,12 +98,8 @@ Kalan Kurtarma Kodu Sayısı: ${remainingCodes ?? "Bilinmiyor"}
   };
 
   return (
-    <div className="mx-auto max-w-md w-full px-4 py-8 sm:py-12 space-y-6">
-      {/* Header */}
-      <div className="space-y-3 text-center">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-1">
-          <LifeBuoy className="h-6 w-6 stroke-[2.2]" />
-        </div>
+    <div className="mx-auto w-full max-w-md space-y-7 px-4 py-10 sm:py-16">
+      <div className="space-y-2">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-serif text-foreground">
           {t("auth.recover.title")}
         </h1>
@@ -127,7 +110,6 @@ Kalan Kurtarma Kodu Sayısı: ${remainingCodes ?? "Bilinmiyor"}
 
       {!newKey ? (
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Username */}
           <div className="space-y-2">
             <label
               htmlFor="recover-username"
@@ -147,7 +129,6 @@ Kalan Kurtarma Kodu Sayısı: ${remainingCodes ?? "Bilinmiyor"}
             />
           </div>
 
-          {/* Recovery Code */}
           <div className="space-y-2">
             <label
               htmlFor="recover-code"
@@ -161,15 +142,15 @@ Kalan Kurtarma Kodu Sayısı: ${remainingCodes ?? "Bilinmiyor"}
               value={recoveryCode}
               onChange={(e) => setRecoveryCode(e.target.value.trim())}
               placeholder={t("auth.recover.code_placeholder")}
+              aria-describedby="recover-code-hint"
               required
               className="font-mono text-sm h-11 rounded-xl bg-surface-2/30"
             />
-            <p className="text-[11px] text-muted-foreground">
-              Kaydettiğiniz 10 kurtarma kodundan henüz kullanmadığınız herhangi birini girin.
+            <p id="recover-code-hint" className="text-[11px] text-muted-foreground">
+              {t("auth.recover.code_hint")}
             </p>
           </div>
 
-          {/* Error Message */}
           {errorMessage && (
             <div
               role="alert"
@@ -180,7 +161,6 @@ Kalan Kurtarma Kodu Sayısı: ${remainingCodes ?? "Bilinmiyor"}
             </div>
           )}
 
-          {/* Submit */}
           <Button
             type="submit"
             size="lg"
@@ -207,29 +187,21 @@ Kalan Kurtarma Kodu Sayısı: ${remainingCodes ?? "Bilinmiyor"}
           </div>
         </form>
       ) : (
-        /* Recovered Success View */
         <div className="space-y-6 animate-in fade-in">
-          <div className="p-4 rounded-xl bg-success/10 border border-success/30 text-success space-y-1 text-center">
-            <div className="flex items-center justify-center gap-1.5 font-bold text-sm">
-              <ShieldCheck className="h-5 w-5" />
-              <span>{t("auth.recover.success_title")}</span>
-            </div>
-            <p className="text-xs text-foreground/80">
+          <div className="space-y-1 border-l-2 border-success pl-3">
+            <p className="text-sm font-bold text-foreground">{t("auth.recover.success_title")}</p>
+            <p className="text-xs text-muted-foreground">
               {t("auth.recover.success_desc", {
                 remaining: String(remainingCodes ?? 0),
               })}
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-surface-2 border border-border space-y-3">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <KeyRound className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold text-foreground">
                 {t("auth.recover.new_key_label")}
               </span>
-              <Badge variant="outline" size="sm" className="font-mono text-[10px]">
-                Yeni Anahtar
-              </Badge>
             </div>
             <div className="p-2.5 rounded-lg bg-background border border-border font-mono text-xs break-all select-all text-foreground">
               {newKey}
@@ -257,12 +229,12 @@ Kalan Kurtarma Kodu Sayısı: ${remainingCodes ?? "Bilinmiyor"}
               {hasCopied ? (
                 <>
                   <Check className="h-3.5 w-3.5 text-success" />
-                  <span>Kopyalandı</span>
+                  <span>{t("auth.recover.copied")}</span>
                 </>
               ) : (
                 <>
                   <Copy className="h-3.5 w-3.5" />
-                  <span>Anahtarı Kopyala</span>
+                  <span>{t("auth.recover.copy_key")}</span>
                 </>
               )}
             </Button>

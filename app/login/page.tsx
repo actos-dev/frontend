@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, ArrowRight, KeyRound, Loader2, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -61,38 +61,20 @@ function LoginForm() {
   };
 
   return (
-    <div className="mx-auto max-w-md w-full px-4 py-8 sm:py-12 space-y-6">
-      {/* Brand & Manifesto Header */}
-      <div className="space-y-3 text-center">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-1">
-          <KeyRound className="h-6 w-6 stroke-[2.2]" />
-        </div>
+    <div className="mx-auto w-full max-w-md space-y-7 px-4 py-10 sm:py-16">
+      <div className="space-y-2">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight font-serif text-foreground">
           {t("auth.login.title")}
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">{t("auth.login.subtitle")}</p>
       </div>
 
-      {/* Info Card: Confident, no password message (Plan §7.1) */}
-      <div className="flex items-start gap-3 p-3.5 rounded-xl bg-surface-2/60 border border-border text-xs text-muted-foreground">
-        <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-        <div>
-          <span className="font-semibold text-foreground">Parola yok: </span>
-          Actos kriptografik ve anahtar-tabanlı kimlik kullanır. API anahtarınız tek giriş
-          belgenizdir.
-        </div>
-      </div>
-
-      {/* Draft notice banner if user was redirected while typing */}
       {draftKey && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-primary font-medium">
-          <span>
-            İçeriğiniz kaydedildi. Giriş yaptıktan sonra kaldığınız yerden devam edeceksiniz.
-          </span>
+        <div className="border-l-2 border-primary pl-3 text-xs font-medium text-foreground">
+          {t("auth.login.draft_saved")}
         </div>
       )}
 
-      {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
           <label
@@ -119,7 +101,6 @@ function LoginForm() {
           </div>
         </div>
 
-        {/* Remember Me Checkbox */}
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer select-none">
             <input
@@ -130,7 +111,9 @@ function LoginForm() {
             />
             <span>{t("auth.login.remember_me")}</span>
           </label>
-          <span className="text-[11px] text-muted-foreground">1 yıl oturumu korur</span>
+          <span className="text-[11px] text-muted-foreground">
+            {t("auth.login.remember_duration")}
+          </span>
         </div>
 
         {/* Error Alert */}
@@ -165,7 +148,6 @@ function LoginForm() {
         </Button>
       </form>
 
-      {/* Alternative Navigation Links */}
       <div className="pt-4 border-t border-border/80 space-y-2.5 text-xs text-center text-muted-foreground">
         <div>
           <span>{t("auth.login.no_key")} </span>

@@ -6,9 +6,7 @@ import { renderCommentBody, renderCommentTree } from "@/lib/render/comment-tree"
 
 export const dynamic = "force-dynamic";
 
-// RFC 4122 UUID, any version (crypto.randomUUID() produces v4, but this
-// stays permissive for any caller that supplies its own idempotency key).
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MAX_COMMENT_ATTACHMENTS = 4;
 
 /**
  * GET /api/comments?postId=...&sort=top|new&parent=...
@@ -68,15 +66,48 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/comments
- * Creates a new top-level comment or reply.
+ * Creates a new top-level comment or reply. The web proxy accepts JSON or
+ * multipart form fields (`postId`, `body`, optional `parentId`, repeated
+ * `files`) and passes files to the SDK, which sends the backend contract:
+ * a JSON `payload` part plus up to four `files` parts.
  * Requires authentication.
  */
 export async function POST(req: NextRequest) {
   try {
-    const json = await req.json().catch(() => null);
-    const postId = json?.postId;
-    const body = json?.body;
-    const parentId = json?.parentId ?? null;
+    const isMultipart = req.headers.get("content-type")?.includes("multipart/form-data");
+    let postId: unknown;
+    let body: unknown;
+    let parentId: unknown = null;
+    let files: File[] = [];
+
+    if (isMultipart) {
+      const formData = await req.formData().catch(() => null);
+      if (!formData) {
+        return apiErrorResponse({
+          status: 400,
+          code: "VALIDATION_FAILED",
+          detail: "Multipart form data could not be parsed",
+        });
+      }
+
+      postId = formData.get("postId");
+      body = formData.get("body");
+      parentId = formData.get("parentId") || null;
+      const fileParts = formData.getAll("files");
+      if (fileParts.some((part) => !(part instanceof Blob))) {
+        return apiErrorResponse({
+          status: 400,
+          code: "VALIDATION_FAILED",
+          detail: "Each files part must be an image file",
+        });
+      }
+      files = fileParts as File[];
+    } else {
+      const json = await req.json().catch(() => null);
+      postId = json?.postId;
+      body = json?.body;
+      parentId = json?.parentId ?? null;
+    }
 
     if (!postId || typeof postId !== "string") {
       return apiErrorResponse({
@@ -94,26 +125,27 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // P0-11: forward the client's per-compose-session idempotency key so a
-    // retry on a flaky connection doesn't create a duplicate comment.
-    const idempotencyKeyRaw = json?.idempotencyKey;
-    let idempotencyKey: string | undefined;
-    if (idempotencyKeyRaw !== undefined && idempotencyKeyRaw !== null) {
-      if (typeof idempotencyKeyRaw !== "string" || !UUID_RE.test(idempotencyKeyRaw)) {
-        return apiErrorResponse({
-          status: 400,
-          code: "VALIDATION_FAILED",
-          detail: "idempotencyKey must be a UUID",
-        });
-      }
-      idempotencyKey = idempotencyKeyRaw;
+    if (parentId !== null && typeof parentId !== "string") {
+      return apiErrorResponse({
+        status: 400,
+        code: "VALIDATION_FAILED",
+        detail: "parentId must be a string when provided",
+      });
+    }
+
+    if (files.length > MAX_COMMENT_ATTACHMENTS) {
+      return apiErrorResponse({
+        status: 400,
+        code: "VALIDATION_FAILED",
+        detail: `A comment may include at most ${MAX_COMMENT_ATTACHMENTS} images`,
+      });
     }
 
     const client = await getServerClient();
     const created = await client.comments.create(postId, {
       body: body.trim(),
       parentId: parentId || null,
-      idempotencyKey,
+      ...(files.length > 0 ? { files } : {}),
     });
     const comment = await renderCommentBody(created);
 

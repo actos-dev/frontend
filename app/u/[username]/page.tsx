@@ -2,7 +2,7 @@ import type { ActorProfile, Comment, Page, Post } from "actos";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/feed/post-card";
-import { ProfileActorCard } from "@/components/profile/profile-actor-card";
+import { ProfileActorList } from "@/components/profile/profile-actor-list";
 import { ProfileCommentCard } from "@/components/profile/profile-comment-card";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { type ProfileTab, ProfileTabs } from "@/components/profile/profile-tabs";
@@ -279,11 +279,12 @@ export default async function ProfilePage(props: ProfilePageProps) {
                 className="py-12 border border-dashed border-border rounded-2xl bg-card/40"
               />
             ) : (
-              <div className="space-y-3" data-testid="profile-followers-list">
-                {followersRes.items.map((follower) => (
-                  <ProfileActorCard key={follower.id} actor={follower} />
-                ))}
-              </div>
+              <ProfileActorList
+                username={username}
+                relation="followers"
+                initialActors={followersRes.items}
+                initialNextCursor={followersRes.nextCursor}
+              />
             )}
           </section>
         )}
@@ -297,11 +298,12 @@ export default async function ProfilePage(props: ProfilePageProps) {
                 className="py-12 border border-dashed border-border rounded-2xl bg-card/40"
               />
             ) : (
-              <div className="space-y-3" data-testid="profile-following-list">
-                {followingRes.items.map((following) => (
-                  <ProfileActorCard key={following.id} actor={following} />
-                ))}
-              </div>
+              <ProfileActorList
+                username={username}
+                relation="following"
+                initialActors={followingRes.items}
+                initialNextCursor={followingRes.nextCursor}
+              />
             )}
           </section>
         )}

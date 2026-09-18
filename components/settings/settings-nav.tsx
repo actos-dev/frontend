@@ -1,6 +1,6 @@
 "use client";
 
-import { Key, ShieldCheck, User } from "lucide-react";
+import { Settings2, SlidersHorizontal, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/i18n";
@@ -28,15 +28,15 @@ export function SettingsNav({ className }: SettingsNavProps) {
       exact: true,
     },
     {
-      href: "/settings/keys",
-      label: t("settings.tabs.keys") || "API Anahtarları",
-      icon: Key,
+      href: "/settings/account",
+      label: t("settings.tabs.account") || "Hesap",
+      icon: Settings2,
       exact: false,
     },
     {
-      href: "/settings/recovery",
-      label: t("settings.tabs.recovery") || "Kurtarma Kodları",
-      icon: ShieldCheck,
+      href: "/settings/preferences",
+      label: t("settings.tabs.preferences") || "Tercihler",
+      icon: SlidersHorizontal,
       exact: false,
     },
   ];
@@ -50,7 +50,14 @@ export function SettingsNav({ className }: SettingsNavProps) {
       )}
     >
       {navItems.map((item) => {
-        const isActive = item.exact ? pathname === item.href : pathname?.startsWith(item.href);
+        const isAccountRoute =
+          item.href === "/settings/account" &&
+          (pathname?.startsWith("/settings/account") ||
+            pathname?.startsWith("/settings/keys") ||
+            pathname?.startsWith("/settings/recovery"));
+        const isActive = item.exact
+          ? pathname === item.href
+          : isAccountRoute || pathname?.startsWith(item.href);
         const Icon = item.icon;
 
         return (

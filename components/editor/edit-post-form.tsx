@@ -1,14 +1,12 @@
 "use client";
 
 import type { Post } from "actos";
-import { ArrowLeft, Hash, Loader2, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Loader2, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { MarkdownEditor } from "@/components/editor/markdown-editor";
-import { Badge } from "@/components/ui/badge";
+import { PostComposerFields } from "@/components/editor/post-composer-fields";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
 import { useSessionStore } from "@/lib/stores/session-store";
@@ -122,53 +120,16 @@ export function EditPostForm({ post }: EditPostFormProps) {
       </div>
 
       <form onSubmit={handleUpdate} className="space-y-6">
-        {/* Title Field */}
-        <div className="space-y-2">
-          <label htmlFor="edit-post-title" className="block text-sm font-semibold text-foreground">
-            {t("editor.title_label")}
-          </label>
-          <Input
-            id="edit-post-title"
-            data-testid="edit-title-input"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={t("editor.title_placeholder")}
-            disabled={isSubmitting}
-            maxLength={300}
-            className="text-lg font-medium py-2.5 px-3.5 h-auto bg-card"
-            required
-          />
-        </div>
-
-        {/* Existing Tags (Read-only as backend UpdatePostRequest doesn't modify tags) */}
-        {post.tags && post.tags.length > 0 && (
-          <div className="space-y-2">
-            <div className="text-sm font-semibold text-foreground">{t("editor.tags_label")}</div>
-            <div className="flex flex-wrap gap-1.5">
-              {post.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="font-mono text-xs flex items-center gap-1"
-                >
-                  <Hash className="w-3 h-3 text-muted-foreground" />
-                  <span>{tag}</span>
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Markdown Editor */}
-        <div className="space-y-2">
-          <div className="text-sm font-semibold text-foreground">{t("editor.body_label")}</div>
-          <MarkdownEditor
-            value={body}
-            onChange={setBody}
-            placeholder={t("editor.body_placeholder")}
-            disabled={isSubmitting}
-          />
-        </div>
+        <PostComposerFields
+          title={title}
+          onTitleChange={setTitle}
+          body={body}
+          onBodyChange={setBody}
+          tags={post.tags ?? []}
+          existingAttachments={post.attachments ?? []}
+          titleInputTestId="edit-title-input"
+          disabled={isSubmitting}
+        />
 
         {/* Actions */}
         <div className="flex items-center justify-between pt-4 border-t border-border">

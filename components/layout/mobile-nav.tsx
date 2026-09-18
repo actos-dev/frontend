@@ -3,6 +3,7 @@
 import { Bell, Home, Plus, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MobileComposeSheet } from "@/components/editor/mobile-compose-sheet";
 import { ActorAvatar } from "@/components/ui/avatar";
 import { useTranslation } from "@/lib/i18n";
 import { useSessionStore } from "@/lib/stores/session-store";
@@ -67,14 +68,18 @@ export function MobileNav({ className }: MobileNavProps) {
       </Link>
 
       <div className="flex-1 flex items-center justify-center">
-        <Link
-          href={user ? "/new" : "/login?returnUrl=/new"}
-          aria-current={isNewActive ? "page" : undefined}
-          aria-label={t("nav.newPost")}
-          className="flex items-center justify-center w-11 h-11 rounded-full bg-fg text-bg active:scale-95 transition-transform"
-        >
-          <Plus className="w-5 h-5" aria-hidden="true" />
-        </Link>
+        {user ? (
+          <MobileComposeSheet />
+        ) : (
+          <Link
+            href="/login?returnUrl=/new"
+            aria-current={isNewActive ? "page" : undefined}
+            aria-label={t("nav.newPost")}
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-fg text-bg active:scale-95 transition-transform"
+          >
+            <Plus className="w-5 h-5" aria-hidden="true" />
+          </Link>
+        )}
       </div>
 
       <Link

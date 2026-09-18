@@ -1,15 +1,19 @@
 "use client";
 
-import { AlertCircle, ImageIcon, UploadCloud, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, ImageIcon, UploadCloud, X } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export const IMAGE_LIMIT_USER_MESSAGE =
-  "Desteklenmeyen dosya biçimi veya boyut sınırı aşıldı. Görsel başına en fazla 10MB, gönderi başına en fazla 4 görsel ekleyebilirsiniz.";
+export function getImageLimitUserMessage(contentLabel = "gönderi"): string {
+  return `Desteklenmeyen dosya biçimi veya boyut sınırı aşıldı. Görsel başına en fazla 8 MiB, ${contentLabel} başına en fazla 4 görsel ekleyebilirsiniz.`;
+}
+
+export const IMAGE_LIMIT_USER_MESSAGE = getImageLimitUserMessage();
 
 export const SUPPORTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
-export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+// Matches the backend's default MAX_UPLOAD_BYTES (8 MiB per image).
+export const MAX_FILE_SIZE_BYTES = 8 * 1024 * 1024;
 
 export const MAX_ATTACHMENTS = 4;
 
@@ -18,6 +22,7 @@ export interface ImageUploaderProps {
   files: File[];
   onFilesChange: (files: File[]) => void;
   maxFiles?: number;
+  contentLabel?: string;
   disabled?: boolean;
   className?: string;
 }
@@ -32,6 +37,7 @@ export function ImageUploader({
   files,
   onFilesChange,
   maxFiles = MAX_ATTACHMENTS,
+  contentLabel = "gönderi",
   disabled = false,
   className,
 }: ImageUploaderProps) {
@@ -57,32 +63,41 @@ export function ImageUploader({
 
     const remainingSlots = maxFiles - files.length;
     if (remainingSlots <= 0) {
-      setErrorMessage(IMAGE_LIMIT_USER_MESSAGE);
+      setErrorMessage(getImageLimitUserMessage(contentLabel));
       return;
     }
 
     const accepted: File[] = [];
+    let rejectedAny = false;
     for (const file of Array.from(incoming)) {
       if (!SUPPORTED_IMAGE_TYPES.includes(file.type) || file.size > MAX_FILE_SIZE_BYTES) {
-        setErrorMessage(IMAGE_LIMIT_USER_MESSAGE);
+        rejectedAny = true;
         continue;
       }
       if (accepted.length >= remainingSlots) {
-        setErrorMessage(IMAGE_LIMIT_USER_MESSAGE);
+        rejectedAny = true;
         break;
       }
       accepted.push(file);
     }
 
     if (accepted.length > 0) {
-      setErrorMessage(null);
       onFilesChange([...files, ...accepted]);
     }
+    setErrorMessage(rejectedAny ? getImageLimitUserMessage(contentLabel) : null);
   };
 
   const removeFile = (index: number) => {
     onFilesChange(files.filter((_, i) => i !== index));
     setErrorMessage(null);
+  };
+
+  const moveFile = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= files.length || disabled) return;
+    const reordered = [...files];
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    onFilesChange(reordered);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -143,6 +158,30 @@ export function ImageUploader({
               >
                 <X className="w-3 h-3" />
               </button>
+              {files.length > 1 && (
+                <div className="absolute bottom-0.5 left-0.5 flex gap-0.5">
+                  <button
+                    type="button"
+                    data-testid={`move-staged-image-left-${index}`}
+                    onClick={() => moveFile(index, -1)}
+                    disabled={disabled || index === 0}
+                    aria-label={`${file.name} görselini sola taşı`}
+                    className="rounded-full bg-background/85 p-0.5 text-foreground disabled:opacity-35"
+                  >
+                    <ArrowLeft className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    data-testid={`move-staged-image-right-${index}`}
+                    onClick={() => moveFile(index, 1)}
+                    disabled={disabled || index === files.length - 1}
+                    aria-label={`${file.name} görselini sağa taşı`}
+                    className="rounded-full bg-background/85 p-0.5 text-foreground disabled:opacity-35"
+                  >
+                    <ArrowRight className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -191,7 +230,7 @@ export function ImageUploader({
               {isDragging ? "Bırak, eklensin" : "Görsel eklemek için tıkla veya sürükle"}
             </p>
             <p data-testid="upload-quota-note" className="text-[11px] text-muted-foreground">
-              PNG, JPEG, WebP veya GIF · Görsel başına maks. 10MB · Gönderi başına en fazla{" "}
+              PNG, JPEG, WebP veya GIF · Görsel başına maks. 8 MiB · {contentLabel} başına en fazla{" "}
               {maxFiles} görsel
             </p>
           </div>

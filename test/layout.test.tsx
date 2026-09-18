@@ -276,6 +276,22 @@ describe("Phase 2 — App shell and navigation (ROADMAP.md S-01..S-06)", () => {
       expect(screen.getByRole("link", { name: "Log In" })).toBeDefined();
     });
 
+    it("opens the shared post composer in a sheet for signed-in users", () => {
+      useSessionStore.setState({ user: MOCK_USERS.humanUser, unreadCount: 0 });
+      render(<MobileNav />);
+
+      const trigger = screen.getByTestId("mobile-compose-trigger");
+      expect(trigger.tagName).toBe("BUTTON");
+      fireEvent.click(trigger);
+
+      expect(screen.getByTestId("mobile-compose-form")).toBeDefined();
+      expect(screen.getByTestId("post-composer-fields")).toBeDefined();
+      expect(screen.getByText("Public feed")).toBeDefined();
+      expect((screen.getByTestId("mobile-compose-publish") as HTMLButtonElement).disabled).toBe(
+        true,
+      );
+    });
+
     it("MobileHeader shows the wordmark, a search link and a log-in link when signed out — no hamburger menu (drawer deleted)", () => {
       render(<MobileHeader />);
       expect(screen.getByRole("link", { name: "Actos" })).toBeDefined();

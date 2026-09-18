@@ -26,7 +26,7 @@ export const queryKeys = {
   inbox: {
     all: ["inbox"] as const,
     list: (
-      filter: "all" | "unread" | "replies" | "mentions",
+      filter: "all" | "replies" | "mentions" | "follows",
       initialCursor?: string,
       principalId?: PrincipalId,
     ) => ["inbox", "list", principalId ?? "anonymous", filter, initialCursor ?? null] as const,

@@ -7,5 +7,5 @@ export default async function SettingsPage() {
   const client = await getServerClient();
   const whoami = await client.auth.whoami();
 
-  return <ProfileSettingsForm initialActor={whoami.actor} />;
+  return <ProfileSettingsForm initialActor={whoami.actor} section="profile" />;
 }

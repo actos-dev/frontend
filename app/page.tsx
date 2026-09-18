@@ -1,10 +1,12 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Post } from "actos";
+import { cookies } from "next/headers";
 import { type FeedDensityOption, FeedNav } from "@/components/feed/feed-nav";
 import { FeedStream } from "@/components/feed/feed-stream";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient, hasSessionCookie } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { isFeedDensity, parseFeedDensityCookie } from "@/lib/feed-density";
 import { isFeedActorType, isFeedSort, isFeedWindow } from "@/lib/feed-params";
 import { feedQueryOptions, normalizeFeedFilters } from "@/lib/query/queries";
 import { makeServerQueryClient, seedInfinitePage } from "@/lib/query/server";
@@ -23,7 +25,11 @@ export default async function HomePage(props: HomePageProps) {
   const isFollowing = rawParams.tab === "following";
   const sort = isFollowing ? "new" : isFeedSort(rawParams.sort) ? rawParams.sort : "hot";
   const window = isFeedWindow(rawParams.window) ? rawParams.window : "day";
-  const density: FeedDensityOption = rawParams.density === "compact" ? "compact" : "card";
+  const cookieStore = await cookies();
+  const densityCookie = cookieStore.get("actos_feed_density")?.value;
+  const density: FeedDensityOption = isFeedDensity(rawParams.density)
+    ? rawParams.density
+    : parseFeedDensityCookie(densityCookie ? `actos_feed_density=${densityCookie}` : undefined);
 
   const actorTypeRaw = rawParams.actor_type || rawParams.actorType;
   const actorType = isFeedActorType(actorTypeRaw) ? actorTypeRaw : undefined;

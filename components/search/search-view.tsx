@@ -1,6 +1,6 @@
 "use client";
 
-import type { Actor, Post } from "actos";
+import type { Actor, Post, TagMatch } from "actos";
 import { Search, SearchX, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,28 +8,50 @@ import { PostCard } from "@/components/feed/post-card";
 import { LoadMore } from "@/components/pagination/load-more";
 import { ActorSearchCard } from "@/components/search/actor-search-card";
 import { CommentSearchCard } from "@/components/search/comment-search-card";
+import { TagSearchRow } from "@/components/search/tag-search-row";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Skeleton, SkeletonPostCard } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
+import { parseSearchTab, SEARCH_TABS, type SearchTabType } from "@/lib/search-tabs";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
 
-export type SearchTabType = "post" | "comment" | "actor";
+const RECENT_SEARCHES_KEY = "actos:recent-searches";
+const MAX_RECENT_SEARCHES = 6;
+
+function resultIdentity(item: Post | Actor | TagMatch): string {
+  return "id" in item ? item.id : `tag:${item.name}`;
+}
+
+function readRecentSearches(): string[] {
+  try {
+    const stored = window.localStorage.getItem(RECENT_SEARCHES_KEY);
+    const parsed: unknown = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed)
+      ? parsed
+          .filter((item): item is string => typeof item === "string")
+          .slice(0, MAX_RECENT_SEARCHES)
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 export function SearchView() {
   const searchParams = useSearchParams();
 
   const urlQ = searchParams.get("q") || "";
-  const urlType = (searchParams.get("type") as SearchTabType) || "post";
+  const urlType = parseSearchTab(searchParams.get("type"));
 
   const [inputQuery, setInputQuery] = useState(urlQ);
   const [submittedQuery, setSubmittedQuery] = useState(urlQ);
   const [activeTab, setActiveTab] = useState<SearchTabType>(urlType);
 
-  const [results, setResults] = useState<Array<Post | Actor>>([]);
+  const [results, setResults] = useState<Array<Post | Actor | TagMatch>>([]);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -44,13 +66,32 @@ export function SearchView() {
 
   const prevParamsRef = useRef(searchParams.toString());
 
+  useEffect(() => {
+    setRecentSearches(readRecentSearches());
+  }, []);
+
+  const rememberSearch = useCallback((query: string) => {
+    setRecentSearches((current) => {
+      const next = [
+        query,
+        ...current.filter((item) => item.toLowerCase() !== query.toLowerCase()),
+      ].slice(0, MAX_RECENT_SEARCHES);
+      try {
+        window.localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
+      } catch {
+        // Search remains fully usable when storage is unavailable.
+      }
+      return next;
+    });
+  }, []);
+
   // Sync state only when URL searchParams changes externally (e.g. back/forward navigation)
   useEffect(() => {
     const currentStr = searchParams.toString();
     if (currentStr !== prevParamsRef.current) {
       prevParamsRef.current = currentStr;
       const q = searchParams.get("q") || "";
-      const type = (searchParams.get("type") as SearchTabType) || "post";
+      const type = parseSearchTab(searchParams.get("type"));
       setInputQuery(q);
       setSubmittedQuery(q);
       setActiveTab(type);
@@ -94,10 +135,11 @@ export function SearchView() {
         }
 
         if (!controller.signal.aborted) {
-          const items: Array<Post | Actor> = data.items || [];
+          const items: Array<Post | Actor | TagMatch> = data.items || [];
           setResults(items);
           setNextCursor(data.nextCursor ?? null);
           setSubmittedQuery(trimmed);
+          rememberSearch(trimmed);
 
           // P0-06: a fresh search replaces the vote map wholesale rather than
           // merging, since the previous results are gone. Anonymous viewers
@@ -124,7 +166,7 @@ export function SearchView() {
         }
       }
     },
-    [viewerId],
+    [rememberSearch, viewerId],
   );
 
   // Initial load if query is in URL
@@ -229,12 +271,12 @@ export function SearchView() {
         return;
       }
 
-      const newItems: Array<Post | Actor> = data.items || [];
+      const newItems: Array<Post | Actor | TagMatch> = data.items || [];
       const newNextCursor = data.nextCursor ?? null;
 
       setResults((prev) => {
-        const existingIds = new Set(prev.map((item) => item.id));
-        const filtered = newItems.filter((item: { id: string }) => !existingIds.has(item.id));
+        const existingIds = new Set(prev.map(resultIdentity));
+        const filtered = newItems.filter((item) => !existingIds.has(resultIdentity(item)));
         return [...prev, ...filtered];
       });
 
@@ -280,30 +322,19 @@ export function SearchView() {
         )}
       </div>
 
-      {/* Sekmeler (Tabs: post | comment | actor) */}
+      {/* Sekmeler kayıt üzerinden üretilir; yeni herkese açık türler buraya eklenebilir. */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex rounded-xl bg-surface-2 p-1">
-          <TabsTrigger
-            value="post"
-            onClick={() => handleTabChange("post")}
-            className="rounded-lg text-xs sm:text-sm"
-          >
-            Gönderiler
-          </TabsTrigger>
-          <TabsTrigger
-            value="comment"
-            onClick={() => handleTabChange("comment")}
-            className="rounded-lg text-xs sm:text-sm"
-          >
-            Yorumlar
-          </TabsTrigger>
-          <TabsTrigger
-            value="actor"
-            onClick={() => handleTabChange("actor")}
-            className="rounded-lg text-xs sm:text-sm"
-          >
-            Aktörler
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 rounded-xl bg-surface-2 p-1 sm:inline-flex sm:w-auto">
+          {SEARCH_TABS.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              onClick={() => handleTabChange(tab.value)}
+              className="rounded-lg text-xs sm:text-sm"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
       </Tabs>
 
@@ -328,12 +359,35 @@ export function SearchView() {
           </div>
         ) : !inputQuery.trim() ? (
           /* 2. Boş Durum: Arama yapılmadığında */
-          <div className="py-12 px-4 sm:px-6">
+          <div className="space-y-6 py-12 px-4 sm:px-6">
             <EmptyState
               icon={Search}
               title="Aramak istediğiniz terimi yazın; gönderiler, yorumlar ve aktörler arasında arayın."
               description="İçerik başlıkları, metinler, etiketler veya kullanıcı adları arasında anında filtreleme yapabilirsiniz."
             />
+            {recentSearches.length > 0 && (
+              <div className="mx-auto max-w-md space-y-2 text-center">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Son aramalar
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {recentSearches.map((query) => (
+                    <button
+                      key={query}
+                      type="button"
+                      className="rounded-full border border-border px-3 py-1 text-xs text-foreground hover:bg-surface-2"
+                      onClick={() => {
+                        setInputQuery(query);
+                        syncUrl(query, activeTab);
+                        void performSearch(query, activeTab);
+                      }}
+                    >
+                      {query}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : results.length === 0 ? (
           /* 3. Boş Durum: Sıfır sonuç */
@@ -384,6 +438,18 @@ export function SearchView() {
                   <ActorSearchCard
                     key={actor.id || actor.username}
                     actor={actor}
+                    highlightQuery={submittedQuery || inputQuery}
+                  />
+                ))}
+              </div>
+            )}
+
+            {activeTab === "tag" && (
+              <div className="divide-y divide-border/40 -mx-4 sm:-mx-6">
+                {(results as TagMatch[]).map((tag) => (
+                  <TagSearchRow
+                    key={tag.name}
+                    tag={tag}
                     highlightQuery={submittedQuery || inputQuery}
                   />
                 ))}

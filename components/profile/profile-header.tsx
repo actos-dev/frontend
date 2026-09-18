@@ -1,12 +1,12 @@
 "use client";
 
 import type { Actor, ActorStats } from "actos";
-import { Calendar, Settings } from "lucide-react";
 import Link from "next/link";
 import { FollowButton } from "@/components/actor/follow-button";
-import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ActorAvatar } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { cn, formatAccountAge } from "@/lib/utils";
@@ -14,26 +14,13 @@ import { cn, formatAccountAge } from "@/lib/utils";
 export interface ProfileHeaderProps {
   actor: Actor;
   stats: ActorStats;
-  /**
-   * The exact count, or `"50+"` when the backend page we fetched had more
-   * items than we asked for. `ActorStats` has no follower/following totals
-   * yet (ROADMAP.md P0-10), so this must never be an invented number.
-   */
+  /** The exact count, or "50+" when the backend page had more than we asked for. */
   followerCount?: number | string;
   followingCount?: number | string;
   initialViewerId?: string | null;
   className?: string;
 }
 
-/**
- * Public Actor Profile Header (Plan §Faz 11, §7.3).
- *
- * Rules:
- * - Avatar with large AvatarActorBadge.
- * - Glyph + Label badge together per Plan §7.3 (e.g. `dila_ai ✦ AI agent` / `efe 👤 İnsan`).
- * - Account age formatted neutrally (e.g. "Ocak 2026'dan beri üye").
- * - FollowButton for visitors, "Profili Düzenle" for profile owner.
- */
 export function ProfileHeader({
   actor,
   stats,
@@ -42,151 +29,145 @@ export function ProfileHeader({
   initialViewerId,
   className,
 }: ProfileHeaderProps) {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const currentUser = useSessionStore((state) => state.user);
-
   const actorType = (actor.actorType || "human") as ActorType;
   const username = actor.username;
   const displayName = actor.displayName || username;
-
   const isOwnProfile = Boolean(
     currentUser?.username && currentUser.username.toLowerCase() === username.toLowerCase(),
   );
 
   return (
-    <div
+    <header
       data-testid="profile-header"
-      className={cn(
-        "rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs space-y-6",
-        className,
-      )}
+      className={cn("space-y-5 border-b border-border pb-6", className)}
     >
-      {/* 1. Üst Kısım: Avatar, İsimler ve Aksiyon Butonu */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div className="flex items-start sm:items-center gap-5 min-w-0">
-          {/* Büyük Avatar */}
-          <div className="relative shrink-0">
-            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-2 border-border shadow-xs">
-              <AvatarImage src={actor.avatarUrl || undefined} alt={displayName} />
-              <AvatarFallback className="text-xl font-bold font-mono">
-                {displayName.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <AvatarActorBadge actorType={actorType} size="xl" />
-          </div>
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-start gap-4 sm:gap-5">
+          <ActorAvatar
+            actorType={actorType}
+            username={username}
+            displayName={displayName}
+            src={actor.avatarUrl}
+            size={88}
+            className="shrink-0 border-0"
+          />
 
-          {/* İsimler ve Glif + Etiket Rozeti */}
-          <div className="space-y-1.5 min-w-0">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">
+          <div className="min-w-0 space-y-1.5 pt-1">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <h1 className="truncate font-serif text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 {displayName}
               </h1>
-
-              {/* Plan §7.3 Kuralı: Profilde Glif + Etiket birlikte görünür */}
-              <ActorBadge
-                data-testid="profile-actor-badge"
-                actorType={actorType}
-                variant="full"
-                className="shadow-2xs text-xs py-0.5"
-              />
+              {actorType === "ai_agent" && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label={t("profile.agent_accessible_label")}
+                        className="inline-flex cursor-help rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <ActorBadge data-testid="profile-actor-badge" actorType={actorType} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t("profile.self_declared")}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
 
-            <div className="text-xs sm:text-sm font-mono text-muted-foreground">@{username}</div>
+            <p className="font-mono text-sm text-muted-foreground">@{username}</p>
 
-            {/* Hesap Yaşı (Plan §Faz 11) */}
-            <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap pt-1">
-              <div className="flex items-center gap-1.5" title={`Kayıt Tarihi: ${actor.createdAt}`}>
-                <Calendar className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
-                <span data-testid="account-age">{formatAccountAge(actor.createdAt)}</span>
-              </div>
-            </div>
+            {actor.bio && (
+              <p
+                data-testid="profile-bio"
+                className="max-w-2xl whitespace-pre-line pt-2 text-sm leading-relaxed text-foreground/90"
+              >
+                {actor.bio}
+              </p>
+            )}
+
+            <p data-testid="account-age" className="pt-1 text-xs text-muted-foreground">
+              {formatAccountAge(actor.createdAt, locale)}
+            </p>
           </div>
         </div>
 
-        {/* Aksiyon Butonu: Profil sahibi ise "Profili Düzenle", ziyaretçi ise FollowButton */}
-        <div className="shrink-0 self-stretch sm:self-center">
+        <div className="shrink-0 sm:pt-1">
           {isOwnProfile ? (
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="w-full sm:w-auto cursor-pointer gap-2 border-border/80 hover:bg-surface-2"
-              data-testid="edit-profile-button"
-            >
-              <Link href="/settings">
-                <Settings className="w-4 h-4" />
-                <span>{t("profile.edit_profile") || "Profili Düzenle"}</span>
-              </Link>
+            <Button asChild variant="outline" size="sm" data-testid="edit-profile-button">
+              <Link href="/settings">{t("profile.edit_profile")}</Link>
             </Button>
           ) : (
             <FollowButton
               username={username}
               size="default"
-              className="w-full sm:w-auto"
               initialViewerId={initialViewerId}
+              className="w-full sm:w-auto"
             />
           )}
         </div>
       </div>
 
-      {/* 2. Biyografi (varsa) */}
-      {actor.bio && (
-        <p
-          data-testid="profile-bio"
-          className="text-sm text-foreground/90 leading-relaxed max-w-2xl whitespace-pre-line"
-        >
-          {actor.bio}
-        </p>
-      )}
-
-      {/* 3. İstatistikler Barı */}
-      <div className="flex items-center gap-6 pt-4 border-t border-border/60 text-xs sm:text-sm">
-        <Link
+      <nav aria-label={t("profile.stats_label")} className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <StatLink
           href={`/u/${username}`}
-          className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer group"
-          data-testid="stat-posts"
-        >
-          <span className="font-bold text-foreground group-hover:text-primary">
-            {stats.postCount}
-          </span>
-          <span className="text-muted-foreground">{t("profile.stats.posts") || "Gönderi"}</span>
-        </Link>
-
-        <Link
+          testId="stat-posts"
+          value={stats.postCount}
+          label={t("profile.stats.posts")}
+        />
+        <StatLink
           href={`/u/${username}?tab=comments`}
-          className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer group"
-          data-testid="stat-comments"
-        >
-          <span className="font-bold text-foreground group-hover:text-primary">
-            {stats.commentCount}
-          </span>
-          <span className="text-muted-foreground">{t("profile.stats.comments") || "Yorum"}</span>
-        </Link>
-
-        <Link
+          testId="stat-comments"
+          value={stats.commentCount}
+          label={t("profile.stats.comments")}
+        />
+        <StatLink
           href={`/u/${username}?tab=followers`}
-          className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer group"
-          data-testid="stat-followers"
-        >
-          <span className="font-bold text-foreground group-hover:text-primary">
-            {followerCount}
-          </span>
-          <span className="text-muted-foreground">{t("profile.stats.followers") || "Takipçi"}</span>
-        </Link>
-
-        <Link
+          testId="stat-followers"
+          value={followerCount}
+          label={t("profile.stats.followers")}
+        />
+        <StatLink
           href={`/u/${username}?tab=following`}
-          className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer group"
-          data-testid="stat-following"
+          testId="stat-following"
+          value={followingCount}
+          label={t("profile.stats.following")}
+        />
+        <span
+          data-testid="stat-score"
+          className="inline-flex items-center gap-1.5 text-muted-foreground"
         >
-          <span className="font-bold text-foreground group-hover:text-primary">
-            {followingCount}
+          <span className="font-mono font-medium tabular-nums text-foreground">
+            {stats.totalScore}
           </span>
-          <span className="text-muted-foreground">
-            {t("profile.stats.following") || "Takip Edilen"}
-          </span>
-        </Link>
-      </div>
-    </div>
+          <span>{t("profile.stats.score")}</span>
+        </span>
+      </nav>
+    </header>
+  );
+}
+
+function StatLink({
+  href,
+  testId,
+  value,
+  label,
+}: {
+  href: string;
+  testId: string;
+  value: number | string;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      data-testid={testId}
+      className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+    >
+      <span className="font-mono font-medium tabular-nums text-foreground">{value}</span>
+      <span>{label}</span>
+    </Link>
   );
 }

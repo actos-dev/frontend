@@ -23,6 +23,7 @@ import { useSessionStore } from "@/lib/stores/session-store";
 
 export interface ProfileSettingsFormProps {
   initialActor: Actor;
+  section?: "all" | "profile" | "account";
 }
 
 /**
@@ -33,7 +34,7 @@ export interface ProfileSettingsFormProps {
  * displayName/bio form below. Profile update itself only ever sends
  * `displayName` and `bio`.
  */
-export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) {
+export function ProfileSettingsForm({ initialActor, section = "all" }: ProfileSettingsFormProps) {
   const router = useRouter();
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -207,296 +208,303 @@ export function ProfileSettingsForm({ initialActor }: ProfileSettingsFormProps) 
   return (
     <div className="space-y-12">
       {/* Profil Düzenleme Formu */}
-      <form onSubmit={handleSubmit} className="space-y-8" data-testid="profile-form">
-        {/* Avatar Bölümü */}
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">
-              {t("settings.profile.avatar") || "Profil Fotoğrafı"}
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Toplulukta ve profilde görünecek avatarınız.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-            <div className="relative shrink-0">
-              <Avatar className="h-20 w-20 border-2 border-border shadow-xs">
-                <AvatarImage
-                  src={avatarPreview || undefined}
-                  alt={displayName || initialActor.username}
-                />
-                <AvatarFallback className="text-lg font-bold">
-                  {(displayName || initialActor.username).slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <AvatarActorBadge
-                actorType={(initialActor.actorType || "human") as ActorType}
-                size="lg"
-              />
+      {section !== "account" && (
+        <form onSubmit={handleSubmit} className="space-y-8" data-testid="profile-form">
+          {/* Avatar Bölümü */}
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">
+                {t("settings.profile.avatar") || "Profil Fotoğrafı"}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Toplulukta ve profilde görünecek avatarınız.
+              </p>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,image/gif"
-                  className="hidden"
-                  onChange={handleFileChange}
-                  disabled={isUploadingAvatar || isRemovingAvatar}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              <div className="relative shrink-0">
+                <Avatar className="h-20 w-20 border-2 border-border shadow-xs">
+                  <AvatarImage
+                    src={avatarPreview || undefined}
+                    alt={displayName || initialActor.username}
+                  />
+                  <AvatarFallback className="text-lg font-bold">
+                    {(displayName || initialActor.username).slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <AvatarActorBadge
+                  actorType={(initialActor.actorType || "human") as ActorType}
+                  size="lg"
                 />
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploadingAvatar || isRemovingAvatar}
-                  className="cursor-pointer gap-2"
-                >
-                  {isUploadingAvatar ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                  ) : (
-                    <Camera className="w-4 h-4" />
-                  )}
-                  <span>
-                    {isUploadingAvatar
-                      ? "Yükleniyor..."
-                      : t("settings.profile.avatar_upload") || "Fotoğraf Yükle"}
-                  </span>
-                </Button>
-
-                {avatarPreview && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemoveAvatar}
-                    disabled={isUploadingAvatar || isRemovingAvatar}
-                    className="text-destructive hover:bg-destructive/10 cursor-pointer gap-1.5"
-                  >
-                    {isRemovingAvatar ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4" />
-                    )}
-                    <span>{t("settings.profile.avatar_remove") || "Fotoğrafı Kaldır"}</span>
-                  </Button>
-                )}
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  PNG, JPEG, WebP veya GIF (Maks. 10MB) · Değişiklikler hemen uygulanır
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    disabled={isUploadingAvatar || isRemovingAvatar}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingAvatar || isRemovingAvatar}
+                    className="cursor-pointer gap-2"
+                  >
+                    {isUploadingAvatar ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    ) : (
+                      <Camera className="w-4 h-4" />
+                    )}
+                    <span>
+                      {isUploadingAvatar
+                        ? "Yükleniyor..."
+                        : t("settings.profile.avatar_upload") || "Fotoğraf Yükle"}
+                    </span>
+                  </Button>
+
+                  {avatarPreview && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveAvatar}
+                      disabled={isUploadingAvatar || isRemovingAvatar}
+                      className="text-destructive hover:bg-destructive/10 cursor-pointer gap-1.5"
+                    >
+                      {isRemovingAvatar ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                      <span>{t("settings.profile.avatar_remove") || "Fotoğrafı Kaldır"}</span>
+                    </Button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    PNG, JPEG, WebP veya GIF (Maks. 10MB) · Değişiklikler hemen uygulanır
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Temel Bilgiler Formu */}
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">
+                {t("settings.profile.title") || "Profil Bilgileri"}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Görünen adınız ve biyografiniz herkese açıktır.
+              </p>
+            </div>
+
+            <div className="space-y-4 max-w-xl">
+              {/* Kullanıcı Adı (Salt Okunur) */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="username-display"
+                  className="text-xs font-semibold text-muted-foreground"
+                >
+                  Kullanıcı Adı (Değiştirilemez)
+                </label>
+                <Input
+                  id="username-display"
+                  value={`@${initialActor.username}`}
+                  disabled
+                  className="bg-surface-2/60 font-mono text-muted-foreground cursor-not-allowed"
+                />
+              </div>
+
+              {/* Görünen Ad */}
+              <div className="space-y-1.5">
+                <label htmlFor="display-name" className="text-xs font-semibold text-foreground">
+                  {t("settings.profile.display_name") || "Görünen Ad"}
+                </label>
+                <Input
+                  id="display-name"
+                  data-testid="display-name-input"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  maxLength={64}
+                  placeholder={t("settings.profile.display_name_placeholder") || "Görünen adınız"}
+                />
+                <span className="text-[11px] text-muted-foreground block text-right">
+                  {displayName.length}/64
+                </span>
+              </div>
+
+              {/* Biyografi */}
+              <div className="space-y-1.5">
+                <label htmlFor="bio" className="text-xs font-semibold text-foreground">
+                  {t("settings.profile.bio") || "Biyografi"}
+                </label>
+                <Textarea
+                  id="bio"
+                  data-testid="bio-input"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  maxLength={500}
+                  rows={4}
+                  placeholder={
+                    t("settings.profile.bio_placeholder") ||
+                    "Kendinizden veya ajandan kısaca bahsedin..."
+                  }
+                />
+                <span className="text-[11px] text-muted-foreground block text-right">
+                  {bio.length}/500
                 </span>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Temel Bilgiler Formu */}
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">
-              {t("settings.profile.title") || "Profil Bilgileri"}
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Görünen adınız ve biyografiniz herkese açıktır.
-            </p>
-          </div>
-
-          <div className="space-y-4 max-w-xl">
-            {/* Kullanıcı Adı (Salt Okunur) */}
-            <div className="space-y-1.5">
-              <label
-                htmlFor="username-display"
-                className="text-xs font-semibold text-muted-foreground"
+            <div className="pt-2">
+              <Button
+                type="submit"
+                disabled={isSaving}
+                data-testid="save-profile-button"
+                className="cursor-pointer gap-2"
               >
-                Kullanıcı Adı (Değiştirilemez)
-              </label>
-              <Input
-                id="username-display"
-                value={`@${initialActor.username}`}
-                disabled
-                className="bg-surface-2/60 font-mono text-muted-foreground cursor-not-allowed"
-              />
-            </div>
-
-            {/* Görünen Ad */}
-            <div className="space-y-1.5">
-              <label htmlFor="display-name" className="text-xs font-semibold text-foreground">
-                {t("settings.profile.display_name") || "Görünen Ad"}
-              </label>
-              <Input
-                id="display-name"
-                data-testid="display-name-input"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                maxLength={64}
-                placeholder={t("settings.profile.display_name_placeholder") || "Görünen adınız"}
-              />
-              <span className="text-[11px] text-muted-foreground block text-right">
-                {displayName.length}/64
-              </span>
-            </div>
-
-            {/* Biyografi */}
-            <div className="space-y-1.5">
-              <label htmlFor="bio" className="text-xs font-semibold text-foreground">
-                {t("settings.profile.bio") || "Biyografi"}
-              </label>
-              <Textarea
-                id="bio"
-                data-testid="bio-input"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                maxLength={500}
-                rows={4}
-                placeholder={
-                  t("settings.profile.bio_placeholder") ||
-                  "Kendinizden veya ajandan kısaca bahsedin..."
-                }
-              />
-              <span className="text-[11px] text-muted-foreground block text-right">
-                {bio.length}/500
-              </span>
+                {isSaving && <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />}
+                <span>
+                  {isSaving
+                    ? t("settings.profile.saving") || "Kaydediliyor..."
+                    : t("settings.profile.save") || "Değişiklikleri Kaydet"}
+                </span>
+              </Button>
             </div>
           </div>
-
-          <div className="pt-2">
-            <Button
-              type="submit"
-              disabled={isSaving}
-              data-testid="save-profile-button"
-              className="cursor-pointer gap-2"
-            >
-              {isSaving && <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />}
-              <span>
-                {isSaving
-                  ? t("settings.profile.saving") || "Kaydediliyor..."
-                  : t("settings.profile.save") || "Değişiklikleri Kaydet"}
-              </span>
-            </Button>
-          </div>
-        </div>
-      </form>
+        </form>
+      )}
 
       {/* Tehlikeli Bölge (Danger Zone) — Hesap Silme */}
-      <div
-        className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 shadow-xs space-y-4"
-        data-testid="danger-zone"
-      >
-        <div className="flex items-center gap-2.5 text-destructive">
-          <AlertTriangle className="w-5 h-5 shrink-0" />
-          <h2 className="text-base font-bold tracking-tight">
-            {t("settings.danger_zone.title") || "Tehlikeli Bölge"}
-          </h2>
-        </div>
-
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-          {t("settings.danger_zone.desc") ||
-            "Hesabınızı silmek kalıcı bir eylemdir. API anahtarlarınız silinir, gönderileriniz anonimleştirilir ve bu işlem geri alınamaz."}
-        </p>
-
-        <div className="pt-2">
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={() => setDeleteModalOpen(true)}
-            data-testid="delete-account-button"
-            className="cursor-pointer gap-2 shadow-xs"
+      {section !== "profile" && (
+        <>
+          <div
+            className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 shadow-xs space-y-4"
+            data-testid="danger-zone"
           >
-            <Trash2 className="w-4 h-4" />
-            <span>{t("settings.danger_zone.delete_button") || "Hesabımı Sil"}</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Hesap Silme Onay Modalı */}
-      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <div className="flex items-center gap-2 text-destructive mb-1">
-              <AlertTriangle className="w-5 h-5" />
-              <DialogTitle>
-                {t("settings.danger_zone.modal.title") || "Hesabınızı Kalıcı Olarak Silin"}
-              </DialogTitle>
-            </div>
-            <DialogDescription className="text-muted-foreground text-xs leading-relaxed">
-              {t("settings.danger_zone.modal.warning") ||
-                "Bu eylem geri alınamaz. Profiliniz ve API anahtarlarınız kalıcı olarak silinecek, içerikleriniz anonimleştirilecektir."}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-3">
-            <div className="space-y-2">
-              <label
-                htmlFor="delete-confirm-username"
-                className="text-xs font-semibold text-foreground"
-              >
-                Onaylamak için lütfen kullanıcı adınızı (
-                <strong className="text-destructive font-mono">{initialActor.username}</strong>)
-                yazın:
-              </label>
-              <Input
-                id="delete-confirm-username"
-                data-testid="delete-username-input"
-                value={confirmUsername}
-                onChange={(e) => setConfirmUsername(e.target.value)}
-                placeholder={initialActor.username}
-                className="font-mono"
-              />
+            <div className="flex items-center gap-2.5 text-destructive">
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+              <h2 className="text-base font-bold tracking-tight">
+                {t("settings.danger_zone.title") || "Tehlikeli Bölge"}
+              </h2>
             </div>
 
-            <div className="space-y-2">
-              <label
-                htmlFor="delete-recovery-code"
-                className="text-xs font-semibold text-foreground"
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+              {t("settings.danger_zone.desc") ||
+                "Hesabınızı silmek kalıcı bir eylemdir. API anahtarlarınız silinir, gönderileriniz anonimleştirilir ve bu işlem geri alınamaz."}
+            </p>
+
+            <div className="pt-2">
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setDeleteModalOpen(true)}
+                data-testid="delete-account-button"
+                className="cursor-pointer gap-2 shadow-xs"
               >
-                Kurtarma Kodunuz (Güvenlik doğrulaması):
-              </label>
-              <Input
-                id="delete-recovery-code"
-                data-testid="delete-recovery-input"
-                value={recoveryCode}
-                onChange={(e) => setRecoveryCode(e.target.value)}
-                placeholder="Örn: a1b2c3d4"
-                className="font-mono text-xs"
-              />
-              <span className="text-[11px] text-muted-foreground">
-                Hesap silme güvenliği için geçerli bir kurtarma kodu gereklidir.
-              </span>
+                <Trash2 className="w-4 h-4" />
+                <span>{t("settings.danger_zone.delete_button") || "Hesabımı Sil"}</span>
+              </Button>
             </div>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDeleteModalOpen(false)}
-              disabled={isDeleting}
-            >
-              Vazgeç
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDeleteAccount}
-              disabled={confirmUsername.trim() !== initialActor.username || isDeleting}
-              data-testid="confirm-delete-button"
-              className="cursor-pointer gap-2"
-            >
-              {isDeleting && <Loader2 className="w-4 h-4 animate-spin text-white" />}
-              <span>
-                {isDeleting
-                  ? t("settings.danger_zone.modal.deleting") || "Siliniyor..."
-                  : t("settings.danger_zone.modal.submit_delete") || "Hesabımı Kalıcı Olarak Sil"}
-              </span>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          {/* Hesap Silme Onay Modalı */}
+          <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <div className="flex items-center gap-2 text-destructive mb-1">
+                  <AlertTriangle className="w-5 h-5" />
+                  <DialogTitle>
+                    {t("settings.danger_zone.modal.title") || "Hesabınızı Kalıcı Olarak Silin"}
+                  </DialogTitle>
+                </div>
+                <DialogDescription className="text-muted-foreground text-xs leading-relaxed">
+                  {t("settings.danger_zone.modal.warning") ||
+                    "Bu eylem geri alınamaz. Profiliniz ve API anahtarlarınız kalıcı olarak silinecek, içerikleriniz anonimleştirilecektir."}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-3">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="delete-confirm-username"
+                    className="text-xs font-semibold text-foreground"
+                  >
+                    Onaylamak için lütfen kullanıcı adınızı (
+                    <strong className="text-destructive font-mono">{initialActor.username}</strong>)
+                    yazın:
+                  </label>
+                  <Input
+                    id="delete-confirm-username"
+                    data-testid="delete-username-input"
+                    value={confirmUsername}
+                    onChange={(e) => setConfirmUsername(e.target.value)}
+                    placeholder={initialActor.username}
+                    className="font-mono"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="delete-recovery-code"
+                    className="text-xs font-semibold text-foreground"
+                  >
+                    Kurtarma Kodunuz (Güvenlik doğrulaması):
+                  </label>
+                  <Input
+                    id="delete-recovery-code"
+                    data-testid="delete-recovery-input"
+                    value={recoveryCode}
+                    onChange={(e) => setRecoveryCode(e.target.value)}
+                    placeholder="Örn: a1b2c3d4"
+                    className="font-mono text-xs"
+                  />
+                  <span className="text-[11px] text-muted-foreground">
+                    Hesap silme güvenliği için geçerli bir kurtarma kodu gereklidir.
+                  </span>
+                </div>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDeleteModalOpen(false)}
+                  disabled={isDeleting}
+                >
+                  Vazgeç
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDeleteAccount}
+                  disabled={confirmUsername.trim() !== initialActor.username || isDeleting}
+                  data-testid="confirm-delete-button"
+                  className="cursor-pointer gap-2"
+                >
+                  {isDeleting && <Loader2 className="w-4 h-4 animate-spin text-white" />}
+                  <span>
+                    {isDeleting
+                      ? t("settings.danger_zone.modal.deleting") || "Siliniyor..."
+                      : t("settings.danger_zone.modal.submit_delete") ||
+                        "Hesabımı Kalıcı Olarak Sil"}
+                  </span>
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </div>
   );
 }

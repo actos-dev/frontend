@@ -101,11 +101,11 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       render(<NotificationCard notification={replyNotif} />);
 
       expect(screen.getByText("Taylan")).toBeDefined();
-      expect(screen.getByText("gönderinize yanıt verdi")).toBeDefined();
+      expect(screen.getByText("replied to your post")).toBeDefined();
       expect(screen.getByText("Harika bir mimari yaklaşım!")).toBeDefined();
       expect(screen.getByTestId("unread-indicator")).toBeDefined();
 
-      const link = screen.getByTestId("notification-target-link");
+      const link = screen.getByTestId("notification-card");
       expect(link.getAttribute("href")).toBe("/posts/c_post_1");
     });
 
@@ -129,7 +129,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       render(<NotificationCard notification={replyToCommentNotif} />);
 
       expect(screen.getByText("Dila AI")).toBeDefined();
-      expect(screen.getByText("yorumunuza yanıt verdi")).toBeDefined();
+      expect(screen.getByText("replied to your comment")).toBeDefined();
       expect(screen.getByText("Yorumuna katılıyorum.")).toBeDefined();
       expect(screen.queryByTestId("unread-indicator")).toBeNull();
     });
@@ -154,7 +154,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       render(<NotificationCard notification={mentionNotif} />);
 
       expect(screen.getByText("Efe")).toBeDefined();
-      expect(screen.getByText("sizden bahsetti")).toBeDefined();
+      expect(screen.getByText("mentioned you")).toBeDefined();
       expect(screen.getByText("@taylan_mod bu konuda fikrin nedir?")).toBeDefined();
     });
 
@@ -178,7 +178,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       render(<NotificationCard notification={voteNotif} />);
 
       expect(screen.getByText("Taylan")).toBeDefined();
-      expect(screen.getByText("gönderinizi beğendi")).toBeDefined();
+      expect(screen.getByText("liked your post")).toBeDefined();
     });
 
     it("follow / new_follower türünü 'sizi takip etmeye başladı' ve profil bağlantısıyla render etmelidir", () => {
@@ -201,8 +201,8 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       render(<NotificationCard notification={followNotif} />);
 
       expect(screen.getByText("Dila AI")).toBeDefined();
-      expect(screen.getByText("sizi takip etmeye başladı")).toBeDefined();
-      const link = screen.getByTestId("notification-target-link");
+      expect(screen.getByText("started following you")).toBeDefined();
+      const link = screen.getByTestId("notification-card");
       expect(link.getAttribute("href")).toBe("/u/dila_ai");
     });
 
@@ -220,9 +220,29 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
 
       render(<NotificationCard notification={sysNotif} />);
 
-      expect(screen.getByText("Sistem")).toBeDefined();
-      expect(screen.getByText("sistem bildirimi")).toBeDefined();
+      expect(screen.getByText("System")).toBeDefined();
+      expect(screen.getByText("system notification")).toBeDefined();
       expect(screen.getByText("Topluluk kurallarına uyum incelemesi tamamlandı.")).toBeDefined();
+    });
+
+    it("bilinmeyen tür ve boş payload için uydurma ayrıntı yerine genel metin göstermelidir", () => {
+      const unknownNotif: NotificationRow = {
+        id: "n_unknown_test",
+        kind: "future_kind",
+        actor: { id: "usr_future", username: "future_actor", actorType: "human" },
+        targetType: "content",
+        targetId: "c_future",
+        payload: {},
+        createdAt: "2026-09-04T12:00:00Z",
+        readAt: null,
+      };
+
+      render(<NotificationCard notification={unknownNotif} />);
+
+      expect(screen.getByText("You have a new notification.")).toBeDefined();
+      expect(screen.queryByTestId("notification-excerpt")).toBeNull();
+      expect(screen.queryByTestId("mark-read-button")).toBeNull();
+      expect(screen.queryByText("Detayları gör →")).toBeNull();
     });
   });
 
@@ -277,8 +297,8 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
   /* ==========================================================================
      3. Tekil Okundu İşaretleme Etkileşimi ve Sayacın Düşmesi
      ========================================================================== */
-  describe("3. Tekil Okundu İşaretleme Etkileşimi", () => {
-    it("okunmamış bildirimdeki check butonu tıklandığında PATCH /api/inbox/[id]/read çağırmalı ve unreadCount 1 azalmalıdır", async () => {
+  describe("3. Bildirimi Açınca Okundu İşaretleme", () => {
+    it("okunmamış bildirim satırı açıldığında PATCH /api/inbox/[id]/read çağırmalı ve unreadCount 1 azalmalıdır", async () => {
       const mockFetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
       global.fetch = mockFetch;
 
@@ -298,11 +318,11 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       const handleRead = vi.fn();
       render(<NotificationCard notification={notif} onRead={handleRead} />);
 
-      const markBtn = screen.getByTestId("mark-read-button");
-      expect(markBtn).toBeDefined();
+      const row = screen.getByTestId("notification-card");
+      expect(row.getAttribute("href")).toBe("/posts/c_1");
 
       await act(async () => {
-        fireEvent.click(markBtn);
+        fireEvent.click(row);
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -313,7 +333,6 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       // Kart artık okundu durumuna geçmeli
       const card = screen.getByTestId("notification-card");
       expect(card.getAttribute("data-read")).toBe("true");
-      expect(screen.queryByTestId("mark-read-button")).toBeNull();
 
       // Session store sayacı 3'ten 2'ye inmeli
       expect(useSessionStore.getState().unreadCount).toBe(2);
@@ -344,17 +363,14 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       const handleRead = vi.fn();
       render(<NotificationCard notification={notif} onRead={handleRead} />);
 
-      const markBtn = screen.getByTestId("mark-read-button");
-
       await act(async () => {
-        fireEvent.click(markBtn);
+        fireEvent.click(screen.getByTestId("notification-card"));
       });
 
       // The write did not actually happen: the card must revert to unread
       // instead of pretending it succeeded.
       const card = screen.getByTestId("notification-card");
       expect(card.getAttribute("data-read")).toBe("false");
-      expect(screen.getByTestId("mark-read-button")).toBeDefined();
       expect(useSessionStore.getState().unreadCount).toBe(3);
       expect(handleRead).not.toHaveBeenCalled();
       expect(toast.error).toHaveBeenCalled();
@@ -435,7 +451,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       expect(useSessionStore.getState().unreadCount).toBe(0);
 
       // Toast çağrısı yapılmış olmalı
-      expect(toast.success).toHaveBeenCalledWith("Tüm bildirimler okundu olarak işaretlendi.");
+      expect(toast.success).toHaveBeenCalledWith("All notifications marked as read.");
 
       // Ekrandaki kartların indicator'ları kaybolmalı
       const indicators = screen.queryAllByTestId("unread-indicator");
@@ -584,7 +600,7 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
 
       render(<NotificationCard notification={deletedTargetNotif} />);
 
-      const targetLink = screen.getByTestId("notification-target-link");
+      const targetLink = screen.getByTestId("notification-card");
       expect(targetLink.getAttribute("href")).toBe("/posts/c_deleted_post_99");
 
       // Bildirim kartı listede durmaya devam eder (silinmez / kaybolmaz)
@@ -623,9 +639,9 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
         <InboxView initialNotifications={[]} initialNextCursor={null} initialUnreadCount={0} />,
       );
 
-      expect(screen.getByText("Henüz bir bildiriminiz yok")).toBeDefined();
+      expect(screen.getByText("You have no notifications yet")).toBeDefined();
       expect(
-        screen.getByText("Gönderileriniz etkileşim aldığında burada göreceksiniz."),
+        screen.getByText("When your posts receive engagement, you will see them here."),
       ).toBeDefined();
     });
 
@@ -691,6 +707,79 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
           "n_rep_1",
         );
       });
+    });
+
+    it("Takipçiler filtresi yalnızca takip bildirimlerini gösterir ve satırları günlere göre gruplar", async () => {
+      const items: NotificationRow[] = [
+        {
+          id: "n_day_1",
+          kind: "new_follower",
+          actor: { id: "usr_1", username: "first", actorType: "human" },
+          targetType: "actor",
+          targetId: "usr_me",
+          payload: {},
+          createdAt: "2026-09-17T12:00:00Z",
+          readAt: null,
+        },
+        {
+          id: "n_day_2",
+          kind: "new_follower",
+          actor: { id: "usr_2", username: "second", actorType: "human" },
+          targetType: "actor",
+          targetId: "usr_me",
+          payload: {},
+          createdAt: "2026-09-17T10:00:00Z",
+          readAt: null,
+        },
+        {
+          id: "n_day_3",
+          kind: "comment_on_post",
+          actor: { id: "usr_3", username: "third", actorType: "human" },
+          targetType: "content",
+          targetId: "c_1",
+          payload: {},
+          createdAt: "2026-09-16T12:00:00Z",
+          readAt: null,
+        },
+      ];
+      global.fetch = vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            notifications: items.slice(0, 2),
+            nextCursor: null,
+            unreadCount: 2,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+
+      render(
+        <InboxView initialNotifications={items} initialNextCursor={null} initialUnreadCount={2} />,
+      );
+
+      expect(screen.getByTestId("tab-follows")).toBeDefined();
+      const groups = screen.getAllByTestId("notification-day-group");
+      expect(groups).toHaveLength(2);
+      expect(groups[0]?.getAttribute("data-day")).toBe("2026-09-17");
+      expect(groups[0]?.querySelectorAll('[data-testid="notification-card"]').length).toBe(2);
+      expect(groups[1]?.getAttribute("data-day")).toBe("2026-09-16");
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId("tab-follows"));
+      });
+
+      await waitFor(() => {
+        const rows = screen.getAllByTestId("notification-card");
+        expect(rows).toHaveLength(2);
+        expect(rows.every((row) => row.getAttribute("data-notification-id") !== "n_day_3")).toBe(
+          true,
+        );
+      });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("filter=follows"),
+        expect.any(Object),
+      );
     });
   });
 });
