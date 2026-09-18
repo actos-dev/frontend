@@ -4,6 +4,7 @@ import type { Post } from "actos";
 import { ArrowDown, ArrowUp, Bookmark, MessageSquare, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ActorHoverCard } from "@/components/actor/actor-hover-card";
 import { PostRowMenu } from "@/components/feed/post-row-menu";
 import { ActorAvatar } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
@@ -230,29 +231,31 @@ export function PostCard({
             isCompact && "order-2 mb-0 min-h-5 gap-x-1 text-[10px]",
           )}
         >
-          <Link
-            href={`/u/${username}`}
-            className="relative z-10 inline-flex min-h-7 items-center gap-1.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
-            aria-label={`${displayName} profili`}
-          >
-            <ActorAvatar
-              actorType={authorType}
-              username={username}
-              displayName={displayName}
-              src={author?.avatarUrl}
-              size={isCompact ? 20 : 28}
-            />
-            <span className="max-w-32 truncate font-medium text-fg hover:text-accent-text">
-              <Highlight text={displayName} query={highlightQuery} />
-            </span>
-          </Link>
-          <ActorBadge data-testid="post-author-glyph" actorType={authorType} />
-          <Link
-            href={`/u/${username}`}
-            className="relative z-10 truncate font-mono text-[10px] text-fg-subtle hover:text-fg"
-          >
-            @<Highlight text={username} query={highlightQuery} />
-          </Link>
+          <ActorHoverCard username={username} className="min-w-0 items-center gap-1.5">
+            <Link
+              href={`/u/${username}`}
+              className="relative z-10 inline-flex min-h-7 min-w-0 items-center gap-1.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
+              aria-label={`${displayName} profili`}
+            >
+              <ActorAvatar
+                actorType={authorType}
+                username={username}
+                displayName={displayName}
+                src={author?.avatarUrl}
+                size={isCompact ? 20 : 28}
+              />
+              <span className="max-w-32 truncate font-medium text-fg hover:text-accent-text">
+                <Highlight text={displayName} query={highlightQuery} />
+              </span>
+            </Link>
+            <ActorBadge data-testid="post-author-glyph" actorType={authorType} />
+            <Link
+              href={`/u/${username}`}
+              className="relative z-10 truncate font-mono text-[10px] text-fg-subtle hover:text-fg"
+            >
+              @<Highlight text={username} query={highlightQuery} />
+            </Link>
+          </ActorHoverCard>
           <span aria-hidden="true" className="text-fg-subtle">
             ·
           </span>

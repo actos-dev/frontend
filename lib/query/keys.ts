@@ -9,6 +9,10 @@ export interface FeedFilters {
 export type PrincipalId = string | null;
 
 export const queryKeys = {
+  actors: {
+    all: ["actors"] as const,
+    profile: (username: string) => ["actors", "profile", username.toLowerCase()] as const,
+  },
   feeds: {
     all: ["feeds"] as const,
     list: (

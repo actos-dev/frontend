@@ -455,7 +455,9 @@
     "empty_following": "Not following anyone",
     "empty_following_desc": "This actor is not following anyone yet.",
     "account_deleted": "Account deleted",
-    "account_deleted_desc": "This actor deleted their account; profile and contents are unavailable."
+    "account_deleted_desc": "This actor deleted their account; profile and contents are unavailable.",
+    "preview_label": "Profile preview for @{username}",
+    "preview_unavailable": "Profile preview is unavailable."
   },
   "settings": {
     "title": "Settings",

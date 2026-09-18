@@ -42,26 +42,22 @@ running backend, not only by its tests):
 | S-01…S-06, P0-09, K-01, K-02, K-03, K-05, K-07, K-09, K-11 — the shell | `3fa3bfa` |
 | F-01, F-03, F-07, F-08 and the published Markstone renderer | `2625f0e` |
 | P-01…P-07 — feed, post, OG and sitemap; C-01 — comment tree polish | `d3a5f01` |
+| C-02…C-05; U-01, U-03…U-07 — compose, identity and account surfaces | `7be3f51` |
+| Production startup and nginx/operator guide | `7552a6f` |
 
 Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(509), `pnpm check:contrast` (3/3), the client-secret bundle audit,
+(533), `pnpm check:contrast` (3/3), the client-secret bundle audit,
 `next build --webpack`, and the production-browser Markstone WASM test all
 pass. The previous real-backend suite remains at 40 passing journeys; rerun
 it against a running API before deployment.
 
-**Ready for the next checkpoint (working tree):** C-02…C-05 and U-01,
-U-03…U-07. This batch has 532 passing unit/integration tests; typecheck,
-lint, contrast and the client-secret bundle audit pass. Its production build
-passes. The real-backend browser pass must still run against a live local API
-before deployment.
+**In flight:** U-02 hover cards are ready in the working tree. U-08's true
+unavailable-save tombstone remains backend-blocked; Phase 6 moderation is
+next. List responses still omit attachments, so feed rows deliberately have
+no thumbnails until B-04 lands rather than making N+1 detail requests.
 
-**In flight:** U-02 hover cards and U-08's unavailable-save contract, then
-Phase 6 moderation. List responses still omit attachments, so feed rows
-deliberately have no thumbnails until B-04 lands rather than making N+1
-detail requests.
-
-**Next:** U-02, then M-01…M-03 and the final accessibility/responsive/i18n
-pass. Community selection remains behind B-12.
+**Next:** M-01…M-03 and the final accessibility/responsive/i18n pass.
+Community selection remains behind B-12.
 
 ### Running the thing locally
 
@@ -864,8 +860,9 @@ the backend has no path to edit them. The community is read-only.
   paginated; today they are capped at 50.
 - Remove the `curl` box.
 
-**U-02 · Hover cards.** Desktop only, cached per username, as described in
-§1.4.
+**U-02 · Hover cards.** ✅ 2026-09-18 — Desktop only, cached per username,
+as described in §1.4. Feed, post and comment author identities share the same
+five-minute profile cache.
 
 **U-03 · Registration.** ✅ 2026-09-18
 

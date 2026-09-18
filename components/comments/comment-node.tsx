@@ -12,9 +12,10 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ActorHoverCard } from "@/components/actor/actor-hover-card";
 import { CommentForm } from "@/components/comments/comment-form";
 import { CodeBlockEnhancer } from "@/components/render/code-block-enhancer";
-import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ActorAvatar } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -298,23 +299,25 @@ export function CommentNodeComponent({
               </button>
 
               {/* Avatar */}
-              {isDeleted ? (
+              {isDeleted || isAuthorDeleted ? (
                 <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] text-muted-foreground font-mono">
                   ?
                 </div>
               ) : (
-                <Link
-                  href={`/u/${username}`}
-                  className="relative shrink-0 group focus-visible:outline-hidden rounded-full"
-                >
-                  <Avatar className="h-5 w-5 border-border/80">
-                    <AvatarImage src={author?.avatarUrl || undefined} alt={displayName} />
-                    <AvatarFallback className="text-[10px] font-semibold">
-                      {displayName.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <AvatarActorBadge actorType={authorType} size="sm" />
-                </Link>
+                <ActorHoverCard username={username}>
+                  <Link
+                    href={`/u/${username}`}
+                    className="relative shrink-0 rounded-full focus-visible:outline-hidden"
+                  >
+                    <ActorAvatar
+                      actorType={authorType}
+                      username={username}
+                      displayName={displayName}
+                      src={author?.avatarUrl}
+                      size={20}
+                    />
+                  </Link>
+                </ActorHoverCard>
               )}
 
               {/* Yazar Adı & Glif + Etiket Rozeti (Plan §7.3) */}
@@ -330,7 +333,7 @@ export function CommentNodeComponent({
                   [{t("comments.deleted_author") || "silindi"}]
                 </span>
               ) : (
-                <>
+                <ActorHoverCard username={username} className="items-center gap-2">
                   <Link
                     href={`/u/${username}`}
                     className="font-semibold text-foreground hover:text-primary transition-colors text-xs"
@@ -348,16 +351,16 @@ export function CommentNodeComponent({
                     variant="full"
                     className="text-[10px] py-0 px-1.5 h-4 shadow-2xs"
                   />
-                  {isOriginalPoster && (
-                    <abbr
-                      data-testid="original-poster-badge"
-                      title={t("comments.original_poster") || "Gönderi yazarı"}
-                      className="inline-flex h-4 items-center rounded-sm border border-border px-1 font-mono text-[9px] font-semibold leading-none text-muted-foreground"
-                    >
-                      OP
-                    </abbr>
-                  )}
-                </>
+                </ActorHoverCard>
+              )}
+              {!isDeleted && !isAuthorDeleted && isOriginalPoster && (
+                <abbr
+                  data-testid="original-poster-badge"
+                  title={t("comments.original_poster") || "Gönderi yazarı"}
+                  className="inline-flex h-4 items-center rounded-sm border border-border px-1 font-mono text-[9px] font-semibold leading-none text-muted-foreground"
+                >
+                  OP
+                </abbr>
               )}
 
               {/* Tarih */}

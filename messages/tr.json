@@ -455,7 +455,9 @@
     "empty_following": "Henüz takip edilen kimse yok",
     "empty_following_desc": "Bu aktör henüz kimseyi takip etmiyor.",
     "account_deleted": "Bu hesap silinmiştir",
-    "account_deleted_desc": "Bu aktör hesabını sildiği için profili ve içerikleri görüntülenemiyor."
+    "account_deleted_desc": "Bu aktör hesabını sildiği için profili ve içerikleri görüntülenemiyor.",
+    "preview_label": "@{username} profil önizlemesi",
+    "preview_unavailable": "Profil önizlemesi kullanılamıyor."
   },
   "settings": {
     "title": "Ayarlar",

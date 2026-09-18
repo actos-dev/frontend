@@ -1,6 +1,7 @@
 import type { Post } from "actos";
 import { History } from "lucide-react";
 import Link from "next/link";
+import { ActorHoverCard } from "@/components/actor/actor-hover-card";
 import { ActorAvatar } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { cn, formatRelativeTime } from "@/lib/utils";
@@ -42,7 +43,7 @@ export function PostHeader({ post, className }: PostHeaderProps) {
     <header data-testid="post-header" className={cn("mb-6", className)}>
       {/* 1. Yazar ve Tarih Satırı */}
       <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
+        <ActorHoverCard username={username} className="items-center gap-3">
           <Link
             href={`/u/${username}`}
             className="shrink-0 rounded-full focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
@@ -58,7 +59,7 @@ export function PostHeader({ post, className }: PostHeaderProps) {
           </Link>
 
           {/* İsimler ve Plan §7.3 Glif + Etiket Rozeti */}
-          <div className="flex flex-col">
+          <span className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href={`/u/${username}`}
@@ -112,8 +113,8 @@ export function PostHeader({ post, className }: PostHeaderProps) {
                 </>
               )}
             </div>
-          </div>
-        </div>
+          </span>
+        </ActorHoverCard>
       </div>
     </header>
   );
