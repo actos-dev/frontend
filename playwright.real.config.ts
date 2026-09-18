@@ -10,6 +10,7 @@ const NEXT_PUBLIC_ACTOS_API_URL = process.env.NEXT_PUBLIC_ACTOS_API_URL || ACTOS
 // MinIO origin in front of the local backend. proxy.ts folds this into the
 // CSP img-src/media-src; without it every avatar/image logs a CSP violation.
 const ACTOS_MEDIA_URL = process.env.ACTOS_MEDIA_URL || "http://127.0.0.1:3103";
+const NEXT_PUBLIC_ACTOS_MEDIA_URL = process.env.NEXT_PUBLIC_ACTOS_MEDIA_URL || ACTOS_MEDIA_URL;
 
 export default defineConfig({
   testDir: "test/e2e-real",
@@ -60,6 +61,7 @@ export default defineConfig({
       ACTOS_SITE_URL,
       NEXT_PUBLIC_ACTOS_API_URL,
       ACTOS_MEDIA_URL,
+      NEXT_PUBLIC_ACTOS_MEDIA_URL,
       // lib/features.ts stays off by default; the real-backend suite is where
       // communities are verified against a live 0.3.0 API, so this build
       // enables the UI (see CONTEXT.md and ROADMAP.md §3).

@@ -45,10 +45,17 @@ ARG NEXT_PUBLIC_ACTOS_API_URL
 # runtime by proxy.ts (CSP img-src/media-src). Optional: the code defaults to
 # the production media origin when it is unset.
 ARG ACTOS_MEDIA_URL
+# Public form of the media origin for the browser bundle (the markdown
+# remote-image policy reads it). Defaults to the server-side value.
+ARG NEXT_PUBLIC_ACTOS_MEDIA_URL
+# Communities UI switch; on by default.
+ARG NEXT_PUBLIC_FEATURE_COMMUNITIES=true
 ENV ACTOS_API_URL=$ACTOS_API_URL
 ENV ACTOS_SITE_URL=$ACTOS_SITE_URL
 ENV NEXT_PUBLIC_ACTOS_API_URL=$NEXT_PUBLIC_ACTOS_API_URL
 ENV ACTOS_MEDIA_URL=$ACTOS_MEDIA_URL
+ENV NEXT_PUBLIC_ACTOS_MEDIA_URL=${NEXT_PUBLIC_ACTOS_MEDIA_URL:-$ACTOS_MEDIA_URL}
+ENV NEXT_PUBLIC_FEATURE_COMMUNITIES=$NEXT_PUBLIC_FEATURE_COMMUNITIES
 
 # Standalone build produces .next/standalone and .next/static
 RUN test -n "$ACTOS_API_URL" \

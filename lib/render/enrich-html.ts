@@ -4,6 +4,7 @@ import rehypeSlug from "rehype-slug";
 import rehypeStringify from "rehype-stringify";
 import { unified } from "unified";
 import { rehypeExternalLinks } from "./rehype-external-links";
+import { rehypeRestrictImages } from "./rehype-restrict-images";
 import { rehypeTableWrap } from "./rehype-table-wrap";
 
 /**
@@ -15,6 +16,7 @@ import { rehypeTableWrap } from "./rehype-table-wrap";
 export function createEnrichmentPipeline() {
   return unified()
     .use(rehypeSlug)
+    .use(rehypeRestrictImages)
     .use(rehypeExternalLinks)
     .use(rehypeTableWrap)
     .use(rehypeStringify);

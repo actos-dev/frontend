@@ -4,6 +4,7 @@ const PORT = process.env.PORT || 3005;
 const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || `http://localhost:${PORT}`;
 const ACTOS_SITE_URL = process.env.ACTOS_SITE_URL || BASE_URL;
 const ACTOS_MEDIA_URL = process.env.ACTOS_MEDIA_URL || "https://media.actos.com.tr";
+const NEXT_PUBLIC_ACTOS_MEDIA_URL = process.env.NEXT_PUBLIC_ACTOS_MEDIA_URL || ACTOS_MEDIA_URL;
 // The app renders list/detail pages as Server Components, so their SDK calls
 // cannot be intercepted by `page.route`. A small deterministic stand-in serves
 // those calls; browser requests stay mocked in each spec. See
@@ -66,6 +67,7 @@ export default defineConfig({
         ACTOS_SITE_URL,
         NEXT_PUBLIC_ACTOS_API_URL,
         ACTOS_MEDIA_URL,
+        NEXT_PUBLIC_ACTOS_MEDIA_URL,
       },
     },
   ],

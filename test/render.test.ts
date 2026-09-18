@@ -117,6 +117,27 @@ describe("lib/render — shared pipeline (renderPreview)", () => {
     });
   });
 
+  describe("remote images (ONEMLI.md / D-03b)", () => {
+    it("turns a third-party image into a link instead of an <img>", async () => {
+      const html = await renderPreview("![tracker](https://evil.example/pixel.png)");
+      expect(html).not.toContain("<img");
+      expect(html).toContain('href="https://evil.example/pixel.png"');
+      expect(html).toContain("tracker");
+    });
+
+    it("keeps images served from the media origin", async () => {
+      const html = await renderPreview("![ok](https://media.actos.com.tr/actos-media/a/pic.webp)");
+      expect(html).toContain("<img");
+      expect(html).toContain("https://media.actos.com.tr/actos-media/a/pic.webp");
+    });
+
+    it("keeps relative image sources", async () => {
+      const html = await renderPreview("![rel](/media/pic.webp)");
+      expect(html).toContain("<img");
+      expect(html).toContain('src="/media/pic.webp"');
+    });
+  });
+
   describe("mentions and tags", () => {
     it("links a valid @mention and #tag", async () => {
       const html = await renderPreview("hello @efe and #rust");
