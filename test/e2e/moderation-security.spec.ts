@@ -1,65 +1,80 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Faz 18 — Moderasyon Güvenlik ve Anti-Leak Denetimi", () => {
+test.describe("Moderation security and anti-leak audit", () => {
   const modRoutes = ["/mod", "/mod/reports", "/mod/bans", "/mod/actions", "/mod/roles"];
 
-  const modApiRoutes = ["/api/mod/reports", "/api/mod/bans", "/api/mod/actions", "/api/mod/roles"];
+  // Each route only exports the HTTP methods it actually serves; calling an
+  // unsupported method answers 405, not the anti-leak 404, so the spec probes
+  // the supported method. `/api/mod/permissions` is the 0.3.0 replacement for
+  // the retired `/api/mod/roles` writer.
+  const modApiCalls: Array<{
+    label: string;
+    method: "GET" | "POST" | "PUT" | "DELETE";
+    path: string;
+    data?: unknown;
+  }> = [
+    { label: "reports", method: "GET", path: "/api/mod/reports" },
+    { label: "bans", method: "POST", path: "/api/mod/bans", data: { test: true } },
+    { label: "actions", method: "GET", path: "/api/mod/actions" },
+    {
+      label: "permissions (grant)",
+      method: "PUT",
+      path: "/api/mod/permissions",
+      // A well-formed body so the request reaches the anti-leak guard rather
+      // than the earlier 400 validation branch.
+      data: { username: "someone", permission: "content.delete" },
+    },
+    {
+      label: "permissions (revoke)",
+      method: "DELETE",
+      path: "/api/mod/permissions",
+      data: { username: "someone", permission: "content.delete" },
+    },
+  ];
 
-  test.describe("1. Anonim / Kimliği Belirsiz Kullanıcı Denetimi (Anti-Leak)", () => {
+  test.describe("1. Anonymous visitor audit (anti-leak)", () => {
     for (const route of modRoutes) {
-      test(`anonim kullanıcı "${route}" sayfasına gittiğinde 404 almalıdır`, async ({ page }) => {
+      test(`anonymous visitor gets a 404 at "${route}"`, async ({ page }) => {
         const response = await page.goto(route);
         expect(response).not.toBeNull();
         expect(response?.status()).toBe(404);
 
-        // Arayüzde 404 / Bulunamadı mesajının render edildiğini doğrula
-        await expect(
-          page
-            .getByRole("heading", { name: /404|bulunamadı|not found/i })
-            .or(page.locator("text=/Sayfa bulunamadı/i")),
-        ).toBeVisible();
+        // The localized 404 page is rendered, never a sign-in prompt.
+        await expect(page.getByRole("heading", { name: "This page doesn't exist" })).toBeVisible();
 
-        // Asla 401 Unauthorized veya 403 Forbidden sızdırmamalıdır
+        // Never leak 401 Unauthorized or 403 Forbidden.
         expect(response?.status()).not.toBe(401);
         expect(response?.status()).not.toBe(403);
       });
     }
 
-    for (const apiRoute of modApiRoutes) {
-      test(`anonim kullanıcı "${apiRoute}" API ucuna GET attığında 404 Not Found dönmelidir`, async ({
+    for (const { label, method, path, data } of modApiCalls) {
+      test(`anonymous ${method} "${path}" (${label}) answers 404 Not Found`, async ({
         request,
       }) => {
-        const response = await request.get(apiRoute);
+        const response = await request.fetch(path, {
+          method,
+          data: method === "GET" ? undefined : data,
+        });
         expect(response.status()).toBe(404);
 
         const body = await response.json();
         expect(body.status).toBe(404);
         expect(body.code).toBe("NOT_FOUND");
 
-        // Hassas önbellek sızıntısını önleyen Cache-Control başlığını doğrula
+        // Sensitive responses must not be cached by shared proxies.
         const cacheControl = response.headers()["cache-control"] || "";
         expect(cacheControl).toContain("private");
-      });
-
-      test(`anonim kullanıcı "${apiRoute}" API ucuna POST attığında da 404 Not Found dönmelidir`, async ({
-        request,
-      }) => {
-        const response = await request.post(apiRoute, {
-          data: { test: true },
-        });
-        expect(response.status()).toBe(404);
-        const body = await response.json();
-        expect(body.code).toBe("NOT_FOUND");
       });
     }
   });
 
-  test.describe("2. Rolsüz / Standart Kullanıcı Denetimi (Anti-Leak Doğrulaması)", () => {
-    test("standart kullanıcı (rol: 'user') moderasyon sayfalarına eriştiğinde 404 almalıdır", async ({
+  test.describe("2. Standard user audit (anti-leak)", () => {
+    test("a standard user (role 'user') gets a 404 on moderation pages", async ({
       page,
       context,
     }) => {
-      // Mock /api/session ve çerezler üzerinden standart oturum kur
+      // A session token exists, but the actor holds no moderation grants.
       await context.addCookies([
         {
           name: "actos_token",
@@ -87,11 +102,7 @@ test.describe("Faz 18 — Moderasyon Güvenlik ve Anti-Leak Denetimi", () => {
       const response = await page.goto("/mod/reports");
       expect(response?.status()).toBe(404);
 
-      await expect(
-        page
-          .getByRole("heading", { name: /404|bulunamadı|not found/i })
-          .or(page.locator("text=/Sayfa bulunamadı/i")),
-      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "This page doesn't exist" })).toBeVisible();
     });
   });
 });

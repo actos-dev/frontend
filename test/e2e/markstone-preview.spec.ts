@@ -23,7 +23,8 @@ test("loads the Markstone WASM renderer on demand in the production client", asy
   await expect(editor).toBeVisible();
   await editor.fill("# Browser preview\n\nHello **Markstone** and @preview_user.");
 
-  await page.getByRole("tab", { name: /Önizle|Preview/i }).click();
+  // Preview is lazy: the WASM renderer is only fetched once this tab opens.
+  await page.getByTestId("tab-preview").click();
   const preview = page.getByTestId("preview-reading-prose");
   await expect(preview).toBeVisible();
   await expect(preview.locator("h1")).toHaveText("Browser preview");

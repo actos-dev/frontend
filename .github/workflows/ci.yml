@@ -5,15 +5,12 @@
 # (`sha-<short>`), which is what makes the deploy/rollback workflow a tag
 # swap rather than a rebuild.
 #
-# NOTE on the mocked Playwright suite (`pnpm test:e2e`): the script and the
-# harness exist (`playwright.config.ts`), but as of this commit 14 of its 40
-# assertions are stale against the redesigned app (English-default copy,
-# changed 404/route behavior — see ROADMAP D-09 and the kill list). Its specs
-# are Turkish-era and expect UI text the app no longer renders. Wiring it in
-# now would make `main` permanently red, so it is deliberately left out
-# until the specs are refreshed. The real-backend suite (`test:e2e:real`) is
-# not wired either: it needs a seeded live API and belongs to the staging
-# track (D-12).
+# NOTE on the mocked Playwright suite (`pnpm test:e2e`): it runs against the
+# production build with a deterministic stand-in for the Actos API
+# (`test/e2e/mock-api-server.mjs`) and browser-level request mocks, so it needs
+# no live backend. It is wired in as the `e2e` job below. The real-backend
+# suite (`test:e2e:real`) is not wired: it needs a seeded live API and belongs
+# to the staging track (D-12).
 
 name: CI
 
@@ -67,6 +64,35 @@ jobs:
           ACTOS_API_URL: "http://127.0.0.1:3100"
           ACTOS_SITE_URL: "http://localhost:3000"
           NEXT_PUBLIC_ACTOS_API_URL: "http://127.0.0.1:3100"
+
+  e2e:
+    name: E2E (mocked)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      # The config builds and starts the app and a deterministic API stand-in,
+      # so no backend is required (see test/e2e/mock-api-server.mjs).
+      - name: Run mocked E2E suite
+        run: pnpm test:e2e
 
   audit:
     name: Audit production dependencies

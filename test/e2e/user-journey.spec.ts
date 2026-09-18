@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Faz 18 — Tam Kullanıcı Yolculuğu E2E Senaryosu", () => {
+test.describe("Full user journey E2E", () => {
   const recoveryCodes = [
     "rec-1111-2222",
     "rec-3333-4444",
@@ -17,17 +17,35 @@ test.describe("Faz 18 — Tam Kullanıcı Yolculuğu E2E Senaryosu", () => {
   const mockUser = {
     id: "usr_journey_1",
     username: "journey_user",
-    displayName: "Yolculuk Kullanıcısı",
+    displayName: "Journey User",
     actorType: "human",
     role: "user",
   };
 
-  test("Eksiksiz Yolculuk: Kayıt -> Giriş -> Post -> Yorum -> Oy -> Arama -> Çıkış", async ({
+  const commentBody = "This is the first test comment, and the flow works!";
+
+  test("complete journey: register -> login -> post -> comment -> vote -> search -> logout", async ({
     page,
   }) => {
     // -------------------------------------------------------------------------
-    // Ortak API Mock'ları (İzole, Deterministic E2E)
+    // Shared browser-facing API mocks (deterministic, backend-independent).
     // -------------------------------------------------------------------------
+    await page.route("**/api/register/availability**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, available: true }),
+      });
+    });
+
+    await page.route("**/api/register/actors**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, items: [] }),
+      });
+    });
+
     await page.route("**/api/register", async (route) => {
       await route.fulfill({
         status: 200,
@@ -45,10 +63,7 @@ test.describe("Faz 18 — Tam Kullanıcı Yolculuğu E2E Senaryosu", () => {
         await route.fulfill({
           status: 200,
           contentType: "application/json",
-          body: JSON.stringify({
-            ok: true,
-            user: mockUser,
-          }),
+          body: JSON.stringify({ ok: true, user: mockUser }),
         });
       } else if (route.request().method() === "DELETE") {
         await route.fulfill({
@@ -76,7 +91,7 @@ test.describe("Faz 18 — Tam Kullanıcı Yolculuğu E2E Senaryosu", () => {
               id: "post_journey_456",
               slug: "e2e-yolculuk-test-gonderisi",
               title: "E2E Yolculuk Test Gönderisi",
-              body: "Playwright ile oluşturulmuş uçtan uca gönderi gövdesi.",
+              body: "**Playwright** ile oluşturulmuş uçtan uca gönderi gövdesi.",
               tags: ["test", "e2e"],
             },
           }),
@@ -90,9 +105,9 @@ test.describe("Faz 18 — Tam Kullanıcı Yolculuğu E2E Senaryosu", () => {
         contentType: "application/json",
         body: JSON.stringify({
           ok: true,
-          comment: {
+          data: {
             id: "comm_journey_1",
-            body: "Bu ilk test yorumudur, akış sorunsuz çalışıyor!",
+            body: commentBody,
             createdAt: new Date().toISOString(),
             author: mockUser,
           },
@@ -104,11 +119,7 @@ test.describe("Faz 18 — Tam Kullanıcı Yolculuğu E2E Senaryosu", () => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({
-          ok: true,
-          score: 43,
-          userVote: 1,
-        }),
+        body: JSON.stringify({ ok: true, data: { score: 43, userVote: 1 } }),
       });
     });
 
@@ -135,152 +146,107 @@ test.describe("Faz 18 — Tam Kullanıcı Yolculuğu E2E Senaryosu", () => {
     });
 
     // =========================================================================
-    // 1. ADIM: KAYIT SİHİRBAZI (3 ADIMLI AKIŞ)
+    // STEP 1: REGISTRATION WIZARD (4 STEPS)
     // =========================================================================
     await page.goto("/register");
-    await expect(page.getByRole("heading", { name: /Yeni Hesap Oluştur/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "1. Identity" })).toBeVisible();
 
-    // 1.1 Adım 1: Kimlik Bilgileri
-    const usernameInput = page.getByPlaceholder("ornek_kullanici");
-    await usernameInput.fill("journey_user");
+    // 1.1 Identity
+    await page.locator("#username").fill("journey_user");
+    await page.getByRole("radio", { name: /Human/ }).check();
+    await page.getByRole("button", { name: "Continue" }).click();
 
-    const displayNameInput = page.getByPlaceholder(/Ada Lovelace/i);
-    await displayNameInput.fill("Yolculuk Kullanıcısı");
-
-    // Aktör tipi seç (İnsan)
-    const humanActorBtn = page.getByRole("button", { name: /İnsan/i });
-    await humanActorBtn.click();
-
-    // İleri / Devam Et butonuna bas
-    const nextBtn = page.getByRole("button", { name: /İleri|Devam Et/i });
-    await nextBtn.click();
-
-    // 1.2 Adım 2: Sırların Sunumu ve .txt İndirme
-    await expect(page.getByText(/Kurtarma Kodları|API Anahtarı/i)).toBeVisible();
+    // 1.2 Secrets
+    await expect(page.getByRole("heading", { name: "2. Secrets" })).toBeVisible();
     await expect(page.getByText("ak_e2e_journey_valid_api_key_12345")).toBeVisible();
 
-    // .txt Dosyasını İndir
     const downloadPromise = page.waitForEvent("download");
-    const downloadBtn = page.getByRole("button", { name: /Kurtarma Dosyasını İndir/i });
-    await downloadBtn.click();
+    await page.getByRole("button", { name: /Download \.txt/i }).click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toContain("actos-recovery-journey_user.txt");
 
-    // Sırlarımı Güvenle Kaydettim -> Adım 3'e geç
-    const confirmSavedBtn = page.getByRole("button", { name: /Sırlarımı Güvenle Kaydettim/i });
-    await confirmSavedBtn.click();
+    await page.getByRole("button", { name: /I Have Stored My Codes Safely/i }).click();
 
-    // 1.3 Adım 3: Doğrulama
-    await expect(page.getByText(/numaralı kurtarma kodunu girin/i)).toBeVisible();
-
-    // İstenen kod indeksini metinden oku (#X)
-    const promptText = await page.locator("text=/#\\d+/").textContent();
-    const match = promptText?.match(/#(\d+)/);
-    const index = match ? parseInt(match[1], 10) - 1 : 0;
+    // 1.3 Verification
+    await expect(page.getByRole("heading", { name: "3. Verification" })).toBeVisible();
+    const promptText = await page.getByText(/Please enter your \d+\. recovery code/i).textContent();
+    const index = Number(promptText?.match(/(\d+)\./)?.[1] ?? "1") - 1;
     const requiredCode = recoveryCodes[index];
+    await page.getByPlaceholder("Enter recovery code...").fill(requiredCode);
+    await page.getByRole("button", { name: /Verify & Activate Account/i }).click();
 
-    // İlgili kodu input'a yaz
-    const verifyInput = page.getByPlaceholder(/Kurtarma kodunu yapıştırın/i);
-    await verifyInput.fill(requiredCode);
-
-    // Doğrula ve Hesabı Aç butonuna bas
-    const verifySubmitBtn = page.getByRole("button", { name: /Doğrula ve Hesabı Aç/i });
-    await verifySubmitBtn.click();
-
-    // Başarılı doğrulama sonrası anasayfaya dönüldüğünü doğrula
+    // 1.4 Optional profile onboarding — skip it and land on the feed.
+    await expect(page.getByRole("heading", { name: "4. Your profile" })).toBeVisible();
+    await page.getByRole("button", { name: "Skip for now" }).click();
     await expect(page).toHaveURL("/");
 
     // =========================================================================
-    // 2. ADIM: GİRİŞ YAPMA (API ANAHTARI İLE)
+    // STEP 2: LOG IN WITH THE API KEY
     // =========================================================================
     await page.goto("/login");
-    await expect(page.getByRole("heading", { name: /Giriş Yap/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Log In" })).toBeVisible();
 
-    const apiKeyInput = page.locator("#apiKey");
-    await apiKeyInput.fill("ak_e2e_journey_valid_api_key_12345");
+    await page.locator("#apiKey").fill("ak_e2e_journey_valid_api_key_12345");
+    await page.getByRole("button", { name: "Log In" }).click();
 
-    const loginSubmitBtn = page.getByRole("button", { name: /Giriş Yap/i });
-    await loginSubmitBtn.click();
-
-    // Giriş sonrası anasayfada oturumun aktif olduğunu doğrula
     await expect(page).toHaveURL("/");
-    await expect(page.getByText("@journey_user")).toBeVisible();
+    await expect(page.getByRole("button", { name: /journey_user/ })).toBeVisible();
 
     // =========================================================================
-    // 3. ADIM: YENİ POST OLUŞTURMA
+    // STEP 3: CREATE A POST
     // =========================================================================
     await page.goto("/new");
-    await expect(page.getByRole("heading", { name: /Yeni Gönderi/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Create New Post" })).toBeVisible();
 
-    const titleInput = page.getByPlaceholder(/Başlık/i);
-    await titleInput.fill("E2E Yolculuk Test Gönderisi");
+    await page.getByTestId("post-title-input").fill("E2E Yolculuk Test Gönderisi");
+    await page.getByTestId("markdown-textarea").fill("**Playwright** ile uçtan uca gövde.");
 
-    const bodyEditor = page.locator("textarea").first();
-    await bodyEditor.fill("**Playwright** ile oluşturulmuş uçtan uca gönderi gövdesi.");
-
-    // The production client bundle must fetch and initialize Markstone's
-    // browser WASM path, not silently fall back to the Node addon.
-    await page.getByRole("tab", { name: /Önizle|Preview/i }).click();
+    // Preview must render through Markstone, not a plain-text fallback.
+    await page.getByTestId("tab-preview").click();
     const preview = page.getByTestId("preview-reading-prose");
     await expect(preview).toBeVisible();
     await expect(preview.locator("strong")).toHaveText("Playwright");
-    await page.getByRole("tab", { name: /Yaz|Write/i }).click();
+    await page.getByTestId("tab-write").click();
 
-    // Etiket ekle
-    const tagsInput = page.getByPlaceholder(/Etiket ekle/i);
+    const tagsInput = page.getByPlaceholder(/Add tag/);
     await tagsInput.fill("e2e");
     await tagsInput.press("Enter");
 
-    // Yayınla butonuna tıkla
-    const publishBtn = page.getByRole("button", { name: /Yayınla/i });
-    await publishBtn.click();
-
-    // Gönderi sayfasına yönlen
+    await page.getByTestId("publish-button").click();
     await expect(page).toHaveURL(/\/posts\/post_journey_456/);
+    await expect(page.getByTestId("post-actions-bar")).toBeVisible();
 
     // =========================================================================
-    // 4. ADIM: YORUM YAZMA
+    // STEP 4: COMMENT
     // =========================================================================
-    const commentInput = page.getByPlaceholder(/Tartışmaya katılın|Düşünceleriniz/i);
-    await commentInput.fill("Bu ilk test yorumudur, akış sorunsuz çalışıyor!");
-
-    const commentSubmitBtn = page.getByRole("button", { name: /Yorum Yap|Gönder/i });
-    await commentSubmitBtn.click();
-
-    // Yorumun ekranda göründüğünü doğrula
-    await expect(page.getByText("Bu ilk test yorumudur, akış sorunsuz çalışıyor!")).toBeVisible();
+    await page.getByRole("textbox", { name: "Add a comment" }).fill(commentBody);
+    await page.getByRole("button", { name: "Send" }).click();
+    await expect(page.getByText(commentBody)).toBeVisible();
 
     // =========================================================================
-    // 5. ADIM: OY VERME (VOTING)
+    // STEP 5: VOTE
     // =========================================================================
-    const upvoteButton = page.locator('button[aria-label="Yukarı oy ver"]').first();
+    const upvoteButton = page.getByRole("button", { name: "Upvote" }).first();
     await upvoteButton.click();
-
-    // İyimser olarak oylamanın aktifleştiğini doğrula
     await expect(upvoteButton).toHaveAttribute("aria-pressed", "true");
 
     // =========================================================================
-    // 6. ADIM: ARAMA YAPMA (SEARCH)
+    // STEP 6: SEARCH
     // =========================================================================
     await page.goto("/search");
-    const searchInput = page.locator('input[aria-label="Arama kutusu"]');
-    await searchInput.fill("Yolculuk");
-
-    // Sonuç kartının render edildiğini doğrula
+    await page.locator('input[aria-label="Search"]').fill("Yolculuk");
     await expect(page.getByText("E2E Yolculuk Test Gönderisi").first()).toBeVisible();
 
-    // Sekmeler arasında geçişi test et
-    const commentTab = page.getByRole("tab", { name: /Yorumlar/i });
+    const commentTab = page.getByRole("tab", { name: "Comments" });
     await commentTab.click();
     await expect(commentTab).toHaveAttribute("data-state", "active");
 
     // =========================================================================
-    // 7. ADIM: ÇIKIŞ YAPMA (LOGOUT)
+    // STEP 7: LOG OUT
     // =========================================================================
-    const logoutButton = page.locator('button[aria-label="Çıkış yap"]').first();
-    await logoutButton.click();
+    await page.getByRole("button", { name: /journey_user/ }).click();
+    await page.getByRole("button", { name: "Log Out" }).click();
 
-    // Çıkış yapıldıktan sonra "Giriş" butonunun belirdiğini doğrula
-    await expect(page.getByRole("link", { name: /Giriş/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Log In" }).first()).toBeVisible();
   });
 });

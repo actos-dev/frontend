@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Faz 18 — Mobil Viewport ve Deneyim Testleri (<768px)", () => {
+test.describe("Mobile viewport and experience (<768px)", () => {
   test.use({
-    viewport: { width: 390, height: 844 }, // iPhone 13 / Modern Android boyutu
+    viewport: { width: 390, height: 844 },
   });
 
   test.beforeEach(async ({ page }) => {
-    // API çağrılarını mock'layarak izole çalışmasını garanti et
+    // Isolate the suite from any backend: mock the browser-facing feed/session.
     await page.route("**/api/feed**", async (route) => {
       await route.fulfill({
         status: 200,
@@ -15,11 +15,11 @@ test.describe("Faz 18 — Mobil Viewport ve Deneyim Testleri (<768px)", () => {
           items: [
             {
               id: "post_mobile_1",
-              title: "Mobil Arayüz Test Gönderisi",
-              body: "Mobil viewport testleri için içerik metni.",
+              title: "Mobile Interface Test Post",
+              body: "Content text for the mobile viewport tests.",
               score: 42,
               commentCount: 5,
-              tags: ["mobil", "test"],
+              tags: ["mobile", "test"],
               contentType: "post",
               author: {
                 id: "usr_mob_1",
@@ -44,70 +44,73 @@ test.describe("Faz 18 — Mobil Viewport ve Deneyim Testleri (<768px)", () => {
     });
   });
 
-  test("1. Mobil alt sekme çubuğu (Bottom Tab Bar) görünür ve gezinme yapılabilir olmalıdır", async ({
-    page,
-  }) => {
+  test("1. the bottom tab bar is visible and navigates", async ({ page }) => {
     await page.goto("/");
 
-    const mobileNav = page.locator('nav[aria-label="Mobil Alt Sekme Çubuğu"]');
+    const mobileNav = page.getByRole("navigation", { name: "Mobile tab bar" });
     await expect(mobileNav).toBeVisible();
 
-    // Dört ana sekmenin ve yeni post butonunun varlığını doğrula
-    const feedTab = mobileNav.getByRole("link", { name: /(Akış|Feed)/i });
-    const searchTab = mobileNav.getByRole("link", { name: /(Arama|Search|Keşfet)/i });
-    const newPostButton = mobileNav.getByRole("link", { name: /(Yeni Post|New Post)/i });
-    const inboxTab = mobileNav.getByRole("link", { name: /(Bildirim|Notification)/i });
+    // Every primary destination is present and reachable.
+    const feedTab = mobileNav.getByRole("link", { name: "Home" });
+    const searchTab = mobileNav.getByRole("link", { name: "Search" });
+    const newPostButton = mobileNav.getByRole("link", { name: "New Post" });
+    const inboxTab = mobileNav.getByRole("link", { name: "Notifications" });
 
     await expect(feedTab).toBeVisible();
     await expect(searchTab).toBeVisible();
     await expect(newPostButton).toBeVisible();
     await expect(inboxTab).toBeVisible();
 
-    // Arama sekmesine tıkla
     await searchTab.click();
     await expect(page).toHaveURL(/\/search/);
 
-    // Tekrar Akış sekmesine tıkla
     await feedTab.click();
     await expect(page).toHaveURL("/");
   });
 
-  test("2. Hamburger menü tıklanarak çekmece (drawer) açılmalı ve kapatılabilmelidir", async ({
-    page,
-  }) => {
+  test("2. the mobile top bar account menu opens and closes", async ({ page }) => {
+    // The hamburger drawer was deleted in the overhaul; the mobile top bar's
+    // avatar popover is the equivalent menu surface (ROADMAP S-02).
+    await page.route("**/api/session**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ok: true,
+          user: {
+            id: "usr_mob_1",
+            username: "mobilci",
+            displayName: "Mobil Geliştirici",
+            actorType: "human",
+            role: "user",
+          },
+        }),
+      });
+    });
+
     await page.goto("/");
 
-    const hamburgerBtn = page.getByRole("button", { name: "Menüyü aç" });
-    await expect(hamburgerBtn).toBeVisible();
+    const menuButton = page.getByRole("button", { name: /mobilci/i });
+    await expect(menuButton).toBeVisible();
+    await menuButton.click();
 
-    // Çekmeceyi aç
-    await hamburgerBtn.click();
+    const logoutItem = page.getByRole("button", { name: "Log Out" });
+    await expect(logoutItem).toBeVisible();
 
-    // Çekmecenin açıldığını doğrula
-    const drawerDialog = page.getByRole("dialog");
-    await expect(drawerDialog).toBeVisible();
-    await expect(page.getByText("Menü")).toBeVisible();
-
-    // Kapatma butonuna tıkla
-    const closeBtn = page.getByRole("button", { name: "Menüyü Kapat" });
-    await expect(closeBtn).toBeVisible();
-    await closeBtn.click();
-
-    // Çekmecenin kapandığını doğrula
-    await expect(drawerDialog).not.toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(logoutItem).not.toBeVisible();
   });
 
-  test("3. Masaüstü kenar çubuğu (sidebar) mobilde gizli olmalıdır", async ({ page }) => {
+  test("3. the desktop sidebar is hidden on mobile", async ({ page }) => {
     await page.goto("/");
 
     const desktopSidebar = page.locator("aside").first();
     await expect(desktopSidebar).toBeHidden();
   });
 
-  test("4. Mobil görünümde yatay kaydırma (horizontal overflow) olmamalıdır", async ({ page }) => {
+  test("4. the mobile view has no horizontal overflow", async ({ page }) => {
     await page.goto("/");
 
-    // Sayfa genişliği viewport genişliğini aşmamalı
     const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth);

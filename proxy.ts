@@ -85,7 +85,10 @@ function contentSecurityPolicy(nonce: string): string {
 
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${developmentSources}`,
+    // `'wasm-unsafe-eval'` lets the Markstone browser WASM renderer compile
+    // without opening the door to string-eval (`'unsafe-eval'`). The editor's
+    // on-demand preview is the only WebAssembly consumer.
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'${developmentSources}`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",
     `img-src 'self' data: blob: ${media}${developmentSources}`,
