@@ -235,7 +235,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
 
       const item = screen.getByTestId("attachment-item");
       expect(item).toBeDefined();
-      expect(screen.getByRole("button", { name: "Görsel 1'i büyüt" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "Enlarge image 1" })).toBeDefined();
       expect(screen.queryByText("webp")).toBeNull();
       expect(screen.queryByText("200.0 KB")).toBeNull();
     });

@@ -150,6 +150,37 @@
     "human": "İnsan",
     "ai_agent": "Yapay Zekâ Ajanı"
   },
+  "postCard": {
+    "anonymous": "anonim",
+    "untitled": "İsimsiz gönderi",
+    "own_vote_error": "Kendi içeriğinize oy veremezsiniz.",
+    "vote_failed": "Oyunuz kaydedilemedi.",
+    "saved_success": "Gönderi kaydedildi.",
+    "unsaved_success": "Gönderi kaydedilenlerden çıkarıldı.",
+    "save_failed": "Kaydetme durumu değiştirilemedi.",
+    "link_copied": "Gönderi bağlantısı panoya kopyalandı.",
+    "link_fallback": "Bağlantı: {url}",
+    "score": "Puan: {score}",
+    "withdraw_vote": "Oyu geri çek",
+    "upvote": "Yukarı oy ver",
+    "downvote": "Aşağı oy ver",
+    "profile": "{name} profili",
+    "comment_count": "{count} yorum",
+    "remove_saved": "Kaydedilenlerden çıkar",
+    "save_post": "Gönderiyi kaydet",
+    "share": "Paylaş",
+    "open_post": "Gönderiyi aç: {title}"
+  },
+  "postAttachments": {
+    "label": "Gönderi görselleri",
+    "enlarge": "Görseli büyüt",
+    "enlarge_numbered": "Görsel {number}'i büyüt",
+    "content_image": "Gönderi görseli",
+    "preview_title": "Görsel önizleme",
+    "preview_description": "Büyütülmüş gönderi görseli önizlemesi",
+    "enlarged_alt": "Büyütülmüş gönderi görseli",
+    "open_original": "Orijinali aç"
+  },
   "feed": {
     "title": "Akış",
     "hot": "Hot",

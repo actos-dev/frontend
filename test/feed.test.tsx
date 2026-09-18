@@ -132,18 +132,18 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
 
       // Aksiyonlar: Oy sayısı ve butonlar
       expect(screen.getByText("42")).toBeDefined();
-      expect(screen.getByRole("button", { name: "Yukarı oy ver" })).toBeDefined();
-      expect(screen.getByRole("button", { name: "Aşağı oy ver" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "Upvote" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "Downvote" })).toBeDefined();
 
       // Yorum butonu
-      const commentLink = screen.getByRole("link", { name: "12 yorum" });
+      const commentLink = screen.getByRole("link", { name: "12 comments" });
       expect(commentLink.getAttribute("href")).toBe(
         "/posts/c_test_1/rustta-ltree-ile-nested-yorum-agaci#comments",
       );
 
       // Kaydet ve Paylaş butonları
-      expect(screen.getByRole("button", { name: "Kaydet" })).toBeDefined();
-      expect(screen.getByRole("button", { name: "Paylaş" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "Save" })).toBeDefined();
+      expect(screen.getByRole("button", { name: "Share" })).toBeDefined();
     });
 
     it("yukarı oy butonuna tıklandığında iyimser (optimistic) olarak skoru artırmalı ve API çağırmalıdır", async () => {
@@ -154,7 +154,7 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
 
       render(<PostCard post={samplePost} initialUserVote={0} />);
 
-      const upvoteBtn = screen.getByRole("button", { name: "Yukarı oy ver" });
+      const upvoteBtn = screen.getByRole("button", { name: "Upvote" });
       expect(screen.getByText("42")).toBeDefined();
 
       fireEvent.click(upvoteBtn);
@@ -183,12 +183,12 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
 
       render(<PostCard post={samplePost} initialSaved={false} />);
 
-      const saveBtn = screen.getByRole("button", { name: "Kaydet" });
+      const saveBtn = screen.getByRole("button", { name: "Save" });
       fireEvent.click(saveBtn);
 
       // İyimser durum: aria-label güncellenir
       await waitFor(() =>
-        expect(screen.getByRole("button", { name: "Kaydedilenlerden çıkar" })).toBeDefined(),
+        expect(screen.getByRole("button", { name: "Remove from saved items" })).toBeDefined(),
       );
 
       await waitFor(() => {
@@ -204,7 +204,7 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
     it("paylaş butonuna tıklandığında panoya kopyalama yapmalıdır", async () => {
       render(<PostCard post={samplePost} />);
 
-      const shareBtn = screen.getByRole("button", { name: "Paylaş" });
+      const shareBtn = screen.getByRole("button", { name: "Share" });
       fireEvent.click(shareBtn);
 
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
@@ -238,7 +238,7 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
       expect(mockPush).not.toHaveBeenCalled();
 
       mockPush.mockClear();
-      const commentLink = screen.getByRole("link", { name: "12 yorum" });
+      const commentLink = screen.getByRole("link", { name: "12 comments" });
       fireEvent.click(commentLink);
       expect(mockPush).not.toHaveBeenCalled();
     });

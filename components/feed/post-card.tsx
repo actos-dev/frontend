@@ -2,6 +2,7 @@
 
 import type { Post } from "actos";
 import { ArrowDown, ArrowUp, Bookmark, MessageSquare, Share2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ActorHoverCard } from "@/components/actor/actor-hover-card";
@@ -10,6 +11,7 @@ import { ActorAvatar } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 import { isAuthenticationProblem } from "@/lib/query/http";
 import { useContentInteraction } from "@/lib/query/mutations";
 import { excerpt } from "@/lib/render/excerpt";
@@ -44,6 +46,7 @@ export function PostCard({
   onSaveSuccess,
 }: PostCardProps) {
   const router = useRouter();
+  const { locale, t } = useTranslation();
   const storeUser = useSessionStore((state) => state.user);
   const status = useSessionStore((state) => state.status);
   const viewerId =
@@ -69,11 +72,11 @@ export function PostCard({
 
   const author = post.author;
   const authorType = (author?.actorType || "human") as ActorType;
-  const username = author?.username || "anonim";
+  const username = author?.username || t("postCard.anonymous");
   const displayName = author?.displayName || username;
   const isAuthor = Boolean(user && (user.id === author?.id || user.username === author?.username));
   const postHref = `/posts/${post.id}/${slugify(post.title || "post")}`;
-  const relativeTime = formatRelativeTime(post.createdAt);
+  const relativeTime = formatRelativeTime(post.createdAt, locale);
   const bodyExcerpt = excerpt(post.body, 220);
   // Feed list DTOs currently omit attachments. Only render a thumbnail when the
   // list item itself includes one; do not fetch post details per row.
@@ -93,7 +96,7 @@ export function PostCard({
       return;
     }
     if (isAuthor) {
-      toast.error("Kendi içeriğinize oy veremezsiniz.");
+      toast.error(t("postCard.own_vote_error"));
       return;
     }
 
@@ -105,7 +108,7 @@ export function PostCard({
       if (isAuthenticationProblem(error)) {
         loginForCurrentPage();
       } else {
-        toast.error((error as { detail?: string }).detail || "Oy kaydedilemedi.");
+        toast.error((error as { detail?: string }).detail || t("postCard.vote_failed"));
       }
     }
   };
@@ -120,13 +123,13 @@ export function PostCard({
     const nextSaved = !saved;
     try {
       await interaction.save(nextSaved);
-      toast.success(nextSaved ? "Post kaydedildi!" : "Kayıt kaldırıldı.");
+      toast.success(nextSaved ? t("postCard.saved_success") : t("postCard.unsaved_success"));
       onSaveSuccess?.(post.id, nextSaved);
     } catch (error) {
       if (isAuthenticationProblem(error)) {
         loginForCurrentPage();
       } else {
-        toast.error((error as { detail?: string }).detail || "Kayıt işlemi gerçekleştirilemedi.");
+        toast.error((error as { detail?: string }).detail || t("postCard.save_failed"));
       }
     }
   };
@@ -138,9 +141,9 @@ export function PostCard({
       if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(fullUrl);
       }
-      toast.success("Post bağlantısı panoya kopyalandı!");
+      toast.success(t("postCard.link_copied"));
     } catch {
-      toast.info(`Bağlantı: ${fullUrl}`);
+      toast.info(t("postCard.link_fallback", { url: fullUrl }));
     }
   };
 
@@ -171,7 +174,7 @@ export function PostCard({
           isCompact && "row-span-1 flex-row gap-0 self-center pt-0",
         )}
       >
-        <legend className="sr-only">Oy: {score}</legend>
+        <legend className="sr-only">{t("postCard.score", { score })}</legend>
         <button
           type="button"
           data-testid="post-vote-up"
@@ -179,12 +182,12 @@ export function PostCard({
           disabled={isVoting || isAuthor}
           title={
             isAuthor
-              ? "Kendi içeriğinize oy veremezsiniz"
+              ? t("postCard.own_vote_error")
               : userVote === 1
-                ? "Oyu geri çek"
-                : "Yukarı oy ver"
+                ? t("postCard.withdraw_vote")
+                : t("postCard.upvote")
           }
-          aria-label="Yukarı oy ver"
+          aria-label={t("postCard.upvote")}
           aria-pressed={userVote === 1}
           className={voteButtonClass(userVote === 1, "up")}
         >
@@ -206,12 +209,12 @@ export function PostCard({
           disabled={isVoting || isAuthor}
           title={
             isAuthor
-              ? "Kendi içeriğinize oy veremezsiniz"
+              ? t("postCard.own_vote_error")
               : userVote === -1
-                ? "Oyu geri çek"
-                : "Aşağı oy ver"
+                ? t("postCard.withdraw_vote")
+                : t("postCard.downvote")
           }
-          aria-label="Aşağı oy ver"
+          aria-label={t("postCard.downvote")}
           aria-pressed={userVote === -1}
           className={cn(voteButtonClass(userVote === -1, "down"), isCompact && "min-h-8 min-w-7")}
         >
@@ -235,7 +238,7 @@ export function PostCard({
             <Link
               href={`/u/${username}`}
               className="relative z-10 inline-flex min-h-7 min-w-0 items-center gap-1.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
-              aria-label={`${displayName} profili`}
+              aria-label={t("postCard.profile", { name: displayName })}
             >
               <ActorAvatar
                 actorType={authorType}
@@ -280,7 +283,7 @@ export function PostCard({
             href={postHref}
             className="rounded-sm before:absolute before:inset-0 before:z-0 hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
           >
-            <Highlight text={post.title || "İsimsiz Gönderi"} query={highlightQuery} />
+            <Highlight text={post.title || t("postCard.untitled")} query={highlightQuery} />
           </Link>
         </h2>
 
@@ -303,7 +306,7 @@ export function PostCard({
         >
           <Link
             href={`${postHref}#comments`}
-            aria-label={`${post.commentCount ?? 0} yorum`}
+            aria-label={t("postCard.comment_count", { count: post.commentCount ?? 0 })}
             className="relative z-10 inline-flex min-h-8 items-center gap-1.5 rounded-sm hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
           >
             <MessageSquare aria-hidden="true" className="h-3.5 w-3.5" />
@@ -314,8 +317,8 @@ export function PostCard({
             data-testid="post-save-btn"
             onClick={handleSave}
             disabled={isSaving}
-            title={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Gönderiyi kaydet")}
-            aria-label={saved ? "Kaydedilenlerden çıkar" : (saveAriaLabel ?? "Kaydet")}
+            title={saved ? t("postCard.remove_saved") : (saveAriaLabel ?? t("postCard.save_post"))}
+            aria-label={saved ? t("postCard.remove_saved") : (saveAriaLabel ?? t("common.save"))}
             aria-pressed={saved}
             className={cn(
               "relative z-10 inline-flex min-h-8 items-center gap-1.5 rounded-sm hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background",
@@ -323,16 +326,18 @@ export function PostCard({
             )}
           >
             <Bookmark aria-hidden="true" className={cn("h-3.5 w-3.5", saved && "fill-current")} />
-            <span className="sr-only sm:not-sr-only">{saved ? "Kaydedildi" : "Kaydet"}</span>
+            <span className="sr-only sm:not-sr-only">
+              {saved ? t("common.saved") : t("common.save")}
+            </span>
           </button>
           <button
             type="button"
             onClick={handleShare}
-            aria-label="Paylaş"
+            aria-label={t("postCard.share")}
             className="relative z-10 inline-flex min-h-8 items-center gap-1.5 rounded-sm hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ring-offset-background"
           >
             <Share2 aria-hidden="true" className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only">Paylaş</span>
+            <span className="sr-only sm:not-sr-only">{t("postCard.share")}</span>
           </button>
           <PostRowMenu post={post} isAuthor={isAuthor} />
           {post.tags && post.tags.length > 0 && (
@@ -359,11 +364,16 @@ export function PostCard({
       {thumbnailUrl && !isCompact && (
         <Link
           href={postHref}
-          aria-label={`Gönderiyi aç: ${post.title || "İsimsiz Gönderi"}`}
+          aria-label={t("postCard.open_post", { title: post.title || t("postCard.untitled") })}
           className="relative z-10 col-start-3 row-span-2 mt-1 hidden h-[54px] w-[70px] overflow-hidden border border-border bg-bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:block"
         >
-          {/* biome-ignore lint/performance/noImgElement: user upload thumbnail */}
-          <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
+          <Image
+            src={thumbnailUrl}
+            alt=""
+            width={70}
+            height={54}
+            className="h-full w-full object-cover"
+          />
         </Link>
       )}
     </article>

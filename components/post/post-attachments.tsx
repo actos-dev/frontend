@@ -2,6 +2,7 @@
 
 import type { Attachment } from "actos";
 import { ExternalLink, Maximize2, X } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export interface PostAttachmentsProps {
@@ -21,6 +23,7 @@ export interface PostAttachmentsProps {
 
 export function PostAttachments({ attachments, thumbnailUrl, className }: PostAttachmentsProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   // Filter image attachments
   const imageAttachments = (attachments || []).filter(
@@ -41,7 +44,7 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
   return (
     <section
       data-testid="post-attachments"
-      aria-label="Gönderi görselleri"
+      aria-label={t("postAttachments.label")}
       className={cn("pt-2 pb-2", className)}
     >
       {/* Standalone Thumbnail */}
@@ -50,14 +53,14 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
           type="button"
           onClick={() => setSelectedImage(thumbnailUrl)}
           className="group relative block w-full max-w-xl overflow-hidden rounded-lg border border-border bg-bg-subtle text-left"
-          aria-label="Görseli büyüt"
+          aria-label={t("postAttachments.enlarge")}
         >
-          {/* biome-ignore lint/performance/noImgElement: user image upload */}
-          <img
+          <Image
             src={thumbnailUrl}
-            alt="İçerik görseli"
-            className="max-h-[520px] w-full object-cover"
-            loading="lazy"
+            alt={t("postAttachments.content_image")}
+            width={1200}
+            height={675}
+            className="h-auto max-h-[520px] w-full object-cover"
           />
           <span className="absolute right-3 top-3 rounded-md bg-overlay/70 p-2 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
             <Maximize2 className="w-4 h-4" />
@@ -88,14 +91,14 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
                     : "aspect-square rounded-md",
                   imageAttachments.length === 3 && index === 0 ? "row-span-2 aspect-auto" : "",
                 )}
-                aria-label={`Görsel ${index + 1}'i büyüt`}
+                aria-label={t("postAttachments.enlarge_numbered", { number: index + 1 })}
               >
-                {/* biome-ignore lint/performance/noImgElement: attachment preview */}
-                <img
+                <Image
                   src={att.thumbnailUrl || att.url}
                   alt=""
-                  className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                  loading="lazy"
+                  fill
+                  sizes={imageAttachments.length === 1 ? "(max-width: 640px) 100vw, 576px" : "50vw"}
+                  className="object-cover transition-transform duration-200 group-hover:scale-[1.02]"
                 />
                 <span className="absolute inset-0 grid place-items-center bg-overlay/25 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                   <Maximize2 className="h-5 w-5 text-white" />
@@ -113,16 +116,17 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
       >
         <DialogContent className="max-w-5xl border-border bg-background p-3">
           <div className="sr-only">
-            <DialogTitle>Görsel Önizleme</DialogTitle>
-            <DialogDescription>Büyütülmüş içerik görseli önizlemesi</DialogDescription>
+            <DialogTitle>{t("postAttachments.preview_title")}</DialogTitle>
+            <DialogDescription>{t("postAttachments.preview_description")}</DialogDescription>
           </div>
           <div className="relative flex flex-col items-center justify-center min-h-[300px]">
             {selectedImage && (
-              // biome-ignore lint/performance/noImgElement: lightbox view
-              <img
+              <Image
                 src={selectedImage}
-                alt="Büyütülmüş içerik görseli"
-                className="max-h-[82vh] w-auto object-contain"
+                alt={t("postAttachments.enlarged_alt")}
+                width={1600}
+                height={1200}
+                className="h-auto max-h-[82vh] w-auto object-contain"
               />
             )}
             <div className="flex items-center justify-between w-full px-2 pt-2 text-xs text-muted-foreground">
@@ -134,13 +138,13 @@ export function PostAttachments({ attachments, thumbnailUrl, className }: PostAt
                   className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Orijinali aç</span>
+                  <span>{t("postAttachments.open_original")}</span>
                 </a>
               ) : null}
               <DialogClose asChild>
                 <Button variant="ghost" size="sm" className="h-7 px-2">
                   <X className="w-3.5 h-3.5 mr-1" />
-                  Kapat
+                  {t("common.close")}
                 </Button>
               </DialogClose>
             </div>

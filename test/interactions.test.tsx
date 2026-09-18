@@ -358,8 +358,8 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       expect(upvoteBtn.hasAttribute("disabled")).toBe(true);
       expect(downvoteBtn.hasAttribute("disabled")).toBe(true);
 
-      expect(upvoteBtn.getAttribute("title")).toBe("Kendi içeriğinize oy veremezsiniz");
-      expect(downvoteBtn.getAttribute("title")).toBe("Kendi içeriğinize oy veremezsiniz");
+      expect(upvoteBtn.getAttribute("title")).toBe("Kendi içeriğinize oy veremezsiniz.");
+      expect(downvoteBtn.getAttribute("title")).toBe("Kendi içeriğinize oy veremezsiniz.");
     });
 
     it("PostActions detay sayfasında kendi içeriğinde oy butonları devre dışı olmalıdır", () => {
@@ -378,7 +378,7 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
 
       const upvoteBtn = screen.getByRole("button", { name: "Yukarı oy ver" });
       expect(upvoteBtn.hasAttribute("disabled")).toBe(true);
-      expect(upvoteBtn.getAttribute("title")).toBe("Kendi içeriğinize oy veremezsiniz");
+      expect(upvoteBtn.getAttribute("title")).toBe("Kendi içeriğinize oy veremezsiniz.");
 
       fireEvent.click(upvoteBtn);
       expect(globalThis.fetch).not.toHaveBeenCalled();
@@ -433,7 +433,7 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contentId: "c_post_other", action: "add" }),
         });
-        expect(toast.success).toHaveBeenCalledWith("Post kaydedildi!");
+        expect(toast.success).toHaveBeenCalledWith("Gönderi kaydedildi.");
       });
     });
 
@@ -457,7 +457,7 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contentId: "c_post_other", action: "remove" }),
         });
-        expect(toast.success).toHaveBeenCalledWith("Kayıt kaldırıldı.");
+        expect(toast.success).toHaveBeenCalledWith("Gönderi kaydedilenlerden çıkarıldı.");
       });
     });
 

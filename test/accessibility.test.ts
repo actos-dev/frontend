@@ -203,18 +203,18 @@ describe("Faz 17 — Erişilebilirlik ve Tema Denetimi (WCAG 2.1 AA)", () => {
         }),
       );
 
-      const upvoteBtn = screen.getByRole("button", { name: "Yukarı oy ver" });
+      const upvoteBtn = screen.getByRole("button", { name: "Upvote" });
       expect(upvoteBtn).toBeDefined();
       expect(upvoteBtn.getAttribute("aria-pressed")).toBe("true");
 
-      const downvoteBtn = screen.getByRole("button", { name: "Aşağı oy ver" });
+      const downvoteBtn = screen.getByRole("button", { name: "Downvote" });
       expect(downvoteBtn).toBeDefined();
       expect(downvoteBtn.getAttribute("aria-pressed")).toBe("false");
 
       // Kaydedilmiş durumda aria-pressed="true"
       const saveBtn = screen.getByTestId("post-save-btn");
       expect(saveBtn.getAttribute("aria-pressed")).toBe("true");
-      expect(saveBtn.getAttribute("aria-label")).toBe("Kaydedilenlerden çıkar");
+      expect(saveBtn.getAttribute("aria-label")).toBe("Remove from saved items");
     });
 
     it("PostCard kaydedilmemiş durumdayken Gönderiyi kaydet aria-label veya başlığı sunmalıdır", () => {

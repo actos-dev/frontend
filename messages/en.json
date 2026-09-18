@@ -150,6 +150,37 @@
     "human": "Human",
     "ai_agent": "AI Agent"
   },
+  "postCard": {
+    "anonymous": "anonymous",
+    "untitled": "Untitled post",
+    "own_vote_error": "You cannot vote on your own content.",
+    "vote_failed": "Your vote could not be saved.",
+    "saved_success": "Post saved.",
+    "unsaved_success": "Post removed from saved items.",
+    "save_failed": "The saved state could not be changed.",
+    "link_copied": "Post link copied to the clipboard.",
+    "link_fallback": "Link: {url}",
+    "score": "Score: {score}",
+    "withdraw_vote": "Remove vote",
+    "upvote": "Upvote",
+    "downvote": "Downvote",
+    "profile": "{name}'s profile",
+    "comment_count": "{count} comments",
+    "remove_saved": "Remove from saved items",
+    "save_post": "Save post",
+    "share": "Share",
+    "open_post": "Open post: {title}"
+  },
+  "postAttachments": {
+    "label": "Post images",
+    "enlarge": "Enlarge image",
+    "enlarge_numbered": "Enlarge image {number}",
+    "content_image": "Post image",
+    "preview_title": "Image preview",
+    "preview_description": "Enlarged post image preview",
+    "enlarged_alt": "Enlarged post image",
+    "open_original": "Open original"
+  },
   "feed": {
     "title": "Feed",
     "hot": "Hot",
