@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 88" role="img" aria-labelledby="title">
+  <title id="title">Actos</title>
+  <rect x="4" y="8" width="72" height="72" rx="16" fill="#231b12"/>
+  <path d="M40 23c-12 0-20 8-20 20.2C20 55.4 28 63 39 63c5.8 0 10.3-2 13.4-5.6V62H60V43.2C60 31 52 23 40 23Zm0 8c7 0 11.7 4.8 11.7 12.2C51.7 50.5 47 55 40 55s-11.7-4.5-11.7-11.8C28.3 35.8 33 31 40 31Z" fill="#f2eadb"/>
+  <circle cx="40" cy="43" r="4.5" fill="#d64200"/>
+  <text x="94" y="61" fill="#231b12" font-family="Geist, Inter, system-ui, sans-serif" font-size="58" font-weight="650" letter-spacing="-2.5">actos</text>
+</svg>

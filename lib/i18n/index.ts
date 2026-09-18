@@ -24,17 +24,44 @@ export function getClientLocale(): Locale {
   return DEFAULT_LOCALE;
 }
 
+export function localeFromAcceptLanguage(value: string | null | undefined): Locale {
+  if (!value) return DEFAULT_LOCALE;
+
+  const preferences = value
+    .split(",")
+    .map((part, index) => {
+      const [rawTag, ...parameters] = part.trim().split(";");
+      const qualityParameter = parameters.find((parameter) => parameter.trim().startsWith("q="));
+      const quality = qualityParameter ? Number(qualityParameter.trim().slice(2)) : 1;
+      return {
+        locale: rawTag?.toLowerCase().split("-")[0],
+        quality: Number.isFinite(quality) ? quality : 0,
+        index,
+      };
+    })
+    .filter((preference) => preference.quality > 0)
+    .sort((a, b) => b.quality - a.quality || a.index - b.index);
+
+  for (const preference of preferences) {
+    if (isLocale(preference.locale)) return preference.locale;
+  }
+
+  return DEFAULT_LOCALE;
+}
+
 /**
  * Reads the active locale from incoming Next.js request cookies on the server.
  */
 export async function getServerLocale(): Promise<Locale> {
   try {
-    const { cookies } = await import("next/headers");
+    const { cookies, headers } = await import("next/headers");
     const cookieStore = await cookies();
     const token = cookieStore.get(LOCALE_COOKIE)?.value || cookieStore.get("locale")?.value;
     if (isLocale(token)) {
       return token;
     }
+    const headerStore = await headers();
+    return localeFromAcceptLanguage(headerStore.get("accept-language"));
   } catch {
     // cookies() may throw outside Next.js request context (e.g. tests or build)
   }

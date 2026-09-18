@@ -4,6 +4,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
+  poweredByHeader: false,
+  // The compiler API avoids a Node 26 child-process stdout regression in
+  // Next's TypeScript CLI path; the explicit `pnpm typecheck` gate remains.
+  experimental: { useTypeScriptCli: false },
   outputFileTracingRoot: path.resolve(import.meta.dirname, ".."),
   images: {
     formats: ["image/avif", "image/webp"],

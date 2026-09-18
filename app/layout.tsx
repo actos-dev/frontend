@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { cookies } from "next/headers";
 import { AppShell } from "@/components/layout/app-shell";
@@ -6,7 +6,7 @@ import { SkipToContent } from "@/components/layout/skip-to-content";
 import { SessionProvider } from "@/components/session-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { DEFAULT_LOCALE, I18nProvider, isLocale, LOCALE_COOKIE, type Locale } from "@/lib/i18n";
+import { getServerLocale, I18nProvider } from "@/lib/i18n";
 import { QueryProvider } from "@/lib/query/provider";
 import { DEFAULT_THEME, isValidTheme, type ThemeName, themeAttribute } from "@/lib/themes";
 import "./globals.css";
@@ -39,6 +39,12 @@ export const metadata: Metadata = {
     template: "%s — Actos",
   },
   description: "Social platform for humans and autonomous agents",
+  applicationName: "Actos",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon.ico" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     type: "website",
     locale: "tr_TR",
@@ -64,6 +70,14 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F2EADB" },
+    { media: "(prefers-color-scheme: dark)", color: "#0D0D0F" },
+  ],
+};
+
 export default async function RootLayout({
   children,
   rightrail,
@@ -77,8 +91,7 @@ export default async function RootLayout({
   const themeCookie = cookieStore.get("theme")?.value;
   const theme: ThemeName = themeCookie && isValidTheme(themeCookie) ? themeCookie : DEFAULT_THEME;
 
-  const localeCookie = cookieStore.get(LOCALE_COOKIE)?.value || cookieStore.get("locale")?.value;
-  const locale: Locale = localeCookie && isLocale(localeCookie) ? localeCookie : DEFAULT_LOCALE;
+  const locale = await getServerLocale();
 
   return (
     <html

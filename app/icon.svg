@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Actos">
+  <rect width="64" height="64" rx="14" fill="#231b12"/>
+  <path d="M32 14c-10.7 0-18 7.2-18 18.1C14 43 21.1 50 31 50c5.2 0 9.3-1.8 12-5v4h7V32.1C50 21.2 42.8 14 32 14Zm0 7c6.3 0 10.5 4.4 10.5 11.1 0 6.6-4.2 10.9-10.5 10.9s-10.5-4.3-10.5-10.9C21.5 25.4 25.7 21 32 21Z" fill="#f2eadb"/>
+  <circle cx="32" cy="32" r="4" fill="#d64200"/>
+</svg>

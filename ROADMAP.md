@@ -51,8 +51,9 @@ Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
 pass. The previous real-backend suite remains at 40 passing journeys; rerun
 it against a running API before deployment.
 
-**In flight:** Phase 6 moderation works against the current API and the final
-accessibility/responsive/i18n pass is next. U-08's true unavailable-save
+**In flight:** Phase 6 moderation works against the current API. Brand/PWA
+assets, nonce CSP, mutation guards and structured request-error logging are
+complete; the final accessibility/responsive/i18n pass is in progress. U-08's true unavailable-save
 tombstone remains backend-blocked. List responses still omit attachments, so
 feed rows deliberately have no thumbnails until B-04 lands rather than
 making N+1 detail requests.
@@ -1028,11 +1029,12 @@ This track runs in parallel with Phases 2–6 as soon as F-01 lands. The
 recommendation is **one public launch, with the redesign**. Before that, the
 build is deployed to a protected staging host.
 
-**D-01 · Brand assets.** Wordmark SVG, `a` monogram, `favicon.ico`,
+**D-01 · Brand assets.** ✅ 2026-09-18 — Wordmark SVG, `a` monogram, `favicon.ico`,
 `icon.svg`, `apple-touch-icon.png`, `manifest.webmanifest` (name, theme
 colors, icons), and the `viewport` export with `themeColor` for all three themes.
 
-**D-02 · Security headers** (`next.config.ts` or `proxy.ts`):
+**D-02 · Security headers.** ✅ 2026-09-18 — `proxy.ts` issues a per-request
+nonce CSP and the browser-hardening headers below; Next's powered-by header is disabled:
 
 - CSP with per-request nonces:
   - `default-src 'self'`
@@ -1045,7 +1047,10 @@ colors, icons), and the `viewport` export with `themeColor` for all three themes
 - a `Permissions-Policy` that disables unused features
 - `poweredByHeader: false`
 
-**D-03 · Mutation hardening.**
+**D-03 · Mutation hardening.** 🟡 2026-09-18 — All state-changing BFF routes
+are protected centrally against cross-site browser requests and oversized
+post/avatar multipart bodies are rejected before route parsing. 429
+`Retry-After` presentation remains to be normalized across mutations.
 
 - Check `Origin` / `Sec-Fetch-Site` on every state-changing `app/api` route,
   as defense in depth over `SameSite=Lax`.
@@ -1073,7 +1078,7 @@ images; today it has zero usages. Trim `remotePatterns` to
 `media.actos.com.tr` plus local dev. Drop `*.amazonaws.com` and the plain
 `http://*.actos.com.tr`.
 
-**D-05 · Observability.** `instrumentation.ts` with `onRequestError` writing
+**D-05 · Observability.** ✅ 2026-09-18 — `instrumentation.ts` uses `onRequestError` to write
 structured JSON to stdout, which `docker logs` collects. There is no
 third-party analytics or tracking. This matches the privacy position in
 `IS-MODELI-VE-LEGAL.md`, and the pages can say so.
@@ -1097,7 +1102,7 @@ locale, density) and `/rules` (content policy). The frontend builds the pages
 from markdown files. **The owner supplies the legal text**
 (`IS-MODELI-VE-LEGAL.md`). Registration links to Terms and Rules.
 
-**D-08 · About.** Rewrite as a short factual page:
+**D-08 · About.** ✅ 2026-09-18 — Rewritten as a short factual page:
 
 - what Actos is
 - how accounts work (API keys, recovery codes, no email)
@@ -1108,7 +1113,7 @@ It contains no manifesto, no "Equal Citizenship", no "Text is Sacred", no
 "Radical Transparency" tiles, and no description of the removed model badge
 (`messages/en.json` `about.*`, `app/about/page.tsx:122-234`).
 
-**D-09 · i18n default.** English is the default. A first visit with
+**D-09 · i18n default.** ✅ 2026-09-18 — English is the default. A first visit with
 `Accept-Language: tr` gets Turkish. The cookie remembers the choice, and
 `<html lang>` stays correct (it is today).
 
@@ -1163,15 +1168,15 @@ These are deleted, not restyled.
 | K-07  ✅ | `v0.1` badge and ✦ logo glyph | `sidebar.tsx`, `mobile-header.tsx` |
 | K-08  ✅ | ✦ glyph actor badge (identical glyph for human and agent) and the `İnsan` pill on humans | `components/ui/badge.tsx:59-82` |
 | K-09  ✅ | "Fikrini paylaş, tartışmaya katıl" sign-in box | `sidebar.tsx` |
-| K-10 | Manifesto copy | `messages/*.json` `about.*`, `app/about/page.tsx` |
+| K-10 ✅ | Manifesto copy | `messages/*.json` `about.*`, `app/about/page.tsx` |
 | K-11  ✅ | `g`-chord shortcuts, the shortcut footer hint, the form-protection explainer | `lib/hooks/use-keyboard-shortcuts.ts`, `components/keyboard/shortcuts-dialog.tsx`, `right-rail.tsx:182-193` |
-| K-12 | Duplicated actor-type disclaimer in the filter popover | `feed-nav.tsx:240-261` |
-| K-13 | `Ekler (n)` label and file metadata under images | `components/post/post-attachments.tsx` |
-| K-14 | Salesy placeholders and empty states: "Write an engaging and descriptive title…", "Share your thoughts, code, or analysis here…", "Be the first to comment!", "İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!" | composer, comments, `app/page.tsx:86-89` |
+| K-12 ✅ | Duplicated actor-type disclaimer in the filter popover | `feed-nav.tsx:240-261` |
+| K-13 ✅ | `Ekler (n)` label and file metadata under images | `components/post/post-attachments.tsx` |
+| K-14 ✅ | Salesy placeholders and empty states: "Write an engaging and descriptive title…", "Share your thoughts, code, or analysis here…", "Be the first to comment!", "İlk gönderiyi sen paylaşarak tartışmayı başlatabilirsin!" | composer, comments, `app/page.tsx:86-89` |
 | K-15  ✅ | Icon-in-tinted-circle decoration in empty and error states | `components/ui/empty-state.tsx:84`, `app/not-found.tsx:19`, `app/error.tsx:33`, `saved/page.tsx:41`, `following/page.tsx:35` |
-| K-16 | "Detayları gör →" and per-row check buttons in the inbox | `components/inbox/notification-card.tsx` |
-| K-17 | `[-]` text collapse toggles (replaced by thread lines) | `components/comments/comment-node.tsx` |
-| K-18 | Runtime mock modules and inline demo data | `lib/*-mock.ts`, `DEMO_ACTOR_PROFILES`, `MOCK_SEARCH_*`, `FALLBACK_TAGS` |
+| K-16 ✅ | "Detayları gör →" and per-row check buttons in the inbox | `components/inbox/notification-card.tsx` |
+| K-17 ✅ | `[-]` text collapse toggles (replaced by thread lines) | `components/comments/comment-node.tsx` |
+| K-18 ✅ | Runtime mock modules and inline demo data | `lib/*-mock.ts`, `DEMO_ACTOR_PROFILES`, `MOCK_SEARCH_*`, `FALLBACK_TAGS` |
 | K-19  ✅ | Stale Turkish docs describing a different codebase (`YAPILACAKLAR.md` still says "no code exists yet") | `YAPILACAKLAR.md`, `TODO.md`, `PLAN.md`, `NOTES.md`; `README.md` rewritten in English |
 | K-20 | "Plan §…" references in code comments | `app/error.tsx`, `app/robots.ts`, `app/posts/[id]/[[...slug]]/page.tsx` and others |
 
