@@ -304,7 +304,168 @@
     "cover_title": "This community is private",
     "cover_description": "The conversation happens behind a membership. Apply to join and a moderator will review your request.",
     "cover_apply": "Apply to join",
-    "cover_apply_note": "Applications are not wired up yet."
+    "cover_apply_note": "Applications are not wired up yet.",
+    "create_form": {
+      "title": "Create a community",
+      "subtitle": "Give it a name and a description. You choose who can read it.",
+      "name_label": "Name",
+      "name_placeholder": "e.g. rust, machine_learning",
+      "name_hint": "3–32 lowercase letters, numbers, or underscores.",
+      "name_checking": "Checking…",
+      "name_available": "This name is available.",
+      "name_taken": "This name is already taken.",
+      "name_error_invalid": "Use 3–32 lowercase letters, numbers, or underscores.",
+      "name_error_reserved": "This name is reserved.",
+      "name_required": "Enter a name.",
+      "description_label": "Description",
+      "description_placeholder": "What is this community about? Markdown is supported.",
+      "description_hint": "At least 1 character, up to 10,000.",
+      "write_tab": "Write",
+      "preview_tab": "Preview",
+      "preview_empty": "Nothing to preview yet.",
+      "preview_error": "This description could not be previewed.",
+      "visibility_label": "Visibility",
+      "visibility_public_title": "Public",
+      "visibility_public_description": "Anyone can read and join. It is listed in the community directory.",
+      "visibility_private_title": "Private",
+      "visibility_private_description": "Only members can read. People apply or are invited to join.",
+      "private_warning": "A private community cannot be made public later.",
+      "owned_limit_note": "You can own at most 3 communities.",
+      "submit": "Create community",
+      "submitting": "Creating…",
+      "success": "c/{name} was created.",
+      "error_invalid": "Check the name and description.",
+      "error_limit": "You already own 3 communities. Close one before creating another.",
+      "error_generic": "The community could not be created.",
+      "back": "All communities"
+    },
+    "apply": {
+      "title": "Apply to join",
+      "description": "Tell the moderators why you want in. They review every request.",
+      "reason_label": "Why do you want to join?",
+      "reason_placeholder": "A sentence or two about what you bring and why you are interested.",
+      "reason_required": "Enter a reason.",
+      "submit": "Send application",
+      "submitting": "Sending…",
+      "success": "Your application was sent.",
+      "pending_title": "Application sent",
+      "pending_description": "A moderator will review your request. You will get an inbox notification when they decide.",
+      "pending_reload_note": "The pending state is kept on this page only, not across a reload.",
+      "already_pending": "You already have a pending application.",
+      "login_required": "Log in to apply",
+      "error": "The application could not be sent.",
+      "banned": "You cannot apply to this community right now."
+    },
+    "mod": {
+      "title": "Moderate c/{name}",
+      "back": "Back to c/{name}",
+      "tabs": {
+        "applications": "Applications",
+        "members": "Members",
+        "invitations": "Invitations",
+        "settings": "Settings",
+        "permissions": "Permissions"
+      },
+      "applications": {
+        "title": "Applications",
+        "description": "Approve or reject requests to join this private community.",
+        "filter_label": "Application status",
+        "status_pending": "Pending",
+        "status_accepted": "Accepted",
+        "status_rejected": "Rejected",
+        "applicant": "Applicant",
+        "reason": "Reason",
+        "approve": "Approve",
+        "reject": "Reject",
+        "approve_success": "Application approved.",
+        "reject_success": "Application rejected.",
+        "action_failed": "The application could not be updated.",
+        "empty_pending": "No pending applications.",
+        "empty": "No applications to show.",
+        "load_more": "Load more",
+        "loading": "Loading…"
+      },
+      "members": {
+        "title": "Members",
+        "description": "People who belong to this community.",
+        "owner": "Owner",
+        "kick": "Kick",
+        "kick_confirm_title": "Kick @{username}?",
+        "kick_confirm_desc": "They can apply or be invited again later. Their posts are not removed.",
+        "kick_success": "@{username} was kicked.",
+        "kick_failed": "The member could not be kicked.",
+        "empty": "No members to show.",
+        "ban": "Ban"
+      },
+      "invitations": {
+        "title": "Invitations",
+        "description": "Invitations work for private communities only.",
+        "public_note": "This community is public. People join instantly; no invitation is needed.",
+        "username_label": "Username",
+        "username_placeholder": "username",
+        "send": "Send invite",
+        "sending": "Sending…",
+        "success": "Invitation sent to @{username}.",
+        "error": "The invitation could not be sent."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Edit the community, change how it is read, or close it.",
+        "description_label": "Description",
+        "save": "Save description",
+        "saving": "Saving…",
+        "saved": "Description saved.",
+        "save_failed": "The description could not be saved.",
+        "visibility_title": "Visibility",
+        "visibility_current": "This community is {visibility}.",
+        "make_private": "Make private",
+        "private_warning": "Making this community private cannot be undone. New readers will have to apply or be invited.",
+        "visibility_saved": "The community is now private.",
+        "visibility_failed": "Visibility could not be changed.",
+        "successor_title": "Successor",
+        "successor_description": "Who inherits this community if you leave or delete your account.",
+        "successor_label": "Username",
+        "successor_placeholder": "username",
+        "successor_submit": "Set successor",
+        "successor_saving": "Saving…",
+        "successor_saved": "Successor saved.",
+        "successor_failed": "The successor could not be set.",
+        "close_title": "Close community",
+        "close_warning": "Closing is permanent. A public community's posts become independent; a private community's posts are deleted.",
+        "close_confirm_label": "Type the community name to confirm",
+        "close_button": "Close community",
+        "closing": "Closing…",
+        "close_success": "The community was closed.",
+        "close_failed": "The community could not be closed.",
+        "close_mismatch": "Type the exact community name to confirm."
+      },
+      "permissions": {
+        "title": "Community permissions",
+        "description": "Grant or revoke a permission for one actor in this community.",
+        "username_label": "Username",
+        "username_placeholder": "username",
+        "permission_label": "Permission",
+        "grant": "Grant",
+        "revoke": "Revoke",
+        "success_granted": "Permission granted.",
+        "success_revoked": "Permission revoked.",
+        "error": "The permission could not be changed.",
+        "labels": {
+          "content_delete": "Delete content",
+          "community_edit": "Edit community",
+          "community_close": "Close community",
+          "member_invite": "Invite members",
+          "member_approve": "Approve applications",
+          "member_kick": "Kick members",
+          "member_ban": "Ban members",
+          "role_grant": "Grant permissions",
+          "report_view": "View reports",
+          "report_resolve": "Resolve reports",
+          "audit_view": "View audit log"
+        }
+      }
+    },
+    "mod_tools": "Moderation"
   },
   "unavailablePost": {
     "title": "Content unavailable",
@@ -662,7 +823,18 @@
       "code": "Code Block",
       "quote": "Quote",
       "list": "List"
-    }
+    },
+    "cross_post_action": "Cross-post",
+    "cross_post_title": "Cross-post to a community",
+    "cross_post_description": "Choose where this post should appear. The source stays where it is; the cross-post references it.",
+    "cross_post_target_label": "Post to",
+    "cross_post_source_note": "Cross-posting: {title}",
+    "cross_post_submit": "Cross-post",
+    "cross_posting": "Cross-posting…",
+    "cross_post_success": "Cross-posted.",
+    "cross_post_failed": "The post could not be cross-posted.",
+    "cross_post_unavailable": "This post cannot be cross-posted.",
+    "cross_post_hidden_private": "Posts in private communities cannot be cross-posted."
   },
   "tags": {
     "directory_title": "Tags",
@@ -743,7 +915,8 @@
       "post": "Posts",
       "comment": "Comments",
       "actor": "Actors",
-      "tag": "Tags"
+      "tag": "Tags",
+      "community": "Communities"
     },
     "start_title": "Enter a term to search posts, comments, and actors.",
     "start_description": "Filter instantly by titles, text, tags, or usernames.",
@@ -760,7 +933,9 @@
     "profile_label": "{name}'s profile",
     "comment_label": "comment",
     "score": "▲ {count} points",
-    "open_comment": "Go to comment"
+    "open_comment": "Go to comment",
+    "communities_note": "The API has no community search yet. This tab filters the communities already loaded on this page.",
+    "communities_empty": "No loaded community matches “{query}”."
   },
   "settings": {
     "title": "Settings",
@@ -941,7 +1116,10 @@
       "vote": "liked your post",
       "follow": "started following you",
       "system": "system notification",
-      "unknown": "You have a new notification."
+      "unknown": "You have a new notification.",
+      "community_invitation": "invited you to a community",
+      "community_application": "applied to join your community",
+      "community_application_result": "decided on your application"
     },
     "empty": {
       "title": "You have no notifications yet",
@@ -955,7 +1133,12 @@
       "description": "Sign in to see your interactions, replies, and new followers.",
       "login_button": "Sign In",
       "register_button": "Create Account"
-    }
+    },
+    "community_invitation_accept": "Accept",
+    "community_invitation_decline": "Decline",
+    "community_invitation_action_failed": "The invitation could not be updated.",
+    "community_invitation_joined": "You joined c/{name}.",
+    "community_invitation_view": "View invitations"
   },
   "moderation": {
     "nav": {
@@ -967,7 +1150,8 @@
       "back": "Back to Site",
       "panel": "Moderation Panel",
       "moderator": "Moderator",
-      "tabs_label": "Moderation tabs"
+      "tabs_label": "Moderation tabs",
+      "permissions": "Permissions"
     },
     "resolveDialog": {
       "resolve_title": "Resolve Report",
@@ -1014,7 +1198,13 @@
       "request_error": "An error occurred while adding the ban.",
       "permanent_success": "@{username} was permanently banned.",
       "temporary_success": "@{username} was temporarily banned.",
-      "submitting": "Banning..."
+      "submitting": "Banning...",
+      "scope": "Ban scope",
+      "scope_global": "Platform-wide",
+      "scope_community": "This community",
+      "scope_community_named": "c/{name}",
+      "delete_posts": "Also delete their posts in this community",
+      "delete_posts_hint": "Only available with a community scope."
     },
     "deleteDialog": {
       "title": "Remove Content as Moderator",
@@ -1041,7 +1231,10 @@
       "remove_description": "Send a request to remove the ban for @{username}? If the user is not currently banned, the API completes without making a change.",
       "removing": "Removing...",
       "remove_error": "An error occurred while removing the ban.",
-      "remove_success": "The ban for @{username} was removed."
+      "remove_success": "The ban for @{username} was removed.",
+      "community_label": "Community (optional)",
+      "community_placeholder": "community name",
+      "community_hint": "Leave blank for a platform-wide ban."
     },
     "roles": {
       "title": "Authorization and Role Management",
@@ -1107,7 +1300,8 @@
       "dismiss": "Dismiss",
       "resolve": "Resolve",
       "load_more": "Load more reports",
-      "loading": "Loading reports..."
+      "loading": "Loading reports...",
+      "community": "Community"
     },
     "pages": {
       "panel_description": "Community oversight, report review, and security management.",
@@ -1137,6 +1331,35 @@
       "bans_description": "Temporarily or permanently restrict actor accounts that violate community standards.",
       "actions_title": "Audit Trail and Moderation Log",
       "actions_description": "An immutable, read-only chronological audit history."
+    },
+    "permissions": {
+      "title": "Permissions",
+      "description": "Grant or revoke platform-wide permissions for an actor.",
+      "form_title": "Manage a global permission",
+      "form_description": "Only holders of role.grant can change permissions. Changes take effect immediately.",
+      "username": "Target Username *",
+      "username_placeholder": "e.g. taylan",
+      "permission_label": "Permission",
+      "grant": "Grant Permission",
+      "revoke": "Revoke Permission",
+      "processing": "Processing…",
+      "username_required": "Username is required.",
+      "request_error": "The permission operation failed.",
+      "granted_success": "Permission '{permission}' granted to @{username}.",
+      "revoked_success": "Permission '{permission}' revoked from @{username}.",
+      "labels": {
+        "content_delete": "Delete content",
+        "community_edit": "Edit community",
+        "community_close": "Close community",
+        "member_invite": "Invite members",
+        "member_approve": "Approve applications",
+        "member_kick": "Kick members",
+        "member_ban": "Ban members",
+        "role_grant": "Grant permissions",
+        "report_view": "View reports",
+        "report_resolve": "Resolve reports",
+        "audit_view": "View audit log"
+      }
     }
   },
   "about": {
@@ -1167,5 +1390,26 @@
     "postDeleting": "Deleting...",
     "postDeleted": "Post deleted.",
     "postDeleteFailed": "Couldn't delete the post."
+  },
+  "invitationsPage": {
+    "title": "Invitations",
+    "description": "Community invitations waiting for your answer.",
+    "empty_title": "No invitations",
+    "empty_description": "When a community invites you, it appears here.",
+    "from": "from c/{name}",
+    "invited_by": "Invited by {name}",
+    "accept": "Accept",
+    "decline": "Decline",
+    "accepting": "Accepting…",
+    "declining": "Declining…",
+    "accepted": "You joined c/{name}.",
+    "declined": "Invitation declined.",
+    "failed": "The invitation could not be updated.",
+    "load_more": "Load more",
+    "loading": "Loading…",
+    "end": "You've reached the end.",
+    "anonymous_title": "Log in to see your invitations",
+    "anonymous_description": "Invitations are tied to your account.",
+    "login_button": "Log in"
   }
 }

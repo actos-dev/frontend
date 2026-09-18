@@ -189,9 +189,7 @@ export default async function ModSummaryPage() {
               <Link href="/mod/roles" data-testid="quick-action-roles">
                 <UserCheck className="w-4 h-4 text-primary" />
                 <div className="text-left">
-                  <div className="text-xs font-semibold">
-                    {t("moderation.pages.role_management")}
-                  </div>
+                  <div className="text-xs font-semibold">{t("moderation.nav.permissions")}</div>
                   <div className="text-[10px] text-muted-foreground">
                     {t("moderation.pages.admin_only")}
                   </div>

@@ -13,7 +13,7 @@ interface RouteParams {
  * DELETE /api/mod/bans/[username]
  * Lifts/removes a ban from an actor.
  */
-export async function DELETE(_req: NextRequest, props: RouteParams) {
+export async function DELETE(req: NextRequest, props: RouteParams) {
   const auth = await requireModApi();
   if (auth instanceof NextResponse) {
     return auth;
@@ -22,12 +22,13 @@ export async function DELETE(_req: NextRequest, props: RouteParams) {
   try {
     const { username } = await props.params;
     const decodedUsername = decodeURIComponent(username).trim();
+    const community = req.nextUrl.searchParams.get("community")?.trim() || undefined;
 
     if (!decodedUsername) {
       return NextResponse.json({ ok: false, error: "Kullanıcı adı zorunludur." }, { status: 400 });
     }
 
-    await unbanActor(auth.client, decodedUsername);
+    await unbanActor(auth.client, decodedUsername, community);
 
     return NextResponse.json({
       ok: true,

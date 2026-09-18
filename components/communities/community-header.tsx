@@ -12,6 +12,8 @@ export interface CommunityHeaderProps {
   community: Community;
   locale: Locale;
   t: Translate;
+  /** True when the viewer holds a scoped capability for this community. */
+  canModerate?: boolean;
 }
 
 /**
@@ -19,7 +21,12 @@ export interface CommunityHeaderProps {
  * member/post counts and the single owner the DTO exposes (0.3.0 has no
  * moderator list). The Join/Leave control is the only client island here.
  */
-export function CommunityHeader({ community, locale, t }: CommunityHeaderProps) {
+export function CommunityHeader({
+  community,
+  locale,
+  t,
+  canModerate = false,
+}: CommunityHeaderProps) {
   const description = excerpt(community.description, 200);
   const owner = community.owner;
 
@@ -73,13 +80,22 @@ export function CommunityHeader({ community, locale, t }: CommunityHeaderProps) 
         <CommunityJoinButton name={community.name} initialIsMember={community.isMember} />
       </div>
 
-      <nav className="mt-3">
+      <nav className="mt-3 flex items-center gap-4">
         <Link
           href={`/c/${community.name}/about`}
           className="text-xs font-medium text-fg-muted hover:text-accent-text"
         >
           {t("communities.about_link")}
         </Link>
+        {canModerate ? (
+          <Link
+            href={`/c/${community.name}/mod`}
+            data-testid="community-mod-link"
+            className="text-xs font-medium text-fg-muted hover:text-accent-text"
+          >
+            {t("communities.mod_tools")}
+          </Link>
+        ) : null}
       </nav>
     </header>
   );

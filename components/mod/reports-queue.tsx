@@ -277,6 +277,17 @@ export function ReportsQueue({
                     <span>{report.targetType}</span>
                   </Badge>
 
+                  {report.community ? (
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      data-testid={`report-community-${report.id}`}
+                      className="font-mono text-[10px]"
+                    >
+                      c/{report.community}
+                    </Badge>
+                  ) : null}
+
                   <span className="font-mono text-muted-foreground font-medium">
                     ID: {report.targetId}
                   </span>

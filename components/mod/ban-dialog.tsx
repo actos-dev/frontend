@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, Ban as BanIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,25 +16,55 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
 import { useTranslation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+
+type BanScope = "global" | "community";
 
 interface BanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultUsername?: string;
+  /**
+   * When given, the dialog offers a choice between a platform-wide ban and a
+   * ban scoped to this community, and enables the "also delete their posts"
+   * checkbox. Without a community the ban is always platform-wide (there is
+   * no community to scope it to).
+   */
+  communityName?: string | null;
+  /** Pre-selects the community scope when a community is in context. */
+  defaultScope?: BanScope;
 }
 
-export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialogProps) {
+export function BanDialog({
+  open,
+  onOpenChange,
+  defaultUsername = "",
+  communityName = null,
+  defaultScope = "global",
+}: BanDialogProps) {
   const { t } = useTranslation();
+  const hasCommunity = Boolean(communityName);
   const [username, setUsername] = useState(defaultUsername);
   const [duration, setDuration] = useState<"1d" | "3d" | "7d" | "30d" | "permanent">("permanent");
   const [reason, setReason] = useState("");
+  const [scope, setScope] = useState<BanScope>(hasCommunity ? defaultScope : "global");
+  const [deletePosts, setDeletePosts] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setUsername(defaultUsername);
+      setScope(hasCommunity ? defaultScope : "global");
+    }
+  }, [open, defaultUsername, hasCommunity, defaultScope]);
 
   const handleReset = () => {
     setUsername(defaultUsername);
     setDuration("permanent");
     setReason("");
+    setScope(hasCommunity ? defaultScope : "global");
+    setDeletePosts(false);
     setErrorMessage(null);
   };
 
@@ -65,6 +95,7 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
 
     try {
       const expiresAt = calculateExpiresAt(duration);
+      const scopedCommunity = scope === "community" && communityName ? communityName : null;
       const res = await fetch("/api/mod/bans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -72,6 +103,8 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
           username: trimmedUsername,
           reason: trimmedReason,
           expiresAt,
+          community: scopedCommunity,
+          deletePosts: scopedCommunity ? deletePosts : false,
         }),
       });
 
@@ -145,6 +178,44 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
             />
           </div>
 
+          {/* Ban Kapsamı */}
+          {hasCommunity && (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">{t("moderation.banDialog.scope")}</Label>
+              <div className="grid grid-cols-2 gap-1.5 text-xs">
+                <button
+                  type="button"
+                  data-testid="ban-scope-global"
+                  onClick={() => {
+                    setScope("global");
+                    setDeletePosts(false);
+                  }}
+                  className={cn(
+                    "py-1.5 px-2 rounded-xl border text-center transition-all text-xs font-medium",
+                    scope === "global"
+                      ? "bg-destructive text-destructive-foreground border-destructive shadow-xs"
+                      : "border-border/80 hover:bg-surface-2 text-muted-foreground",
+                  )}
+                >
+                  {t("moderation.banDialog.scope_global")}
+                </button>
+                <button
+                  type="button"
+                  data-testid="ban-scope-community"
+                  onClick={() => setScope("community")}
+                  className={cn(
+                    "py-1.5 px-2 rounded-xl border text-center transition-all text-xs font-medium",
+                    scope === "community"
+                      ? "bg-destructive text-destructive-foreground border-destructive shadow-xs"
+                      : "border-border/80 hover:bg-surface-2 text-muted-foreground",
+                  )}
+                >
+                  {t("moderation.banDialog.scope_community_named", { name: communityName ?? "" })}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Ban Süresi */}
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">{t("moderation.banDialog.duration")}</Label>
@@ -197,6 +268,27 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
               className="text-xs resize-none"
             />
           </div>
+
+          {/* Topluluk kapsamında gönderileri de sil */}
+          {hasCommunity && scope === "community" && (
+            <label className="flex items-start gap-2 rounded-lg border border-border/80 px-3 py-2.5 text-xs cursor-pointer">
+              <input
+                type="checkbox"
+                data-testid="ban-delete-posts"
+                checked={deletePosts}
+                onChange={(e) => setDeletePosts(e.target.checked)}
+                className="mt-0.5 accent-destructive"
+              />
+              <span>
+                <span className="block font-medium text-foreground">
+                  {t("moderation.banDialog.delete_posts")}
+                </span>
+                <span className="block text-muted-foreground">
+                  {t("moderation.banDialog.delete_posts_hint")}
+                </span>
+              </span>
+            </label>
+          )}
 
           <DialogFooter className="gap-2 sm:gap-0 pt-2">
             <Button

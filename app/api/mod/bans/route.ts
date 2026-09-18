@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
     const username = typeof body.username === "string" ? body.username.trim() : "";
     const reason = typeof body.reason === "string" ? body.reason.trim() : "";
     const expiresAt = body.expiresAt ? String(body.expiresAt) : null;
+    const community =
+      typeof body.community === "string" && body.community.trim() ? body.community.trim() : null;
+    const deletePosts = body.deletePosts === true;
 
     if (!username) {
       return NextResponse.json({ ok: false, error: "Kullanıcı adı zorunludur." }, { status: 400 });
@@ -30,7 +33,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "Ban gerekçesi zorunludur." }, { status: 400 });
     }
 
-    const ban = await banActor(auth.client, { username, reason, expiresAt });
+    // "Also delete their posts" is only meaningful inside a community; the API
+    // rejects it without a scope, so the same rule is enforced here.
+    if (deletePosts && !community) {
+      return NextResponse.json(
+        { ok: false, error: "Deleting posts requires a community scope." },
+        { status: 400 },
+      );
+    }
+
+    const ban = await banActor(auth.client, {
+      username,
+      reason,
+      expiresAt,
+      community,
+      deletePosts,
+    });
 
     return NextResponse.json({
       ok: true,

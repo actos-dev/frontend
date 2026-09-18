@@ -63,14 +63,58 @@ export async function banActor(client: Actos, input: CreateBanInput) {
 }
 
 /**
- * Lifts/removes a ban from an actor account.
+ * Lifts/removes a ban from an actor account, platform-wide or for one
+ * community. The 0.3.0 endpoint takes the community as a query parameter.
  */
-export async function unbanActor(client: Actos, username: string): Promise<void> {
+export async function unbanActor(
+  client: Actos,
+  username: string,
+  community?: string,
+): Promise<void> {
   if (!username?.trim()) {
     throw new Error("Kullanıcı adı zorunludur.");
   }
 
-  await client.admin.bans.remove(username);
+  if (community) {
+    await client.admin.bans.remove(username, community);
+  } else {
+    await client.admin.bans.remove(username);
+  }
+}
+
+export interface SetPermissionArgs {
+  username: string;
+  permission: string;
+  community?: string | null;
+}
+
+/**
+ * Grants one scoped permission. `community` scopes the grant; omitted or null
+ * means a global grant. Idempotent on the backend.
+ */
+export async function grantPermission(client: Actos, args: SetPermissionArgs): Promise<void> {
+  if (!args.username?.trim()) {
+    throw new Error("Kullanıcı adı zorunludur.");
+  }
+  await client.admin.permissions.grant({
+    username: args.username.trim(),
+    permission: args.permission,
+    community: args.community ?? null,
+  });
+}
+
+/**
+ * Revokes one scoped permission. Mirrors {@link grantPermission}.
+ */
+export async function revokePermission(client: Actos, args: SetPermissionArgs): Promise<void> {
+  if (!args.username?.trim()) {
+    throw new Error("Kullanıcı adı zorunludur.");
+  }
+  await client.admin.permissions.revoke({
+    username: args.username.trim(),
+    permission: args.permission,
+    community: args.community ?? null,
+  });
 }
 
 /**

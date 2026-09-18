@@ -9,6 +9,7 @@ import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient, hasSessionCookie } from "@/lib/actos";
 import { getCommunity, listCommunityPosts } from "@/lib/communities/fetchers";
 import { isCommunityCover, isCommunityPostSort } from "@/lib/communities/params";
+import { communityCapabilities, hasAnyCommunityCapability } from "@/lib/communities/permissions";
 import { describeError } from "@/lib/errors";
 import { FEATURE_COMMUNITIES } from "@/lib/features";
 import { getServerLocale, getTranslations } from "@/lib/i18n";
@@ -106,6 +107,7 @@ export default async function CommunityPage({ params, searchParams }: CommunityP
   let postsError: unknown = null;
   let voteMap: VoteMap = {};
   let viewerId: string | null = null;
+  let canModerate = false;
 
   try {
     const page = await listCommunityPosts(client, communityName, {
@@ -117,7 +119,12 @@ export default async function CommunityPage({ params, searchParams }: CommunityP
 
     if (await hasSessionCookie()) {
       try {
-        viewerId = (await client.auth.whoami())?.actor?.id ?? null;
+        const whoami = await client.auth.whoami();
+        viewerId = whoami?.actor?.id ?? null;
+        const isOwner = community.owner.username === whoami?.actor?.username;
+        canModerate = hasAnyCommunityCapability(
+          communityCapabilities(whoami?.permissions, communityName, isOwner),
+        );
       } catch {
         viewerId = null;
       }
@@ -142,7 +149,7 @@ export default async function CommunityPage({ params, searchParams }: CommunityP
 
   return (
     <div>
-      <CommunityHeader community={community} locale={locale} t={t} />
+      <CommunityHeader community={community} locale={locale} t={t} canModerate={canModerate} />
 
       <nav
         className="flex items-center gap-5 border-b border-border px-4 sm:px-6"

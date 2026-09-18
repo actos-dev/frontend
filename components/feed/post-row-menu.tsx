@@ -1,10 +1,11 @@
 "use client";
 
 import type { Post } from "actos";
-import { Flag, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Flag, MoreHorizontal, Pencil, Repeat2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { CrossPostDialog } from "@/components/post/cross-post-dialog";
 import { ReportDialog } from "@/components/post/report-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "@/components/ui/toast";
+import { FEATURE_COMMUNITIES } from "@/lib/features";
 import { useTranslation } from "@/lib/i18n";
 import { isAuthenticationProblem } from "@/lib/query/http";
 import { useDeletePostMutation } from "@/lib/query/mutations";
@@ -29,6 +31,9 @@ export function PostRowMenu({ post, isAuthor }: { post: Post; isAuthor: boolean 
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [crossPostOpen, setCrossPostOpen] = useState(false);
+
+  const canCrossPost = FEATURE_COMMUNITIES && !post.isCrossPost;
 
   const confirmDelete = async () => {
     try {
@@ -66,6 +71,19 @@ export function PostRowMenu({ post, isAuthor }: { post: Post; isAuthor: boolean 
               <Pencil className="h-4 w-4" aria-hidden="true" /> {t("common.edit")}
             </Link>
           ) : null}
+          {canCrossPost ? (
+            <button
+              type="button"
+              data-testid="row-cross-post-button"
+              onClick={() => {
+                setMenuOpen(false);
+                setCrossPostOpen(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-bg-subtle"
+            >
+              <Repeat2 className="h-4 w-4" aria-hidden="true" /> {t("editor.cross_post_action")}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => {
@@ -97,6 +115,10 @@ export function PostRowMenu({ post, isAuthor }: { post: Post; isAuthor: boolean 
         targetId={post.id}
         targetType="content"
       />
+
+      {canCrossPost ? (
+        <CrossPostDialog post={post} open={crossPostOpen} onOpenChange={setCrossPostOpen} />
+      ) : null}
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>

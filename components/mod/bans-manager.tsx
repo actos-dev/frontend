@@ -21,6 +21,7 @@ export function BansManager() {
   const { t } = useTranslation();
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [username, setUsername] = useState("");
+  const [community, setCommunity] = useState("");
   const [unbanTarget, setUnbanTarget] = useState<string | null>(null);
   const [isUnbanning, setIsUnbanning] = useState(false);
 
@@ -29,9 +30,13 @@ export function BansManager() {
     setIsUnbanning(true);
 
     try {
-      const res = await fetch(`/api/mod/bans/${encodeURIComponent(unbanTarget)}`, {
-        method: "DELETE",
-      });
+      // A community-scoped unban passes the community as a query parameter;
+      // an empty scope means the platform-wide ban (ROADMAP §7.3 item 8).
+      const target = community.trim();
+      const url = target
+        ? `/api/mod/bans/${encodeURIComponent(unbanTarget)}?community=${encodeURIComponent(target)}`
+        : `/api/mod/bans/${encodeURIComponent(unbanTarget)}`;
+      const res = await fetch(url, { method: "DELETE" });
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
@@ -40,6 +45,7 @@ export function BansManager() {
 
       toast.success(t("moderation.bans.remove_success", { username: unbanTarget }));
       setUsername("");
+      setCommunity("");
       setUnbanTarget(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : t("moderation.resolveDialog.server_error");
@@ -103,6 +109,19 @@ export function BansManager() {
             autoComplete="off"
             placeholder={t("moderation.bans.username_placeholder")}
           />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="ban-remove-community">{t("moderation.bans.community_label")}</Label>
+          <Input
+            id="ban-remove-community"
+            data-testid="ban-remove-community-input"
+            value={community}
+            onChange={(event) => setCommunity(event.target.value.toLowerCase())}
+            autoComplete="off"
+            placeholder={t("moderation.bans.community_placeholder")}
+            className="font-mono"
+          />
+          <p className="text-[11px] text-muted-foreground">{t("moderation.bans.community_hint")}</p>
         </div>
         <Button type="submit" variant="outline" size="sm" disabled={!username.trim()}>
           <UserX className="mr-1.5 h-4 w-4" />

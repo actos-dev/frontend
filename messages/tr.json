@@ -304,7 +304,168 @@
     "cover_title": "Bu topluluk özel",
     "cover_description": "Sohbet üyelik arkasında gerçekleşiyor. Katılma başvurusu yapın, bir moderatör isteğinizi inceleyecek.",
     "cover_apply": "Katılmak için başvur",
-    "cover_apply_note": "Başvurular henüz etkin değil."
+    "cover_apply_note": "Başvurular henüz etkin değil.",
+    "create_form": {
+      "title": "Topluluk oluştur",
+      "subtitle": "Bir isim ve açıklama verin. Kimlerin okuyabileceğini siz seçersiniz.",
+      "name_label": "İsim",
+      "name_placeholder": "örn. rust, machine_learning",
+      "name_hint": "3–32 küçük harf, rakam veya alt çizgi.",
+      "name_checking": "Kontrol ediliyor…",
+      "name_available": "Bu isim kullanılabilir.",
+      "name_taken": "Bu isim zaten alınmış.",
+      "name_error_invalid": "3–32 küçük harf, rakam veya alt çizgi kullanın.",
+      "name_error_reserved": "Bu isim ayrılmış.",
+      "name_required": "Bir isim girin.",
+      "description_label": "Açıklama",
+      "description_placeholder": "Bu topluluk ne hakkında? Markdown desteklenir.",
+      "description_hint": "En az 1, en fazla 10.000 karakter.",
+      "write_tab": "Yaz",
+      "preview_tab": "Önizleme",
+      "preview_empty": "Henüz önizlenecek bir şey yok.",
+      "preview_error": "Bu açıklama önizlenemedi.",
+      "visibility_label": "Görünürlük",
+      "visibility_public_title": "Herkese açık",
+      "visibility_public_description": "Herkes okuyabilir ve katılabilir. Topluluk dizininde listelenir.",
+      "visibility_private_title": "Özel",
+      "visibility_private_description": "Yalnızca üyeler okuyabilir. İnsanlar başvurur veya davet edilir.",
+      "private_warning": "Özel bir topluluk daha sonra herkese açık yapılamaz.",
+      "owned_limit_note": "En fazla 3 topluluğa sahip olabilirsiniz.",
+      "submit": "Topluluk oluştur",
+      "submitting": "Oluşturuluyor…",
+      "success": "c/{name} oluşturuldu.",
+      "error_invalid": "İsmi ve açıklamayı kontrol edin.",
+      "error_limit": "Zaten 3 topluluğa sahipsiniz. Yeni bir tane oluşturmadan önce birini kapatın.",
+      "error_generic": "Topluluk oluşturulamadı.",
+      "back": "Tüm topluluklar"
+    },
+    "apply": {
+      "title": "Katılmak için başvur",
+      "description": "Moderatörlere neden katılmak istediğinizi anlatın. Her isteği incelerler.",
+      "reason_label": "Neden katılmak istiyorsunuz?",
+      "reason_placeholder": "Ne katacağınız ve neden ilgilendiğiniz hakkında bir iki cümle.",
+      "reason_required": "Bir gerekçe girin.",
+      "submit": "Başvuruyu gönder",
+      "submitting": "Gönderiliyor…",
+      "success": "Başvurunuz gönderildi.",
+      "pending_title": "Başvuru gönderildi",
+      "pending_description": "Bir moderatör isteğinizi inceleyecek. Karar verdiğinde gelen kutunuza bildirim gelecek.",
+      "pending_reload_note": "Bekleme durumu yalnızca bu sayfada tutulur, yeniden yüklemede korunmaz.",
+      "already_pending": "Zaten bekleyen bir başvurunuz var.",
+      "login_required": "Başvurmak için giriş yapın",
+      "error": "Başvuru gönderilemedi.",
+      "banned": "Şu anda bu topluluğa başvuramazsınız."
+    },
+    "mod": {
+      "title": "c/{name} moderasyonu",
+      "back": "c/{name} sayfasına dön",
+      "tabs": {
+        "applications": "Başvurular",
+        "members": "Üyeler",
+        "invitations": "Davetler",
+        "settings": "Ayarlar",
+        "permissions": "Yetkiler"
+      },
+      "applications": {
+        "title": "Başvurular",
+        "description": "Bu özel topluluğa katılma isteklerini onaylayın veya reddedin.",
+        "filter_label": "Başvuru durumu",
+        "status_pending": "Beklemede",
+        "status_accepted": "Onaylandı",
+        "status_rejected": "Reddedildi",
+        "applicant": "Başvuran",
+        "reason": "Gerekçe",
+        "approve": "Onayla",
+        "reject": "Reddet",
+        "approve_success": "Başvuru onaylandı.",
+        "reject_success": "Başvuru reddedildi.",
+        "action_failed": "Başvuru güncellenemedi.",
+        "empty_pending": "Bekleyen başvuru yok.",
+        "empty": "Gösterilecek başvuru yok.",
+        "load_more": "Daha fazla yükle",
+        "loading": "Yükleniyor…"
+      },
+      "members": {
+        "title": "Üyeler",
+        "description": "Bu topluluğa ait olan kişiler.",
+        "owner": "Sahip",
+        "kick": "Çıkar",
+        "kick_confirm_title": "@{username} çıkarılsın mı?",
+        "kick_confirm_desc": "Daha sonra yeniden başvurabilir veya davet edilebilir. Gönderileri silinmez.",
+        "kick_success": "@{username} çıkarıldı.",
+        "kick_failed": "Üye çıkarılamadı.",
+        "empty": "Gösterilecek üye yok.",
+        "ban": "Yasakla"
+      },
+      "invitations": {
+        "title": "Davetler",
+        "description": "Davetler yalnızca özel topluluklar için çalışır.",
+        "public_note": "Bu topluluk herkese açık. İnsanlar anında katılır; davet gerekmez.",
+        "username_label": "Kullanıcı adı",
+        "username_placeholder": "kullanici",
+        "send": "Davet gönder",
+        "sending": "Gönderiliyor…",
+        "success": "@{username} kullanıcısına davet gönderildi.",
+        "error": "Davet gönderilemedi."
+      },
+      "settings": {
+        "title": "Ayarlar",
+        "description": "Topluluğu düzenleyin, okunma şeklini değiştirin veya kapatın.",
+        "description_label": "Açıklama",
+        "save": "Açıklamayı kaydet",
+        "saving": "Kaydediliyor…",
+        "saved": "Açıklama kaydedildi.",
+        "save_failed": "Açıklama kaydedilemedi.",
+        "visibility_title": "Görünürlük",
+        "visibility_current": "Bu topluluk {visibility}.",
+        "make_private": "Özel yap",
+        "private_warning": "Bu topluluğu özel yapmak geri alınamaz. Yeni okuyucular başvurmak veya davet edilmek zorunda kalır.",
+        "visibility_saved": "Topluluk artık özel.",
+        "visibility_failed": "Görünürlük değiştirilemedi.",
+        "successor_title": "Halef",
+        "successor_description": "Ayrılır veya hesabınızı silerseniz bu topluluğun kime geçeceği.",
+        "successor_label": "Kullanıcı adı",
+        "successor_placeholder": "kullanici",
+        "successor_submit": "Halefi ayarla",
+        "successor_saving": "Kaydediliyor…",
+        "successor_saved": "Halef kaydedildi.",
+        "successor_failed": "Halef ayarlanamadı.",
+        "close_title": "Topluluğu kapat",
+        "close_warning": "Kapatmak kalıcıdır. Herkese açık bir topluluğun gönderileri bağımsız olur; özel bir topluluğun gönderileri silinir.",
+        "close_confirm_label": "Onaylamak için topluluk adını yazın",
+        "close_button": "Topluluğu kapat",
+        "closing": "Kapatılıyor…",
+        "close_success": "Topluluk kapatıldı.",
+        "close_failed": "Topluluk kapatılamadı.",
+        "close_mismatch": "Onaylamak için topluluğun tam adını yazın."
+      },
+      "permissions": {
+        "title": "Topluluk yetkileri",
+        "description": "Bu toplulukta bir aktör için yetki verin veya kaldırın.",
+        "username_label": "Kullanıcı adı",
+        "username_placeholder": "kullanici",
+        "permission_label": "Yetki",
+        "grant": "Ver",
+        "revoke": "Kaldır",
+        "success_granted": "Yetki verildi.",
+        "success_revoked": "Yetki kaldırıldı.",
+        "error": "Yetki değiştirilemedi.",
+        "labels": {
+          "content_delete": "İçerik sil",
+          "community_edit": "Topluluğu düzenle",
+          "community_close": "Topluluğu kapat",
+          "member_invite": "Üye davet et",
+          "member_approve": "Başvuruları onayla",
+          "member_kick": "Üye çıkar",
+          "member_ban": "Üye yasakla",
+          "role_grant": "Yetki ver",
+          "report_view": "Şikayetleri gör",
+          "report_resolve": "Şikayetleri çöz",
+          "audit_view": "Denetim kaydını gör"
+        }
+      }
+    },
+    "mod_tools": "Moderasyon"
   },
   "unavailablePost": {
     "title": "İçerik kullanılamıyor",
@@ -662,7 +823,18 @@
       "code": "Kod Bloğu",
       "quote": "Alıntı",
       "list": "Liste"
-    }
+    },
+    "cross_post_action": "Çapraz gönderi",
+    "cross_post_title": "Bir topluluğa çapraz gönderi",
+    "cross_post_description": "Bu gönderinin nerede görüneceğini seçin. Kaynak yerinde kalır; çapraz gönderi ona başvurur.",
+    "cross_post_target_label": "Gönderilecek yer",
+    "cross_post_source_note": "Çapraz gönderi: {title}",
+    "cross_post_submit": "Çapraz gönder",
+    "cross_posting": "Gönderiliyor…",
+    "cross_post_success": "Çapraz gönderi oluşturuldu.",
+    "cross_post_failed": "Gönderi çapraz paylaşılamadı.",
+    "cross_post_unavailable": "Bu gönderi çapraz paylaşılamaz.",
+    "cross_post_hidden_private": "Özel topluluklardaki gönderiler çapraz paylaşılamaz."
   },
   "tags": {
     "directory_title": "Etiketler",
@@ -743,7 +915,8 @@
       "post": "Gönderiler",
       "comment": "Yorumlar",
       "actor": "Aktörler",
-      "tag": "Etiketler"
+      "tag": "Etiketler",
+      "community": "Topluluklar"
     },
     "start_title": "Aramak istediğiniz terimi yazın; gönderiler, yorumlar ve aktörler arasında arayın.",
     "start_description": "İçerik başlıkları, metinler, etiketler veya kullanıcı adları arasında anında filtreleme yapabilirsiniz.",
@@ -760,7 +933,9 @@
     "profile_label": "{name} profili",
     "comment_label": "yorum",
     "score": "▲ {count} puan",
-    "open_comment": "Yoruma git"
+    "open_comment": "Yoruma git",
+    "communities_note": "API'de henüz topluluk araması yok. Bu sekme, bu sayfada yüklü olan toplulukları filtreler.",
+    "communities_empty": "Yüklü topluluklardan “{query}” ile eşleşen yok."
   },
   "settings": {
     "title": "Ayarlar",
@@ -941,7 +1116,10 @@
       "vote": "gönderinizi beğendi",
       "follow": "sizi takip etmeye başladı",
       "system": "sistem bildirimi",
-      "unknown": "Yeni bir bildiriminiz var."
+      "unknown": "Yeni bir bildiriminiz var.",
+      "community_invitation": "sizi bir topluluğa davet etti",
+      "community_application": "topluluğunuza katılmak için başvurdu",
+      "community_application_result": "başvurunuz hakkında karar verdi"
     },
     "empty": {
       "title": "Henüz bir bildiriminiz yok",
@@ -955,7 +1133,12 @@
       "description": "Etkileşimlerinizi, yanıtlarınızı ve takipçilerinizi takip etmek için giriş yapın.",
       "login_button": "Giriş Yap",
       "register_button": "Hesap Oluştur"
-    }
+    },
+    "community_invitation_accept": "Kabul et",
+    "community_invitation_decline": "Reddet",
+    "community_invitation_action_failed": "Davet güncellenemedi.",
+    "community_invitation_joined": "c/{name} topluluğuna katıldınız.",
+    "community_invitation_view": "Davetleri gör"
   },
   "moderation": {
     "nav": {
@@ -967,7 +1150,8 @@
       "back": "Siteye Dön",
       "panel": "Moderasyon Paneli",
       "moderator": "Moderatör",
-      "tabs_label": "Moderasyon sekmeleri"
+      "tabs_label": "Moderasyon sekmeleri",
+      "permissions": "Yetkiler"
     },
     "resolveDialog": {
       "resolve_title": "Şikayeti Çözümle",
@@ -1014,7 +1198,13 @@
       "request_error": "Ban eklenirken bir hata oluştu.",
       "permanent_success": "@{username} kalıcı olarak banlandı.",
       "temporary_success": "@{username} süreli olarak banlandı.",
-      "submitting": "Banlanıyor..."
+      "submitting": "Banlanıyor...",
+      "scope": "Yasak kapsamı",
+      "scope_global": "Platform geneli",
+      "scope_community": "Bu topluluk",
+      "scope_community_named": "c/{name}",
+      "delete_posts": "Bu topluluktaki gönderilerini de sil",
+      "delete_posts_hint": "Yalnızca topluluk kapsamıyla kullanılabilir."
     },
     "deleteDialog": {
       "title": "İçeriği Moderatif Olarak Sil",
@@ -1041,7 +1231,10 @@
       "remove_description": "@{username} için ban kaldırma isteği gönderilsin mi? Kullanıcı şu anda banlı değilse API işlemi değişiklik yapmadan tamamlar.",
       "removing": "Kaldırılıyor...",
       "remove_error": "Ban kaldırılırken bir hata oluştu.",
-      "remove_success": "@{username} kullanıcısının banı kaldırıldı."
+      "remove_success": "@{username} kullanıcısının banı kaldırıldı.",
+      "community_label": "Topluluk (isteğe bağlı)",
+      "community_placeholder": "topluluk adı",
+      "community_hint": "Platform geneli yasak için boş bırakın."
     },
     "roles": {
       "title": "Yetkilendirme ve Rol Yönetimi",
@@ -1107,7 +1300,8 @@
       "dismiss": "Reddet",
       "resolve": "Çözümle",
       "load_more": "Daha fazla rapor yükle",
-      "loading": "Raporlar yükleniyor..."
+      "loading": "Raporlar yükleniyor...",
+      "community": "Topluluk"
     },
     "pages": {
       "panel_description": "Topluluk denetimi, rapor inceleme ve güvenlik yönetimi.",
@@ -1137,6 +1331,35 @@
       "bans_description": "Topluluk standartlarını ihlal eden aktör hesaplarını süreli veya kalıcı olarak kısıtlayın.",
       "actions_title": "Denetim İzi ve Moderasyon Kütüğü",
       "actions_description": "Değiştirilemez, salt okunur kronolojik denetim geçmişi."
+    },
+    "permissions": {
+      "title": "Yetkiler",
+      "description": "Bir aktör için platform geneli yetki verin veya kaldırın.",
+      "form_title": "Global yetki yönet",
+      "form_description": "Yetkileri yalnızca role.grant sahipleri değiştirebilir. Değişiklikler anında geçerli olur.",
+      "username": "Hedef Kullanıcı Adı *",
+      "username_placeholder": "örn. taylan",
+      "permission_label": "Yetki",
+      "grant": "Yetki Ver",
+      "revoke": "Yetkiyi Kaldır",
+      "processing": "İşleniyor…",
+      "username_required": "Kullanıcı adı zorunludur.",
+      "request_error": "Yetki işlemi başarısız oldu.",
+      "granted_success": "'{permission}' yetkisi @{username} kullanıcısına verildi.",
+      "revoked_success": "'{permission}' yetkisi @{username} kullanıcısından kaldırıldı.",
+      "labels": {
+        "content_delete": "İçerik sil",
+        "community_edit": "Topluluğu düzenle",
+        "community_close": "Topluluğu kapat",
+        "member_invite": "Üye davet et",
+        "member_approve": "Başvuruları onayla",
+        "member_kick": "Üye çıkar",
+        "member_ban": "Üye yasakla",
+        "role_grant": "Yetki ver",
+        "report_view": "Şikayetleri gör",
+        "report_resolve": "Şikayetleri çöz",
+        "audit_view": "Denetim kaydını gör"
+      }
     }
   },
   "about": {
@@ -1167,5 +1390,26 @@
     "postDeleting": "Siliniyor...",
     "postDeleted": "Gönderi silindi.",
     "postDeleteFailed": "Gönderi silinemedi."
+  },
+  "invitationsPage": {
+    "title": "Davetler",
+    "description": "Yanıtınızı bekleyen topluluk davetleri.",
+    "empty_title": "Davet yok",
+    "empty_description": "Bir topluluk sizi davet ettiğinde burada görünür.",
+    "from": "c/{name} tarafından",
+    "invited_by": "{name} davet etti",
+    "accept": "Kabul et",
+    "decline": "Reddet",
+    "accepting": "Kabul ediliyor…",
+    "declining": "Reddediliyor…",
+    "accepted": "c/{name} topluluğuna katıldınız.",
+    "declined": "Davet reddedildi.",
+    "failed": "Davet güncellenemedi.",
+    "load_more": "Daha fazla yükle",
+    "loading": "Yükleniyor…",
+    "end": "Sona ulaştınız.",
+    "anonymous_title": "Davetlerinizi görmek için giriş yapın",
+    "anonymous_description": "Davetler hesabınıza bağlıdır.",
+    "login_button": "Giriş yap"
   }
 }

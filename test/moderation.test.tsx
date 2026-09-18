@@ -21,10 +21,10 @@ import { ActionsList } from "@/components/mod/actions-list";
 import { BanDialog } from "@/components/mod/ban-dialog";
 import { BansManager } from "@/components/mod/bans-manager";
 import { DeleteContentDialog } from "@/components/mod/delete-content-dialog";
+import { GlobalPermissionsManager } from "@/components/mod/global-permissions-manager";
 import { ModNav } from "@/components/mod/mod-nav";
 import { ReportsQueue } from "@/components/mod/reports-queue";
 import { ResolveReportDialog } from "@/components/mod/resolve-report-dialog";
-import { RolesManager } from "@/components/mod/roles-manager";
 import { toast } from "@/components/ui/toast";
 import * as actosLib from "@/lib/actos";
 import {
@@ -690,30 +690,39 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       });
     });
 
-    it("RolesManager formu kullanıcı adı ve rol seçimini yönetir", async () => {
+    it("GlobalPermissionsManager grants a global permission through /api/mod/permissions", async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ ok: true, message: "Rol atandı." }),
+        status: 204,
+        json: async () => ({}),
       } as Response);
 
-      render(<RolesManager />);
+      render(<GlobalPermissionsManager />);
 
-      const usernameInput = screen.getByTestId("role-target-username-input");
+      const usernameInput = screen.getByTestId("global-permission-username-input");
       fireEvent.change(usernameInput, { target: { value: "test_kullanici" } });
 
-      const submitBtn = screen.getByTestId("submit-role-assignment-button");
+      const submitBtn = screen.getByTestId("global-permission-grant");
       fireEvent.click(submitBtn);
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith(
-          "/api/mod/roles",
+          "/api/mod/permissions",
           expect.objectContaining({
-            method: "POST",
-            body: JSON.stringify({ username: "test_kullanici", role: "moderator" }),
+            method: "PUT",
+            body: JSON.stringify({ username: "test_kullanici", permission: "content.delete" }),
           }),
         );
         expect(toast.success).toHaveBeenCalled();
       });
+    });
+
+    it("GlobalPermissionsManager requires a username", async () => {
+      global.fetch = vi.fn();
+      render(<GlobalPermissionsManager />);
+      fireEvent.click(screen.getByTestId("global-permission-grant"));
+      expect(await screen.findByTestId("global-permission-error")).toBeInTheDocument();
+      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 
@@ -764,7 +773,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
 
       const page = await RolesPage();
       render(page);
-      expect(screen.getByTestId("roles-manager-page")).toBeInTheDocument();
+      expect(screen.getByTestId("permissions-manager-page")).toBeInTheDocument();
     });
   });
 });

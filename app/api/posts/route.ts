@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
     let files: File[] | undefined;
     let idempotencyKey: string | undefined;
     let community: string | undefined;
+    let crossPostSource: string | undefined;
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData().catch(() => null);
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
       const tagsField = formData.get("tags");
       const idempotencyField = formData.get("idempotencyKey");
       const communityField = formData.get("community");
+      const crossPostField = formData.get("crossPostSource");
 
       title = typeof titleField === "string" ? titleField.trim() : "";
       body = typeof bodyField === "string" ? bodyField.trim() : "";
@@ -54,6 +56,10 @@ export async function POST(req: NextRequest) {
       community =
         typeof communityField === "string" && communityField.trim()
           ? communityField.trim().toLowerCase()
+          : undefined;
+      crossPostSource =
+        typeof crossPostField === "string" && crossPostField.trim()
+          ? crossPostField.trim()
           : undefined;
 
       if (typeof tagsField === "string") {
@@ -76,22 +82,31 @@ export async function POST(req: NextRequest) {
         typeof json?.community === "string" && json.community.trim()
           ? json.community.trim().toLowerCase()
           : undefined;
+      crossPostSource =
+        typeof json?.crossPostSource === "string" && json.crossPostSource.trim()
+          ? json.crossPostSource.trim()
+          : undefined;
     }
 
-    if (!title) {
-      return apiErrorResponse({
-        status: 400,
-        code: "VALIDATION_FAILED",
-        detail: "Title is required and cannot be blank",
-      });
-    }
+    // A cross-post references a source instead of carrying a title and body:
+    // the backend accepts and ignores both when `cross_post_source` is set, so
+    // the form skips them entirely (ROADMAP §7.2).
+    if (!crossPostSource) {
+      if (!title) {
+        return apiErrorResponse({
+          status: 400,
+          code: "VALIDATION_FAILED",
+          detail: "Title is required and cannot be blank",
+        });
+      }
 
-    if (!body) {
-      return apiErrorResponse({
-        status: 400,
-        code: "VALIDATION_FAILED",
-        detail: "Body is required and cannot be blank",
-      });
+      if (!body) {
+        return apiErrorResponse({
+          status: 400,
+          code: "VALIDATION_FAILED",
+          detail: "Body is required and cannot be blank",
+        });
+      }
     }
 
     const client = await getServerClient();
@@ -100,6 +115,7 @@ export async function POST(req: NextRequest) {
       body,
       tags,
       community,
+      crossPostSource,
       files,
       idempotencyKey,
     });

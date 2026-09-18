@@ -1,6 +1,6 @@
 "use client";
 
-import type { Actor, Post, TagMatch } from "actos";
+import type { Actor, Community, Post, TagMatch } from "actos";
 import { Search, SearchX, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,6 +8,7 @@ import { PostCard } from "@/components/feed/post-card";
 import { LoadMore } from "@/components/pagination/load-more";
 import { ActorSearchCard } from "@/components/search/actor-search-card";
 import { CommentSearchCard } from "@/components/search/comment-search-card";
+import { CommunitySearchRow } from "@/components/search/community-search-row";
 import { TagSearchRow } from "@/components/search/tag-search-row";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -23,8 +24,25 @@ import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
 const RECENT_SEARCHES_KEY = "actos:recent-searches";
 const MAX_RECENT_SEARCHES = 6;
 
-function resultIdentity(item: Post | Actor | TagMatch): string {
+type SearchResult = Post | Actor | TagMatch | Community;
+
+function resultIdentity(item: SearchResult): string {
   return "id" in item ? item.id : `tag:${item.name}`;
+}
+
+/**
+ * The API has no community search (BE-017), so the Communities tab filters the
+ * directory page the browser already loaded. This is deliberately narrow and
+ * labeled as such in the UI; it never claims to search every community.
+ */
+function filterCommunities(items: Community[], query: string): Community[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return items;
+  return items.filter(
+    (community) =>
+      community.name.toLowerCase().includes(needle) ||
+      community.description.toLowerCase().includes(needle),
+  );
 }
 
 function readRecentSearches(): string[] {
@@ -52,7 +70,7 @@ export function SearchView() {
   const [submittedQuery, setSubmittedQuery] = useState(urlQ);
   const [activeTab, setActiveTab] = useState<SearchTabType>(urlType);
 
-  const [results, setResults] = useState<Array<Post | Actor | TagMatch>>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -119,6 +137,30 @@ export function SearchView() {
       setIsLoading(true);
 
       try {
+        // The Communities tab is client-side only: there is no community
+        // search endpoint, so it fetches the directory and filters that page.
+        if (tab === "community") {
+          const res = await fetch("/api/communities?limit=25", {
+            signal: controller.signal,
+            cache: "no-store",
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok) {
+            if (!controller.signal.aborted) {
+              toast.error(data.detail || data.title || t("searchPage.search_error"));
+            }
+            return;
+          }
+          if (!controller.signal.aborted) {
+            const loaded: Community[] = data.communities || [];
+            setResults(filterCommunities(loaded, trimmed));
+            setNextCursor(data.nextCursor ?? null);
+            setSubmittedQuery(trimmed);
+            rememberSearch(trimmed);
+          }
+          return;
+        }
+
         const params = new URLSearchParams();
         params.set("q", trimmed);
         params.set("type", tab);
@@ -137,7 +179,7 @@ export function SearchView() {
         }
 
         if (!controller.signal.aborted) {
-          const items: Array<Post | Actor | TagMatch> = data.items || [];
+          const items: SearchResult[] = data.items || [];
           setResults(items);
           setNextCursor(data.nextCursor ?? null);
           setSubmittedQuery(trimmed);
@@ -259,6 +301,26 @@ export function SearchView() {
     setIsLoadingMore(true);
 
     try {
+      if (activeTab === "community") {
+        const communityParams = new URLSearchParams({ limit: "25", cursor });
+        const communityRes = await fetch(`/api/communities?${communityParams.toString()}`, {
+          cache: "no-store",
+        });
+        const communityData = await communityRes.json();
+        if (!communityRes.ok || !communityData.ok) {
+          toast.error(communityData.detail || t("searchPage.load_more_error"));
+          return;
+        }
+        const loaded: Community[] = communityData.communities || [];
+        const filteredNew = filterCommunities(loaded, submittedQuery);
+        setResults((prev) => {
+          const existingIds = new Set(prev.map(resultIdentity));
+          return [...prev, ...filteredNew.filter((item) => !existingIds.has(resultIdentity(item)))];
+        });
+        setNextCursor(communityData.nextCursor ?? null);
+        return;
+      }
+
       const params = new URLSearchParams();
       params.set("q", submittedQuery.trim());
       params.set("type", activeTab);
@@ -273,7 +335,7 @@ export function SearchView() {
         return;
       }
 
-      const newItems: Array<Post | Actor | TagMatch> = data.items || [];
+      const newItems: SearchResult[] = data.items || [];
       const newNextCursor = data.nextCursor ?? null;
 
       setResults((prev) => {
@@ -345,7 +407,7 @@ export function SearchView() {
         {/* 1. Yükleme Durumu: Skeleton */}
         {isLoading ? (
           <div data-testid="search-loading" className="space-y-4">
-            {activeTab === "actor" ? (
+            {activeTab === "actor" || activeTab === "community" ? (
               <div className="space-y-3">
                 <Skeleton className="h-20 w-full rounded-xl" />
                 <Skeleton className="h-20 w-full rounded-xl" />
@@ -455,6 +517,21 @@ export function SearchView() {
                     highlightQuery={submittedQuery || inputQuery}
                   />
                 ))}
+              </div>
+            )}
+
+            {activeTab === "community" && (
+              <div className="space-y-2">
+                <p className="px-1 text-xs text-fg-muted">{t("searchPage.communities_note")}</p>
+                <div className="divide-y divide-border/40 -mx-4 sm:-mx-6">
+                  {(results as Community[]).map((community) => (
+                    <CommunitySearchRow
+                      key={community.id}
+                      community={community}
+                      highlightQuery={submittedQuery || inputQuery}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 

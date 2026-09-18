@@ -3,6 +3,7 @@ export const SEARCH_TABS = [
   { value: "comment", labelKey: "searchPage.tabs.comment" },
   { value: "actor", labelKey: "searchPage.tabs.actor" },
   { value: "tag", labelKey: "searchPage.tabs.tag" },
+  { value: "community", labelKey: "searchPage.tabs.community" },
 ] as const;
 
 export type SearchTabType = (typeof SEARCH_TABS)[number]["value"];

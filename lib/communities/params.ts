@@ -14,12 +14,21 @@ import type { CommunityVisibility, PostSort } from "actos";
  */
 export const COMMUNITY_POST_SORT_VALUES: readonly PostSort[] = ["new", "top", "hot"];
 export const COMMUNITY_VISIBILITY_VALUES: readonly CommunityVisibility[] = ["public", "private"];
+export const APPLICATION_STATUS_VALUES = ["pending", "accepted", "rejected"] as const;
+
+export type ApplicationStatusValue = (typeof APPLICATION_STATUS_VALUES)[number];
 
 export const COMMUNITY_PAGE_SIZE = 25;
 
 export function isCommunityPostSort(value: unknown): value is PostSort {
   return (
     typeof value === "string" && (COMMUNITY_POST_SORT_VALUES as readonly string[]).includes(value)
+  );
+}
+
+export function isApplicationStatus(value: unknown): value is ApplicationStatusValue {
+  return (
+    typeof value === "string" && (APPLICATION_STATUS_VALUES as readonly string[]).includes(value)
   );
 }
 

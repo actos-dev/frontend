@@ -65,8 +65,12 @@ export default function NewPostPage() {
         const errJson = await res.json().catch(() => null);
         console.error("Failed to publish post:", errJson);
         // The draft is not cleared: the user's text must survive a failed
-        // publish (ROADMAP.md P0-03).
-        toast.error(t("states.publishFailed"));
+        // publish (ROADMAP.md P0-03). A 403 (for example posting into a
+        // community the viewer is banned from) keeps the server's own detail
+        // so the refusal is shown plainly; every other failure stays generic.
+        toast.error(
+          res.status === 403 && errJson?.detail ? errJson.detail : t("states.publishFailed"),
+        );
         setIsSubmitting(false);
         return;
       }

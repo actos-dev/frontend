@@ -9,12 +9,14 @@ import {
   MessageSquare,
   MoreHorizontal,
   Pencil,
+  Repeat2,
   Share2,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { CrossPostDialog } from "@/components/post/cross-post-dialog";
 import { ReportDialog } from "@/components/post/report-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "@/components/ui/toast";
+import { FEATURE_COMMUNITIES } from "@/lib/features";
 import { useTranslation } from "@/lib/i18n";
 import { isAuthenticationProblem } from "@/lib/query/http";
 import { useContentInteraction, useDeletePostMutation } from "@/lib/query/mutations";
@@ -80,9 +83,16 @@ export function PostActions({
 
   const [reportOpen, setReportOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [crossPostOpen, setCrossPostOpen] = useState(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const isDeleting = deletePost.isPending;
+
+  // Hidden when the source is itself a cross-post (depth is capped at one
+  // level). The API also refuses a source that lives in a private community;
+  // `ContentSummary.community` carries no visibility, so that refusal surfaces
+  // from the request rather than being guessed here.
+  const canCrossPost = FEATURE_COMMUNITIES && !post.isCrossPost;
 
   const isUserAuthor =
     isAuthor ||
@@ -335,6 +345,19 @@ export function PostActions({
                 <Pencil className="h-4 w-4" /> {t("common.edit")}
               </Link>
             ) : null}
+            {canCrossPost ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setCrossPostOpen(true);
+                }}
+                data-testid="post-cross-post-button"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-bg-subtle"
+              >
+                <Repeat2 className="h-4 w-4" /> {t("editor.cross_post_action")}
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={() => {
@@ -370,6 +393,10 @@ export function PostActions({
         targetId={post.id}
         targetType="content"
       />
+
+      {canCrossPost ? (
+        <CrossPostDialog post={post} open={crossPostOpen} onOpenChange={setCrossPostOpen} />
+      ) : null}
 
       {/* Silme Onay Diyalogu (P0-12): comment delete flow'un aynısı — kopya ve onay deseni */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

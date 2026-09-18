@@ -172,15 +172,13 @@ describe("Phase 7 communities — components and screens", () => {
   });
 
   describe("CommunityCover", () => {
-    it("shows name and description, the apply placeholder, and no counts or feed", () => {
+    it("shows name and description, a working apply form, and no counts or feed", () => {
       render(<CommunityCover community={makeCommunity({ visibility: "private" })} t={t} />);
       expect(screen.getByTestId("community-cover")).toBeDefined();
       expect(screen.getByText("c/rust")).toBeDefined();
       expect(screen.getByText("A community about Rust.")).toBeDefined();
-      const applyButton = screen.getByRole("button", {
-        name: t("communities.cover_apply"),
-      }) as HTMLButtonElement;
-      expect(applyButton.disabled).toBe(true);
+      expect(screen.getByTestId("apply-to-join-form")).toBeDefined();
+      expect(screen.getByTestId("apply-reason-input")).toBeDefined();
       expect(screen.queryByText(/12 members/)).toBeNull();
       expect(screen.queryByTestId("community-stream")).toBeNull();
     });

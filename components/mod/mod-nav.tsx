@@ -71,7 +71,7 @@ export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNa
     ...(hasModCapability(capabilities, "roles:manage")
       ? [
           {
-            label: t("moderation.nav.roles"),
+            label: t("moderation.nav.permissions"),
             href: "/mod/roles",
             icon: UserCheck,
             capability: "roles:manage" as const,
