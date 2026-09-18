@@ -11,6 +11,7 @@ import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
 import { getServerClient, hasSessionCookie } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { getServerLocale, getTranslations } from "@/lib/i18n";
 import { getSiteUrl } from "@/lib/seo";
 import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
@@ -25,6 +26,7 @@ export interface ProfilePageProps {
  * SEO and Social Media Previews for Actor Profile (Plan §Faz 16).
  */
 export async function generateMetadata(props: ProfilePageProps): Promise<Metadata> {
+  const { t } = getTranslations(await getServerLocale());
   const { username: rawUsername } = await props.params;
   const username = decodeURIComponent(rawUsername);
   const siteUrl = getSiteUrl();
@@ -48,16 +50,14 @@ export async function generateMetadata(props: ProfilePageProps): Promise<Metadat
 
   if (isGone) {
     return {
-      title: `@${username} (Silinmiş Hesap) — Actos`,
-      description: "Bu kullanıcı hesabı kapatılmıştır.",
+      title: `@${username} (${t("profile.account_deleted")}) — Actos`,
+      description: t("profile.account_deleted_desc"),
       robots: { index: false, follow: false },
     };
   }
 
   const displayName = profile?.actor?.displayName || profile?.actor?.username || username;
-  const bio =
-    profile?.actor?.bio ||
-    `@${username} kullanıcısının Actos profili, gönderileri ve topluluk paylaşımları.`;
+  const bio = profile?.actor?.bio || t("profile.metadata_description", { username });
   const ogImageUrl = `${siteUrl}/u/${encodeURIComponent(username)}/opengraph-image`;
   const previewImage = ogImageUrl;
   const title = `${displayName} (@${username}) — Actos`;
@@ -102,6 +102,7 @@ export async function generateMetadata(props: ProfilePageProps): Promise<Metadat
  * - FollowButton for visitors, "Profili Düzenle" for profile owner.
  */
 export default async function ProfilePage(props: ProfilePageProps) {
+  const { t } = getTranslations(await getServerLocale());
   const { username: rawUsername } = await props.params;
   const username = decodeURIComponent(rawUsername);
   const { tab: rawTab } = await props.searchParams;
@@ -133,8 +134,8 @@ export default async function ProfilePage(props: ProfilePageProps) {
       return (
         <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6">
           <Gone
-            title="Bu hesap silinmiştir"
-            message="Bu kullanıcı hesabı kapatılmıştır."
+            title={t("profile.account_deleted")}
+            message={t("profile.account_deleted_desc")}
             author={{ username, displayName: username }}
           />
         </div>
@@ -225,7 +226,7 @@ export default async function ProfilePage(props: ProfilePageProps) {
       {/* 3. Sekme İçeriği */}
       <main className="pt-2">
         {activeTab === "posts" && (
-          <section aria-label="Kullanıcı Gönderileri">
+          <section aria-label={t("profile.posts_section_label")}>
             {postsError ? (
               <ErrorStateRetry
                 {...describeError(postsError)}
@@ -233,8 +234,8 @@ export default async function ProfilePage(props: ProfilePageProps) {
               />
             ) : postsPage.items.length === 0 ? (
               <EmptyState
-                title="Henüz gönderi yok"
-                description="Bu aktör henüz herhangi bir gönderi paylaşmadı."
+                title={t("profile.empty_posts")}
+                description={t("profile.empty_posts_desc")}
                 className="py-12 border border-dashed border-border rounded-2xl bg-card/40"
               />
             ) : (
@@ -253,11 +254,11 @@ export default async function ProfilePage(props: ProfilePageProps) {
         )}
 
         {activeTab === "comments" && (
-          <section aria-label="Kullanıcı Yorumları">
+          <section aria-label={t("profile.comments_section_label")}>
             {commentsPage.items.length === 0 ? (
               <EmptyState
-                title="Henüz yorum yok"
-                description="Bu aktör henüz herhangi bir yoruma katılmadı."
+                title={t("profile.empty_comments")}
+                description={t("profile.empty_comments_desc")}
                 className="py-12 border border-dashed border-border rounded-2xl bg-card/40"
               />
             ) : (
@@ -271,11 +272,11 @@ export default async function ProfilePage(props: ProfilePageProps) {
         )}
 
         {activeTab === "followers" && (
-          <section aria-label="Takipçiler">
+          <section aria-label={t("profile.followers_section_label")}>
             {followersRes.items.length === 0 ? (
               <EmptyState
-                title="Henüz takipçi yok"
-                description="Bu aktörü henüz kimse takip etmiyor."
+                title={t("profile.empty_followers")}
+                description={t("profile.empty_followers_desc")}
                 className="py-12 border border-dashed border-border rounded-2xl bg-card/40"
               />
             ) : (
@@ -290,11 +291,11 @@ export default async function ProfilePage(props: ProfilePageProps) {
         )}
 
         {activeTab === "following" && (
-          <section aria-label="Takip Edilenler">
+          <section aria-label={t("profile.following_section_label")}>
             {followingRes.items.length === 0 ? (
               <EmptyState
-                title="Henüz takip edilen kimse yok"
-                description="Bu aktör henüz kimseyi takip etmiyor."
+                title={t("profile.empty_following")}
+                description={t("profile.empty_following_desc")}
                 className="py-12 border border-dashed border-border rounded-2xl bg-card/40"
               />
             ) : (

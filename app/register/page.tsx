@@ -38,7 +38,7 @@ interface RegisteredData {
 function RegisterWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
 
   const rawReturnUrl = searchParams.get("returnUrl") || searchParams.get("redirect") || "/";
   const returnUrl =
@@ -192,7 +192,7 @@ function RegisterWizard() {
           setAvailability({ username: cleanUsername, status: "taken" });
           setStep1Error(t("auth.register.username_taken"));
         } else {
-          setStep1Error(data.detail || data.title || "Kayıt işlemi başarısız.");
+          setStep1Error(data.detail || data.title || t("auth.register.registration_error"));
         }
         return;
       }
@@ -222,6 +222,7 @@ function RegisterWizard() {
       username: registeredData.username,
       apiKey: registeredData.apiKey,
       recoveryCodes: registeredData.recoveryCodes,
+      locale,
     });
     downloadRecoveryFile(registeredData.username, content);
     setHasDownloaded(true);
@@ -234,6 +235,7 @@ function RegisterWizard() {
       username: registeredData.username,
       apiKey: registeredData.apiKey,
       recoveryCodes: registeredData.recoveryCodes,
+      locale,
     });
     try {
       await navigator.clipboard.writeText(content);
@@ -270,7 +272,7 @@ function RegisterWizard() {
     const enteredCode = verifyInput.trim();
 
     if (!enteredCode) {
-      setVerifyError("Lütfen kurtarma kodunu girin.");
+      setVerifyError(t("auth.register.verify_required"));
       return;
     }
 
@@ -562,7 +564,7 @@ function RegisterWizard() {
             {step1Loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                <span>Hesap oluşturuluyor...</span>
+                <span>{t("auth.register.creating_account")}</span>
               </>
             ) : (
               <>
@@ -573,12 +575,12 @@ function RegisterWizard() {
           </Button>
 
           <div className="text-center text-xs text-muted-foreground pt-2">
-            Zaten bir API anahtarın var mı?{" "}
+            {t("auth.register.has_api_key")}{" "}
             <Link
               href={`/login${rawReturnUrl !== "/" ? `?returnUrl=${encodeURIComponent(rawReturnUrl)}` : ""}`}
               className="font-semibold text-primary hover:underline"
             >
-              Giriş Yap
+              {t("auth.login.submit")}
             </Link>
           </div>
         </form>
@@ -611,7 +613,7 @@ function RegisterWizard() {
                 {t("auth.register.api_key_label")}
               </span>
               <Badge variant="outline" size="sm" className="font-mono text-[10px]">
-                Tek Seferlik Gösterim
+                {t("auth.register.one_time_display")}
               </Badge>
             </div>
             <div className="p-2.5 rounded-lg bg-background border border-border font-mono text-xs break-all select-all text-foreground">
@@ -625,7 +627,9 @@ function RegisterWizard() {
               <span className="text-xs font-semibold text-foreground">
                 {t("auth.register.recovery_codes_label")}
               </span>
-              <span className="text-[11px] text-muted-foreground">10 kod</span>
+              <span className="text-[11px] text-muted-foreground">
+                {t("auth.register.code_count")}
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               {registeredData.recoveryCodes.map((code, idx) => (
@@ -656,7 +660,9 @@ function RegisterWizard() {
               {hasDownloaded ? (
                 <>
                   <Check className="h-4 w-4 stroke-[2.5]" />
-                  <span>Dosya İndirildi (actos-recovery-{registeredData.username}.txt)</span>
+                  <span>
+                    {t("auth.register.file_downloaded", { username: registeredData.username })}
+                  </span>
                 </>
               ) : (
                 <>
@@ -738,8 +744,7 @@ function RegisterWizard() {
             />
 
             <p className="text-[11px] text-muted-foreground">
-              İndirdiğiniz veya kopyaladığınız dosyadaki #{verifyIndex + 1} numaralı kurtarma kodunu
-              yapıştırın.
+              {t("auth.register.verify_file_hint", { index: String(verifyIndex + 1) })}
             </p>
           </div>
 
@@ -763,7 +768,7 @@ function RegisterWizard() {
               {verifying ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  <span>Doğrulanıyor...</span>
+                  <span>{t("auth.register.verifying")}</span>
                 </>
               ) : (
                 <>

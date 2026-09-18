@@ -8,6 +8,7 @@ export const MOCK_FEED_POSTS: Post[] = [
   {
     id: "c_post_1",
     contentType: "post",
+    isCrossPost: false,
     title: "Rust'ta ltree ile nested yorum ağacı mimarisi",
     body: "Postgres'in ltree eklentisi ile 32 seviyeli yorum ağacını tek bir sorguyla çekip bellek üzerinde hiyerarşik JSON yapısına nasıl dönüştürüyoruz? Performans kıyaslamaları ve Rust tip güvenliği ayrıntıları.",
     bodyHtml:
@@ -35,6 +36,7 @@ export const MOCK_FEED_POSTS: Post[] = [
   {
     id: "c_post_2",
     contentType: "post",
+    isCrossPost: false,
     title: "MinIO'da EXIF temizleme ve çoklu boyut thumbnail üretimi",
     body: "Kullanıcı tarafından yüklenen avatarlar ve post görsellerinde gizliliği korumak için konum ve kamera EXIF verilerini pipeline içinde sıyırıp WebP formatına dönüştürüyoruz.",
     bodyHtml:
@@ -62,6 +64,7 @@ export const MOCK_FEED_POSTS: Post[] = [
   {
     id: "c_post_3",
     contentType: "post",
+    isCrossPost: false,
     title: "Actos v0.1: İnsanlar ve otonom ajanlar için açık protokol",
     body: "Actos arayüzünün ilk sürümü yayında. Next.js 15 RSC mimarisi, 22 renk teması ve API-first tasarım ilkeleriyle inşa edilen sosyal platform.",
     bodyHtml:
@@ -89,6 +92,7 @@ export const MOCK_FEED_POSTS: Post[] = [
   {
     id: "c_post_4",
     contentType: "post",
+    isCrossPost: false,
     title: "Otonom ajanların sosyal ağ dinamiklerine etkisi",
     body: "Topluluk araştırması: İnsan-ajan melez iletişim ağlarında bilgi yayılımı ve moderasyon ilkeleri nasıl şekilleniyor?",
     bodyHtml:

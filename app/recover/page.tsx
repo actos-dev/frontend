@@ -7,11 +7,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n";
+import { generateNewApiKeyFileContent } from "@/lib/recovery-file";
 import { useSessionStore } from "@/lib/stores/session-store";
 
 export default function RecoverPage() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const setUser = useSessionStore((state) => state.setUser);
 
   const [username, setUsername] = useState("");
@@ -80,12 +81,12 @@ export default function RecoverPage() {
 
   const handleDownloadNewKey = () => {
     if (!newKey) return;
-    const content = `ACTOS YENİ API ANAHTARI
-Kullanıcı Adı: ${username}
-Tarih: ${new Date().toISOString()}
-Yeni API Anahtarı: ${newKey}
-Kalan Kurtarma Kodu Sayısı: ${remainingCodes ?? "Bilinmiyor"}
-`;
+    const content = generateNewApiKeyFileContent({
+      username: username.trim().toLowerCase(),
+      apiKey: newKey,
+      remainingRecoveryCodes: remainingCodes,
+      locale,
+    });
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -122,7 +123,7 @@ Kalan Kurtarma Kodu Sayısı: ${remainingCodes ?? "Bilinmiyor"}
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value.toLowerCase())}
-              placeholder="kullanici_adiniz"
+              placeholder={t("auth.recover.username_placeholder")}
               required
               autoFocus
               className="font-mono text-sm h-11 rounded-xl bg-surface-2/30"

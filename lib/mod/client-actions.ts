@@ -7,9 +7,9 @@ import type {
   Page,
   PaginationParams,
   Report,
-  SetRoleInput,
   UpdateReportInput,
 } from "actos";
+import { GLOBAL_ADMIN_PERMISSIONS, GLOBAL_MODERATOR_PERMISSIONS } from "@/lib/mod/capabilities";
 
 /**
  * Lists reports with status filter and pagination.
@@ -83,13 +83,29 @@ export async function listAuditLogs(
   return client.admin.actions.list(params);
 }
 
+export interface SetRoleInput {
+  username: string;
+  role: "moderator" | "admin" | null;
+}
+
 /**
- * Sets an actor's administrative role (admin only).
+ * Assigns or revokes the global permission bundle behind the legacy
+ * admin/moderator role form, using the 0.3.0 scoped-permission endpoints.
+ * `admin.permissions.grant`/`revoke` are idempotent, one call per permission.
  */
 export async function setRole(client: Actos, input: SetRoleInput): Promise<void> {
   if (!input.username?.trim()) {
     throw new Error("Kullanıcı adı zorunludur.");
   }
 
-  await client.admin.roles.set(input);
+  const permissions =
+    input.role === "moderator" ? GLOBAL_MODERATOR_PERMISSIONS : GLOBAL_ADMIN_PERMISSIONS;
+
+  for (const permission of permissions) {
+    if (input.role === null) {
+      await client.admin.permissions.revoke({ username: input.username, permission });
+    } else {
+      await client.admin.permissions.grant({ username: input.username, permission });
+    }
+  }
 }

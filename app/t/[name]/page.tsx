@@ -5,6 +5,7 @@ import { TagStream } from "@/components/tags/tag-stream";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient, hasSessionCookie } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { getServerLocale, getTranslations } from "@/lib/i18n";
 import { getSiteUrl } from "@/lib/seo";
 import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
@@ -14,12 +15,13 @@ interface TagPageProps {
 }
 
 export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
+  const { t } = getTranslations(await getServerLocale());
   const { name } = await params;
   const decodedName = decodeURIComponent(name).toLowerCase();
   const siteUrl = getSiteUrl();
   const canonicalUrl = `${siteUrl}/t/${encodeURIComponent(decodedName)}`;
-  const title = `#${decodedName} Gönderileri — Actos`;
-  const description = `#${decodedName} etiketi ile paylaşılan gönderiler, tartışmalar ve içerikler.`;
+  const title = `${t("tags.detail_title", { tag: decodedName })} — Actos`;
+  const description = t("tags.detail_description", { tag: decodedName });
   const ogImageUrl = `${siteUrl}/t/${encodeURIComponent(decodedName)}/opengraph-image`;
 
   return {
@@ -38,7 +40,7 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
           url: ogImageUrl,
           width: 1200,
           height: 630,
-          alt: `#${decodedName} Gönderileri — Actos`,
+          alt: `${t("tags.detail_title", { tag: decodedName })} — Actos`,
         },
       ],
     },
@@ -54,6 +56,7 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
 export const dynamic = "force-dynamic";
 
 export default async function TagDetailPage({ params, searchParams }: TagPageProps) {
+  const { t } = getTranslations(await getServerLocale());
   const { name } = await params;
   const { cursor, sort } = await searchParams;
   const decodedName = decodeURIComponent(name).toLowerCase();
@@ -128,18 +131,9 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
           <div>
             <h1 className="font-serif text-3xl font-semibold text-foreground">#{decodedName}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {totalCount === null ? (
-                <>
-                  En az{" "}
-                  <span className="font-mono tabular-nums text-foreground">{posts.length}</span>{" "}
-                  gönderi
-                </>
-              ) : (
-                <>
-                  <span className="font-mono tabular-nums text-foreground">{totalCount}</span>{" "}
-                  gönderi
-                </>
-              )}
+              {totalCount === null
+                ? t("tags.at_least_post_count", { count: posts.length })
+                : t("tags.post_count", { count: totalCount })}
             </p>
           </div>
 
@@ -147,20 +141,20 @@ export default async function TagDetailPage({ params, searchParams }: TagPagePro
             href="/tags"
             className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
           >
-            <span>← Tüm etiketlere dön</span>
+            <span>← {t("tags.back_to_all")}</span>
           </Link>
         </div>
       </div>
 
       <nav
         className="flex items-center gap-5 border-b border-border"
-        aria-label="Etiket sıralaması"
+        aria-label={t("tags.detail_sort_label")}
       >
         {(
           [
-            ["hot", "Öne çıkan"],
-            ["new", "Yeni"],
-            ["top", "En iyi"],
+            ["hot", t("tags.sort_hot")],
+            ["new", t("tags.sort_new")],
+            ["top", t("tags.sort_top")],
           ] as const
         ).map(([value, label]) => (
           <Link

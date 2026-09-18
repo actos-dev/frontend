@@ -28,7 +28,7 @@
     "@radix-ui/react-tabs": "^1.1.21",
     "@radix-ui/react-tooltip": "^1.2.16",
     "@tanstack/react-query": "^5.103.1",
-    "actos": "npm:@actos-dev/actos@^0.2.0",
+    "actos": "npm:@actos-dev/actos@^0.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "hast-util-from-html": "^2.0.3",

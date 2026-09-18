@@ -1,7 +1,10 @@
+"use client";
+
 import { ArrowLeft, Clock, FileX2, Home, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export interface GoneProps {
@@ -22,16 +25,19 @@ export interface GoneProps {
  */
 export function Gone({
   className,
-  title = "Bu içerik silindi",
-  message = "Bu gönderi veya içerik daha önce Actos'ta mevcuttu, ancak yazarın kendi isteğiyle veya moderasyon kararıyla kaldırıldı.",
+  title,
+  message,
   author,
   deletedAt,
   reason = "unknown",
 }: GoneProps) {
+  const { t } = useTranslation();
+  const resolvedTitle = title ?? t("gone.title");
+  const resolvedMessage = message ?? t("gone.message");
   const reasonText = {
-    author: "Yazar tarafından silindi",
-    moderation: "Topluluk kuralları uyarınca moderasyon tarafından kaldırıldı",
-    unknown: "İçerik silinmiş olarak işaretlendi",
+    author: t("gone.reason_author"),
+    moderation: t("gone.reason_moderation"),
+    unknown: t("gone.reason_unknown"),
   }[reason];
 
   return (
@@ -46,7 +52,7 @@ export function Gone({
       {/* 410 Rozeti */}
       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-destructive/10 text-destructive border border-destructive/20 text-xs font-semibold mb-6">
         <FileX2 className="w-3.5 h-3.5" />
-        <span>410 · Silinmiş İçerik</span>
+        <span>{t("gone.badge")}</span>
       </div>
 
       {/* İkon */}
@@ -59,20 +65,21 @@ export function Gone({
         id="gone-title"
         className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-serif mb-3"
       >
-        {title}
+        {resolvedTitle}
       </h1>
 
-      <p className="text-sm text-muted-foreground leading-relaxed max-w-md mb-6">{message}</p>
+      <p className="text-sm text-muted-foreground leading-relaxed max-w-md mb-6">
+        {resolvedMessage}
+      </p>
 
       {/* İlke 7 Bilgi Kutusu */}
       <div className="w-full p-4 rounded-xl bg-surface-2/60 border border-border/80 text-left text-xs space-y-2 mb-8">
         <div className="flex items-center gap-1.5 font-medium text-foreground">
           <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span>İlke 7: Silinmiş ≠ Hiç Olmamış</span>
+          <span>{t("gone.principle_title")}</span>
         </div>
         <p className="text-muted-foreground text-[11px] leading-normal">
-          Actos, kaldırılan içerikleri 404 (bulunamadı) gibi gizlemez. Gönderinin daha önce var
-          olduğu, ancak şu an yayında olmadığı açıkça belirtilir.
+          {t("gone.principle_description")}
         </p>
         {(author || deletedAt || reason !== "unknown") && (
           <div className="pt-2 border-t border-border/50 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
@@ -100,14 +107,14 @@ export function Gone({
         <Button asChild variant="default" size="default" className="gap-2 rounded-xl">
           <Link href="/">
             <Home className="w-4 h-4" />
-            <span>Akışa Dön</span>
+            <span>{t("gone.back_to_feed")}</span>
           </Link>
         </Button>
         {author && (
           <Button asChild variant="outline" size="default" className="gap-2 rounded-xl">
             <Link href={`/u/${author.username}`}>
               <ArrowLeft className="w-4 h-4" />
-              <span>Yazarın Profiline Git</span>
+              <span>{t("gone.author_profile")}</span>
             </Link>
           </Button>
         )}

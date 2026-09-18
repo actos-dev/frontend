@@ -42,6 +42,7 @@ describe("Faz 6 — Ana Akış ve Bileşen Testleri", () => {
   const samplePost: Post = {
     id: "c_test_1",
     contentType: "post",
+    isCrossPost: false,
     title: "Rust'ta ltree ile nested yorum ağacı",
     body: "Postgres'in ltree eklentisi ile 32 seviyeli yorum ağacını test ediyoruz.",
     bodyHtml:

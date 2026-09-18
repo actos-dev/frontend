@@ -1,5 +1,6 @@
 "use client";
 
+import type { PermissionSummary } from "actos";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -16,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
 import {
-  capabilitiesFromRoles,
+  capabilitiesFromPermissions,
   hasModCapability,
   type ModCapability,
 } from "@/lib/mod/capabilities";
@@ -27,8 +28,7 @@ interface ModNavProps {
   initialUser?: {
     username: string;
     displayName?: string | null;
-    role?: string;
-    roles?: string[];
+    permissions?: PermissionSummary[];
   };
   capabilities?: ModCapability[];
 }
@@ -39,9 +39,9 @@ export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNa
   const sessionUser = useSessionStore((state) => state.user);
 
   const currentUser = sessionUser || initialUser;
-  const roles = currentUser?.roles || (currentUser?.role ? [currentUser.role] : []);
-  const isAdmin = roles.includes("admin") || currentUser?.role === "admin";
-  const capabilities = initialCapabilities ?? capabilitiesFromRoles(roles);
+  const capabilities =
+    initialCapabilities ?? capabilitiesFromPermissions(currentUser?.permissions ?? []);
+  const isAdmin = hasModCapability(capabilities, "roles:manage");
 
   const navItems = [
     {

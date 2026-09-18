@@ -64,6 +64,7 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
   const samplePost: Post = {
     id: "c_post_101",
     contentType: "post",
+    isCrossPost: false,
     title: "Rust dilinde bellek güvenliği ve performans",
     body: "Rust sahiplik (ownership) ve ödünç alma (borrowing) kuralları ile bellek sızıntılarını derleme zamanında engeller.",
     bodyHtml: "<p>Rust sahiplik (ownership) kuralları...</p>",
@@ -91,6 +92,7 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
   const sampleComment: Post = {
     id: "c_comment_201",
     contentType: "comment",
+    isCrossPost: false,
     title: null,
     body: "Postgres indexleme stratejilerinde B-Tree ve GIN farkını iyi anlamak gerekiyor.",
     bodyHtml: "<p>Postgres indexleme stratejilerinde B-Tree...</p>",
@@ -317,7 +319,7 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
       const pageJsx = await TagsPage();
       render(pageJsx);
 
-      expect(screen.getByText("Etiketler")).toBeInTheDocument();
+      expect(screen.getByText("Tags")).toBeInTheDocument();
       expect(screen.getByText("rust")).toBeInTheDocument();
       expect(screen.getByText("128 posts")).toBeInTheDocument();
       expect(screen.getByText("postgres")).toBeInTheDocument();

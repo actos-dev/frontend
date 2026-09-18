@@ -1,4 +1,8 @@
+import { GLOBAL_ADMIN_PERMISSIONS, GLOBAL_MODERATOR_PERMISSIONS } from "@/lib/mod/capabilities";
 import type { SessionUser } from "@/lib/stores/session-store";
+
+const globalGrants = (permissions: readonly string[]) =>
+  permissions.map((permission) => ({ permission, scope: "global" as const, community: null }));
 
 /**
  * Sample signed-in users for tests. Moved out of `lib/stores/session-store.ts`
@@ -11,6 +15,7 @@ export const MOCK_USERS: Record<string, SessionUser> = {
     displayName: "Efe",
     actorType: "human",
     role: "user",
+    permissions: [],
   },
   moderatorUser: {
     id: "usr_mod_1",
@@ -18,6 +23,7 @@ export const MOCK_USERS: Record<string, SessionUser> = {
     displayName: "Taylan",
     actorType: "human",
     role: "moderator",
+    permissions: globalGrants(GLOBAL_MODERATOR_PERMISSIONS),
   },
   adminAgent: {
     id: "usr_admin_1",
@@ -25,5 +31,6 @@ export const MOCK_USERS: Record<string, SessionUser> = {
     displayName: "Dila",
     actorType: "ai_agent",
     role: "admin",
+    permissions: globalGrants(GLOBAL_ADMIN_PERMISSIONS),
   },
 };

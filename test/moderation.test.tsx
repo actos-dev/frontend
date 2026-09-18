@@ -27,7 +27,11 @@ import { ResolveReportDialog } from "@/components/mod/resolve-report-dialog";
 import { RolesManager } from "@/components/mod/roles-manager";
 import { toast } from "@/components/ui/toast";
 import * as actosLib from "@/lib/actos";
-import { capabilitiesFromRoles } from "@/lib/mod/capabilities";
+import {
+  capabilitiesFromPermissions,
+  GLOBAL_ADMIN_PERMISSIONS,
+  GLOBAL_MODERATOR_PERMISSIONS,
+} from "@/lib/mod/capabilities";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { MOCK_USERS } from "@/test/fixtures/users";
 
@@ -59,6 +63,9 @@ vi.mock("@/components/ui/toast", () => ({
 describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () => {
   const originalFetch = global.fetch;
 
+  const globalGrants = (permissions: readonly string[]) =>
+    permissions.map((permission) => ({ permission, scope: "global" as const, community: null }));
+
   const mockAdminWhoami = {
     actor: {
       id: "usr_admin_1",
@@ -66,7 +73,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       displayName: "Dila Admin",
       actorType: "ai_agent",
     },
-    roles: ["admin", "moderator"],
+    permissions: globalGrants(GLOBAL_ADMIN_PERMISSIONS),
     key: { id: "k_1", createdAt: new Date().toISOString() },
   };
 
@@ -77,7 +84,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       displayName: "Taylan Mod",
       actorType: "human",
     },
-    roles: ["moderator"],
+    permissions: globalGrants(GLOBAL_MODERATOR_PERMISSIONS),
     key: { id: "k_2", createdAt: new Date().toISOString() },
   };
 
@@ -88,7 +95,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       displayName: "Efe",
       actorType: "human",
     },
-    roles: [],
+    permissions: [],
     key: { id: "k_3", createdAt: new Date().toISOString() },
   };
 
@@ -244,8 +251,11 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       useSessionStore.setState({ user: null });
       render(
         <ModNav
-          initialUser={{ ...mockModeratorWhoami.actor, roles: ["moderator"] }}
-          capabilities={capabilitiesFromRoles(["moderator"])}
+          initialUser={{
+            ...mockModeratorWhoami.actor,
+            permissions: mockModeratorWhoami.permissions,
+          }}
+          capabilities={capabilitiesFromPermissions(mockModeratorWhoami.permissions)}
         />,
       );
 
@@ -629,12 +639,13 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
      ========================================================================== */
   describe("7. Rol Atama (Yalnızca Admin)", () => {
     it("Admin kullanıcısı /api/mod/roles ile moderatör atayabilir", async () => {
-      const mockSetRole = vi.fn().mockResolvedValue(undefined);
+      const mockGrant = vi.fn().mockResolvedValue(undefined);
       vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
         auth: { whoami: vi.fn().mockResolvedValue(mockAdminWhoami) },
         admin: {
-          roles: {
-            set: mockSetRole,
+          permissions: {
+            grant: mockGrant,
+            revoke: vi.fn(),
           },
         },
       } as unknown as actosLib.Actos);
@@ -646,19 +657,21 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
 
       const res = await postRolesRoute(req);
       expect(res.status).toBe(200);
-      expect(mockSetRole).toHaveBeenCalledWith({
+      expect(mockGrant).toHaveBeenCalledTimes(GLOBAL_MODERATOR_PERMISSIONS.length);
+      expect(mockGrant).toHaveBeenCalledWith({
         username: "yeni_mod",
-        role: "moderator",
+        permission: "report.view",
       });
     });
 
     it("Admin kullanıcısı rolü geri alabilir (role: null)", async () => {
-      const mockSetRole = vi.fn().mockResolvedValue(undefined);
+      const mockRevoke = vi.fn().mockResolvedValue(undefined);
       vi.spyOn(actosLib, "getServerClient").mockResolvedValue({
         auth: { whoami: vi.fn().mockResolvedValue(mockAdminWhoami) },
         admin: {
-          roles: {
-            set: mockSetRole,
+          permissions: {
+            grant: vi.fn(),
+            revoke: mockRevoke,
           },
         },
       } as unknown as actosLib.Actos);
@@ -670,9 +683,10 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
 
       const res = await postRolesRoute(req);
       expect(res.status).toBe(200);
-      expect(mockSetRole).toHaveBeenCalledWith({
+      expect(mockRevoke).toHaveBeenCalledTimes(GLOBAL_ADMIN_PERMISSIONS.length);
+      expect(mockRevoke).toHaveBeenCalledWith({
         username: "eski_mod",
-        role: null,
+        permission: "role.grant",
       });
     });
 

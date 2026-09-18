@@ -15,6 +15,7 @@ import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { getServerLocale, getTranslations } from "@/lib/i18n";
 import { commentQueryOptions } from "@/lib/query/queries";
 import { makeServerQueryClient, seedInfinitePage } from "@/lib/query/server";
 import type { CommentQueryPage } from "@/lib/query/types";
@@ -54,6 +55,7 @@ function classifyPostError(err: unknown): "gone" | "not-found" | "error" {
  * Plan Faz 7 Gereksinim 6
  */
 export async function generateMetadata(props: PostPageProps): Promise<Metadata> {
+  const { t } = getTranslations(await getServerLocale());
   const { id } = await props.params;
 
   let post: Post | null = null;
@@ -76,8 +78,8 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
 
   if (isGone || post?.deleted) {
     return {
-      title: "410 İçerik Silindi — Actos",
-      description: "Bu gönderi silinmiş veya yayından kaldırılmıştır.",
+      title: `${t("postPage.gone_metadata_title")} — Actos`,
+      description: t("postPage.gone_metadata_description"),
       robots: { index: false, follow: false },
     };
   }
@@ -93,8 +95,8 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
 
   if (!post) {
     return {
-      title: "Gönderi Bulunamadı — Actos",
-      description: "Aradığınız gönderi mevcut değil.",
+      title: `${t("postPage.not_found_title")} — Actos`,
+      description: t("postPage.not_found_description"),
     };
   }
 
@@ -102,7 +104,7 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
   const canonicalSlug = slugify(post.title || "post");
   const canonicalUrl = `${siteUrl}/posts/${post.id}/${canonicalSlug}`;
   const bodyExcerpt = excerpt(post.body, 160);
-  const authorName = post.author?.displayName || post.author?.username || "Actos Yazarı";
+  const authorName = post.author?.displayName || post.author?.username || t("postPage.author");
 
   // Raw attachments or thumbnail
   const rawAttachments = post.attachments as
@@ -114,13 +116,13 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
     `${siteUrl}/posts/${post.id}/opengraph-image`;
 
   return {
-    title: `${post.title || "Gönderi"} — Actos`,
+    title: `${post.title || t("postPage.post")} — Actos`,
     description: bodyExcerpt,
     alternates: {
       canonical: canonicalUrl,
     },
     openGraph: {
-      title: `${post.title || "Gönderi"} — Actos`,
+      title: `${post.title || t("postPage.post")} — Actos`,
       description: bodyExcerpt,
       url: canonicalUrl,
       type: "article",
@@ -133,13 +135,13 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
           url: imageUrl,
           width: 1200,
           height: 630,
-          alt: post.title || "Actos Gönderisi",
+          alt: post.title || t("postPage.preview_alt"),
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${post.title || "Gönderi"} — Actos`,
+      title: `${post.title || t("postPage.post")} — Actos`,
       description: bodyExcerpt,
       images: [imageUrl],
     },
@@ -151,6 +153,7 @@ export async function generateMetadata(props: PostPageProps): Promise<Metadata> 
  * Plan Faz 7 Gereksinimleri 1 - 5
  */
 export default async function PostDetailPage(props: PostPageProps) {
+  const { t } = getTranslations(await getServerLocale());
   const { id, slug: slugArray } = await props.params;
 
   let post: Post | null = null;
@@ -203,7 +206,7 @@ export default async function PostDetailPage(props: PostPageProps) {
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Akışa Dön</span>
+              <span>{t("postPage.back_to_feed")}</span>
             </Link>
           </div>
           <ErrorStateRetry {...describeError(loadError)} />
@@ -223,12 +226,12 @@ export default async function PostDetailPage(props: PostPageProps) {
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Akışa Dön</span>
+              <span>{t("postPage.back_to_feed")}</span>
             </Link>
           </div>
           <Gone
-            title="Bu içerik silindi"
-            message="Bu gönderi daha önce Actos'ta mevcuttu, ancak yazarın kendi isteğiyle veya moderasyon kararıyla kaldırıldı."
+            title={t("gone.title")}
+            message={t("gone.post_message")}
             author={
               post?.author
                 ? {
@@ -335,7 +338,7 @@ export default async function PostDetailPage(props: PostPageProps) {
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium group"
           >
             <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
-            <span>Akışa Dön</span>
+            <span>{t("postPage.back_to_feed")}</span>
           </Link>
         </div>
 

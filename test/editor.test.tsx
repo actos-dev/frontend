@@ -71,6 +71,7 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
   const sampleAuthorPost: Post = {
     id: "c_post_author",
     contentType: "post",
+    isCrossPost: false,
     title: "Yazarın Kendi Gönderisi",
     body: "Düzenlenebilir orijinal gövde metni.",
     bodyHtml: "<p>Düzenlenebilir orijinal gövde metni.</p>",
@@ -97,6 +98,7 @@ describe("Faz 10 — Post Editörü Test Paketi", () => {
   const sampleOtherUserPost: Post = {
     id: "c_post_other",
     contentType: "post",
+    isCrossPost: false,
     title: "Başka Yazarın Gönderisi",
     body: "Bu post başka bir kullanıcıya ait.",
     bodyHtml: "<p>Bu post başka bir kullanıcıya ait.</p>",

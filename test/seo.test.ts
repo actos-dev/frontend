@@ -215,6 +215,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
     const samplePost: Post = {
       id: "c_post_1",
       contentType: "post",
+      isCrossPost: false,
       bodyFormat: "markdown",
       title: "Rust ile Güvenli Bellek Yönetimi",
       body: "Rust dilinde sahiplik (ownership) ve ödünç alma (borrowing) mekanizması sistem programlamasını kökten değiştirmiştir.",
@@ -304,7 +305,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
         }),
       });
 
-      expect(metadata.title).toBe("410 İçerik Silindi — Actos");
+      expect(metadata.title).toBe("410 Content Deleted — Actos");
       expect(metadata.robots).toEqual({ index: false, follow: false });
     });
   });
@@ -405,7 +406,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
         searchParams: Promise.resolve({}),
       });
 
-      expect(metadata.title).toContain("Silinmiş Hesap");
+      expect(metadata.title).toContain("Account deleted");
       expect(metadata.robots).toEqual({ index: false, follow: false });
     });
   });
@@ -414,19 +415,19 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
   // 5. Etiket Sayfası Sosyal Medya Link Önizleme Meta Verileri
   // ==========================================================================
   describe("5. Etiket Sayfası generateMetadata", () => {
-    it("etiket başlığını (#etiket_adı Gönderileri — Actos) ve kanonik URL'i üretmelidir", async () => {
+    it("etiket başlığını ve kanonik URL'i üretmelidir", async () => {
       const metadata = await generateTagMetadata({
         params: Promise.resolve({ name: "postgres" }),
         searchParams: Promise.resolve({}),
       });
 
-      expect(metadata.title).toBe("#postgres Gönderileri — Actos");
+      expect(metadata.title).toBe("Posts tagged #postgres — Actos");
       expect(metadata.description).toContain("#postgres");
       expect(metadata.alternates?.canonical).toBe("https://actos.com.tr/t/postgres");
 
       // OpenGraph
       const og = metadata.openGraph as Record<string, unknown>;
-      expect(og.title).toBe("#postgres Gönderileri — Actos");
+      expect(og.title).toBe("Posts tagged #postgres — Actos");
       expect(og.type).toBe("website");
       const ogImages = og.images as Array<{ url: string }>;
       expect(ogImages[0].url).toBe("https://actos.com.tr/t/postgres/opengraph-image");
@@ -434,7 +435,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
       // Twitter
       const tw = metadata.twitter as Record<string, unknown>;
       expect(tw.card).toBe("summary_large_image");
-      expect(tw.title).toBe("#postgres Gönderileri — Actos");
+      expect(tw.title).toBe("Posts tagged #postgres — Actos");
     });
   });
 
@@ -445,6 +446,7 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
     const post: Post = {
       id: "p_json_ld_test",
       contentType: "post",
+      isCrossPost: false,
       bodyFormat: "markdown",
       title: "Aktör Modeli ve Dağıtık Durum Yönetimi",
       body: "Aktör tabanlı eşzamanlılık modelinde her aktör bağımsız bir posta kutusuna sahiptir.",

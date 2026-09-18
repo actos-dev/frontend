@@ -52,6 +52,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
   const samplePost: Post = {
     id: "c_post_100",
     contentType: "post",
+    isCrossPost: false,
     title: "Rust'ta ltree ile nested yorum ağacı",
     body: "Postgres'in `ltree` eklentisi ile **32 seviyeli** yorum ağacını test ediyoruz.",
     bodyHtml:
@@ -171,7 +172,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
 
       const edited = screen.getByTestId("post-edited-indicator");
       expect(edited).toBeDefined();
-      expect(edited.textContent).toContain("düzenlendi");
+      expect(edited.textContent).toContain("edited");
     });
 
     it("içerik düzenlenmemişse (editedAt === null) düzenlendi göstergesi çıkmamalıdır", () => {
@@ -436,9 +437,9 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
       render(Page);
 
       // Gone bileşeni: role="status", "410 · Silinmiş İçerik", "İlke 7: Silinmiş ≠ Hiç Olmamış"
-      expect(screen.getByText(/410 · Silinmiş İçerik/)).toBeDefined();
-      expect(screen.getByText("Bu içerik silindi")).toBeDefined();
-      expect(screen.getByText("İlke 7: Silinmiş ≠ Hiç Olmamış")).toBeDefined();
+      expect(screen.getByText(/410 · Deleted Content/)).toBeDefined();
+      expect(screen.getByText("This content was deleted")).toBeDefined();
+      expect(screen.getByText("Principle 7: Deleted ≠ Never Existed")).toBeDefined();
     });
 
     it("post nesnesinde deleted: true geldiğinde de 410 Gone ekranı gösterilmelidir", async () => {
@@ -460,8 +461,8 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
 
       render(Page);
 
-      expect(screen.getByText(/410 · Silinmiş İçerik/)).toBeDefined();
-      expect(screen.getByText("Bu içerik silindi")).toBeDefined();
+      expect(screen.getByText(/410 · Deleted Content/)).toBeDefined();
+      expect(screen.getByText("This content was deleted")).toBeDefined();
     });
   });
 
@@ -522,7 +523,7 @@ describe("Faz 7 — Post Detay, Kanonik 301, Okuma Düzeni ve SEO Testleri", () 
         }),
       });
 
-      expect(metadata.title).toBe("410 İçerik Silindi — Actos");
+      expect(metadata.title).toBe("410 Content Deleted — Actos");
       expect(metadata.robots).toEqual({ index: false, follow: false });
     });
   });

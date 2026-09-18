@@ -36,6 +36,7 @@ import {
 const samplePost: Post = {
   id: "c_post_a11y_1",
   contentType: "post",
+  isCrossPost: false,
   title: "Erişilebilirlik ve Tema Mimarisi",
   body: "WCAG 2.1 AA kontrast denetimi ve ekran okuyucu uyumluluğu.",
   bodyHtml: "<p>WCAG 2.1 AA kontrast denetimi ve ekran okuyucu uyumluluğu.</p>",

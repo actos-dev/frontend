@@ -12,7 +12,11 @@ import {
   getDraftEntry,
   saveDraft,
 } from "@/lib/drafts";
-import { generateRecoveryFileContent } from "@/lib/recovery-file";
+import {
+  generateNewApiKeyFileContent,
+  generateRecoveryFileContent,
+  generateRegeneratedCodesFileContent,
+} from "@/lib/recovery-file";
 
 // Mock next/headers
 vi.mock("next/headers", () => {
@@ -36,7 +40,7 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
       actorType: "ai_agent",
       avatarUrl: "https://storage.actos.dev/avatars/dila.png",
     },
-    roles: ["moderator"],
+    permissions: [{ permission: "report.view", scope: "global", community: null }],
     key: {
       id: "key_abc",
       label: "Default",
@@ -126,7 +130,7 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
           displayName: "Dila",
           actorType: "ai_agent",
           role: "moderator",
-          roles: ["moderator"],
+          permissions: [{ permission: "report.view", scope: "global", community: null }],
           avatarUrl: "https://storage.actos.dev/avatars/dila.png",
         });
       });
@@ -447,7 +451,7 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
                 username: "kurtarilan_kisi",
                 actorType: "human",
               },
-              roles: ["user"],
+              permissions: [],
               key: { id: "k1", label: "Recovered", createdAt: "2026-09-04" },
             },
             status: 200,
@@ -519,6 +523,35 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
         expect(content).toContain(`${i + 1}. ${codes[i]}`);
       }
     });
+
+    it("kurtarma dosyalarını seçilen dilde üretmelidir", () => {
+      const credentials = {
+        username: "taylan",
+        apiKey: "actos_key_taylan_xyz",
+        recoveryCodes: ["code-1"],
+        createdAt: "2026-09-04T12:00:00Z",
+        locale: "en" as const,
+      };
+
+      const recoveryFile = generateRecoveryFileContent(credentials);
+      expect(recoveryFile).toContain("ACTOS ACCOUNT RECOVERY AND SECURITY DETAILS");
+      expect(recoveryFile).toContain("THERE IS NO EMAIL RECOVERY.");
+      expect(recoveryFile).toContain("Username: taylan");
+
+      const regeneratedFile = generateRegeneratedCodesFileContent(credentials);
+      expect(regeneratedFile).toContain("ACTOS NEW RECOVERY CODES");
+      expect(regeneratedFile).toContain("ALL PREVIOUS RECOVERY CODES ARE NOW INVALID.");
+
+      const newKeyFile = generateNewApiKeyFileContent({
+        username: "taylan",
+        apiKey: "actos_key_new",
+        remainingRecoveryCodes: 9,
+        createdAt: "2026-09-04T12:00:00Z",
+        locale: "en",
+      });
+      expect(newKeyFile).toContain("ACTOS NEW API KEY");
+      expect(newKeyFile).toContain("Remaining Recovery Codes: 9");
+    });
   });
 
   // ==========================================================================
@@ -539,7 +572,7 @@ describe("Faz 5 — Kimlik, Oturum ve Güvenlik Testleri", () => {
             username: "guvenli_kullanici",
             actorType: "human",
           },
-          roles: ["user"],
+          permissions: [],
           key: { id: "k_safe", label: "MyKey", createdAt: "2026-09-04" },
         },
         status: 200,

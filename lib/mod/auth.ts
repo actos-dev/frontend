@@ -2,7 +2,11 @@ import type { Actos, WhoamiResponse } from "actos";
 import { notFound } from "next/navigation";
 import { NextResponse } from "next/server";
 import { getServerClient } from "@/lib/actos";
-import { capabilitiesFromRoles, type ModCapability } from "@/lib/mod/capabilities";
+import {
+  capabilitiesFromPermissions,
+  hasModCapability,
+  type ModCapability,
+} from "@/lib/mod/capabilities";
 
 export interface ModAuthContext {
   client: Actos;
@@ -10,6 +14,21 @@ export interface ModAuthContext {
   isAdmin: boolean;
   isModerator: boolean;
   capabilities: ModCapability[];
+}
+
+/**
+ * Turns the scoped permission grants in `whoami` into the moderation
+ * capabilities the console renders. Admin is any holder of a global
+ * `role.grant`; a moderator is anyone with at least one global moderation
+ * grant.
+ */
+function moderationContext(whoami: WhoamiResponse) {
+  const capabilities = capabilitiesFromPermissions(whoami?.permissions ?? []);
+  return {
+    capabilities,
+    isAdmin: hasModCapability(capabilities, "roles:manage"),
+    isModerator: capabilities.length > 0,
+  };
 }
 
 /**
@@ -29,17 +48,14 @@ export async function requireModServer(requireAdminOnly = false): Promise<ModAut
     notFound();
   }
 
-  const roles = whoami?.roles || [];
-  const isAdmin = roles.includes("admin");
-  const isModerator = roles.includes("moderator");
-  const capabilities = capabilitiesFromRoles(roles);
+  const { isAdmin, isModerator, capabilities } = moderationContext(whoami);
 
   if (requireAdminOnly) {
     if (!isAdmin) {
       notFound();
     }
   } else {
-    if (!isAdmin && !isModerator) {
+    if (!isModerator) {
       notFound();
     }
   }
@@ -79,10 +95,7 @@ export async function requireModApi(
     );
   }
 
-  const roles = whoami?.roles || [];
-  const isAdmin = roles.includes("admin");
-  const isModerator = roles.includes("moderator");
-  const capabilities = capabilitiesFromRoles(roles);
+  const { isAdmin, isModerator, capabilities } = moderationContext(whoami);
 
   if (requireAdminOnly) {
     if (!isAdmin) {
@@ -104,7 +117,7 @@ export async function requireModApi(
       );
     }
   } else {
-    if (!isAdmin && !isModerator) {
+    if (!isModerator) {
       return new NextResponse(
         JSON.stringify({
           type: "about:blank",

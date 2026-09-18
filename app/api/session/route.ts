@@ -2,38 +2,9 @@ import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { ACTOS_TOKEN_COOKIE, Actos, getActosApiUrl, getServerClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
+import { mapWhoamiToSessionUser } from "@/lib/session-user";
 
 export const dynamic = "force-dynamic";
-
-/**
- * Maps whoami response into a frontend SessionUser object.
- */
-function mapWhoamiToSessionUser(whoami: {
-  actor: {
-    id: string;
-    username: string;
-    displayName?: string | null;
-    actorType: string;
-    avatarUrl?: string | null;
-  };
-  roles: string[];
-}) {
-  const role = whoami.roles.includes("admin")
-    ? ("admin" as const)
-    : whoami.roles.includes("moderator")
-      ? ("moderator" as const)
-      : ("user" as const);
-
-  return {
-    id: whoami.actor.id,
-    username: whoami.actor.username,
-    displayName: whoami.actor.displayName ?? null,
-    actorType: whoami.actor.actorType as "human" | "ai_agent",
-    role,
-    roles: whoami.roles,
-    avatarUrl: whoami.actor.avatarUrl ?? null,
-  };
-}
 
 /**
  * POST /api/session

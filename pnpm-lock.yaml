@@ -33,8 +33,8 @@ importers:
         specifier: ^5.103.1
         version: 5.103.1(react@19.3.0)
       actos:
-        specifier: npm:@actos-dev/actos@^0.2.0
-        version: '@actos-dev/actos@0.2.0'
+        specifier: npm:@actos-dev/actos@^0.3.0
+        version: '@actos-dev/actos@0.3.0'
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -153,8 +153,8 @@ importers:
 
 packages:
 
-  '@actos-dev/actos@0.2.0':
-    resolution: {integrity: sha512-OE0IZPhMU2FQWeDy55gN9Mr1lvSbUhbZ36WY22oLM1xiUNXQ/AAocaM1542kS+VAFxnio2KgSQyzH4pv8tsSdg==}
+  '@actos-dev/actos@0.3.0':
+    resolution: {integrity: sha512-l/d90ixzKGYU/gdKdarXXWF5zFawdJYi3dCmQkUH4fjOEgzWVsiqdj37TyfIBWmpcbyW4qpcL5y0YjodWBSuzg==}
     engines: {node: '>=20'}
 
   '@adobe/css-tools@4.5.0':
@@ -2306,7 +2306,7 @@ packages:
 
 snapshots:
 
-  '@actos-dev/actos@0.2.0': {}
+  '@actos-dev/actos@0.3.0': {}
 
   '@adobe/css-tools@4.5.0': {}
 

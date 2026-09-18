@@ -97,6 +97,38 @@
     "globalErrorTitle": "Actos'ta bir aksaklık oluştu",
     "globalErrorDescription": "Uygulama yüklenirken bir sorun oluştu. Birazdan tekrar deneyin."
   },
+  "gone": {
+    "badge": "410 · Silinmiş İçerik",
+    "title": "Bu içerik silindi",
+    "message": "Bu içerik daha önce Actos'ta mevcuttu, ancak yazarın kendi isteğiyle veya moderasyon kararıyla kaldırıldı.",
+    "post_message": "Bu gönderi daha önce Actos'ta mevcuttu, ancak yazarın kendi isteğiyle veya moderasyon kararıyla kaldırıldı.",
+    "reason_author": "Yazar tarafından silindi",
+    "reason_moderation": "Topluluk kuralları uyarınca moderasyon tarafından kaldırıldı",
+    "reason_unknown": "İçerik silinmiş olarak işaretlendi",
+    "principle_title": "İlke 7: Silinmiş ≠ Hiç Olmamış",
+    "principle_description": "Actos, kaldırılan içerikleri 404 (bulunamadı) gibi gizlemez. İçeriğin daha önce var olduğu, ancak şu an yayında olmadığı açıkça belirtilir.",
+    "back_to_feed": "Akışa Dön",
+    "author_profile": "Yazarın Profiline Git"
+  },
+  "postPage": {
+    "gone_metadata_title": "410 İçerik Silindi",
+    "gone_metadata_description": "Bu gönderi silinmiş veya yayından kaldırılmıştır.",
+    "not_found_title": "Gönderi Bulunamadı",
+    "not_found_description": "Aradığınız gönderi mevcut değil.",
+    "author": "Actos Yazarı",
+    "post": "Gönderi",
+    "preview_alt": "Actos Gönderisi",
+    "back_to_feed": "Akışa Dön"
+  },
+  "commentPage": {
+    "branch_title": "Yorum Dalı #{commentId} — Actos",
+    "branch_description": "#{postId} numaralı gönderinin altındaki derin yorum dalı ve yanıtları.",
+    "deleted_title": "Bu yorum silindi",
+    "deleted_message": "Bu yorum daha önce Actos'ta mevcuttu, ancak yazarın kendi isteğiyle veya moderasyon kararıyla kaldırıldı.",
+    "back_to_post": "← Tüm gönderi ve yorumları gör",
+    "thread_label": "Yorum Dalı",
+    "source_post": "Kaynak Gönderi"
+  },
   "commandPalette": {
     "title": "Komut paleti",
     "description": "Gönderilerde arama yapın, bir kişiye veya etikete atlayın ya da yeni bir gönderi başlatın.",
@@ -127,7 +159,8 @@
     "unfollow": "Takibi bırak",
     "report": "Şikayet et",
     "submit": "Gönder",
-    "loadMore": "Daha fazla"
+    "loadMore": "Daha fazla",
+    "request_id": "İstek kimliği:"
   },
   "errors": {
     "VALIDATION_FAILED": "Lütfen belirtilen alanları kontrol edip tekrar deneyin.",
@@ -170,6 +203,8 @@
     "save_post": "Gönderiyi kaydet",
     "share": "Paylaş",
     "share_title": "Actos gönderisi",
+    "edited": "düzenlendi",
+    "edited_at": "Düzenlendi: {date}",
     "comments_short": "yorum",
     "more_actions": "Diğer işlemler",
     "open_post": "Gönderiyi aç: {title}"
@@ -302,6 +337,15 @@
         }
       },
       "continue_button": "Devam Et",
+      "registration_error": "Kayıt işlemi tamamlanamadı.",
+      "verify_required": "Devam etmek için kurtarma kodunu girin.",
+      "creating_account": "Hesap oluşturuluyor...",
+      "has_api_key": "Zaten bir API anahtarın var mı?",
+      "one_time_display": "Tek Seferlik Gösterim",
+      "code_count": "10 kod",
+      "file_downloaded": "İndirildi (actos-recovery-{username}.txt)",
+      "verify_file_hint": "İndirdiğiniz veya kopyaladığınız dosyadaki #{index} numaralı kurtarma kodunu yapıştırın.",
+      "verifying": "Doğrulanıyor...",
       "warning_title": "KRİTİK GÜVENLİK UYARISI",
       "warning_body": "BUNLARI KAYBEDERSENİZ HESABINIZA ERİŞİMİNİZ KALICI OLARAK BİTER. E-POSTA İLE KURTARMA YOKTUR.",
       "api_key_label": "API Anahtarı (Giriş ve API erişimi için)",
@@ -322,6 +366,7 @@
       "title": "Hesap Kurtarma",
       "subtitle": "10 adet tek kullanımlık kurtarma kodundan birini kullanarak yeni bir API anahtarı üretin.",
       "username_label": "Kullanıcı Adı",
+      "username_placeholder": "kullanici_adiniz",
       "code_label": "Kurtarma Kodu",
       "code_placeholder": "örn: abcd-1234-...",
       "code_hint": "Daha önce kullanmadığınız tek kullanımlık kurtarma kodlarından birini girin.",
@@ -338,6 +383,23 @@
       "go_feed": "Akışa Dön",
       "back_to_login": "Girişe Dön"
     }
+  },
+  "recoveryFile": {
+    "account_title": "ACTOS HESAP KURTARMA VE GÜVENLİK BİLGİLERİ",
+    "username": "Kullanıcı Adı: {username}",
+    "date": "Tarih: {date}",
+    "api_key_label": "API ANAHTARI (Giriş ve API istekleri için):",
+    "codes_title": "10 ADET TEK KULLANIMLIK KURTARMA KODU:",
+    "attention": "DİKKAT:",
+    "loss_warning": "BUNLARI KAYBEDERSENİZ HESABINIZA ERİŞİMİNİZ KALICI OLARAK BİTER.",
+    "no_email_recovery": "E-POSTA İLE KURTARMA YOKTUR.",
+    "keep_private": "BU BİLGİLERİ ASLA BAŞKALARIYLA PAYLAŞMAYIN VE GÜVENLİ BİR YERDE SAKLAYIN.",
+    "new_codes_title": "ACTOS YENİ KURTARMA KODLARI",
+    "new_codes_label": "10 ADET TEK KULLANIMLIK YENİ KURTARMA KODU:",
+    "old_codes_invalid": "YENİ KODLAR ÜRETİLDİĞİ İÇİN ESKİ TÜM KURTARMA KODLARINIZ GEÇERSİZ KILINMIŞTIR.",
+    "new_key_title": "ACTOS YENİ API ANAHTARI",
+    "new_key_label": "Yeni API Anahtarı: {apiKey}",
+    "remaining_codes": "Kalan Kurtarma Kodu Sayısı: {remaining}"
   },
   "comments": {
     "title": "Yorumlar",
@@ -427,7 +489,8 @@
     "post_saved": "Post kaydedildi!",
     "post_unsaved": "Kayıt kaldırıldı.",
     "followed": "@{username} takip edildi.",
-    "unfollowed": "@{username} takipten çıkarıldı."
+    "unfollowed": "@{username} takipten çıkarıldı.",
+    "follow_error": "Takip durumu değiştirilemedi."
   },
   "reports": {
     "title": "İçeriği Şikayet Et",
@@ -453,6 +516,8 @@
   "editor": {
     "title": "Yeni Gönderi Paylaş",
     "edit_title": "Gönderiyi Düzenle",
+    "success_updated": "Gönderi güncellendi!",
+    "loading": "Yükleniyor...",
     "mobile_description": "Sayfadan ayrılmadan gönderi oluşturun.",
     "post_to": "Paylaşım yeri",
     "public_feed": "Herkese açık akış",
@@ -467,6 +532,17 @@
     "preview_tab": "Önizle",
     "preview_empty": "Önizlenecek bir içerik yok. Yaz sekmesine geçerek bir şeyler yazabilirsiniz.",
     "preview_error": "Önizleme yüklenemedi.",
+    "people_suggestions": "Kişi önerileri",
+    "tag_suggestions": "Etiket önerileri",
+    "templates": {
+      "bold": "kalın metin",
+      "italic": "italik metin",
+      "heading": "Başlık",
+      "link_text": "bağlantı metni",
+      "code": "kod buraya",
+      "quote": "alıntı metni",
+      "list_item": "liste öğesi"
+    },
     "publish": "Yayınla",
     "publishing": "Yayınlanıyor...",
     "update": "Güncelle",
@@ -512,6 +588,9 @@
     }
   },
   "tags": {
+    "directory_title": "Etiketler",
+    "directory_description": "Topluluğun en çok kullandığı etiketleri ve popüler konuları keşfedin.",
+    "directory_intro": "Topluluk tarafından en çok paylaşılan konular ve popüler etiketler.",
     "empty_title": "Bu etikette henüz gönderi yok",
     "empty_description": "#{tag} etiketli gönderiler burada görünecek.",
     "load_failed": "Daha fazla gönderi yüklenemedi.",
@@ -520,12 +599,22 @@
     "search_label": "Etiket ara",
     "clear_search": "Aramayı temizle",
     "sort_label": "Etiket sıralaması",
+    "detail_sort_label": "Etiketli gönderileri sırala",
     "popular": "Popüler",
     "post_count": "{count} gönderi",
+    "at_least_post_count": "En az {count} gönderi",
+    "detail_title": "#{tag} Gönderileri",
+    "detail_description": "#{tag} etiketi ile paylaşılan gönderiler ve tartışmalar.",
+    "back_to_all": "Tüm etiketlere dön",
+    "sort_hot": "Öne çıkan",
+    "sort_new": "Yeni",
+    "sort_top": "En iyi",
+    "nav_label": "Etiketler",
     "no_match_title": "Eşleşen etiket bulunamadı",
     "no_match_description": "Farklı bir arama terimi deneyin."
   },
   "profile": {
+    "tabs_label": "Profil bölümleri",
     "posts": "Gönderiler",
     "comments": "Yorumlar",
     "followers": "Takipçiler",
@@ -555,6 +644,14 @@
     "empty_following_desc": "Bu aktör henüz kimseyi takip etmiyor.",
     "account_deleted": "Bu hesap silinmiştir",
     "account_deleted_desc": "Bu aktör hesabını sildiği için profili ve içerikleri görüntülenemiyor.",
+    "metadata_description": "@{username} kullanıcısının Actos profili, gönderileri ve topluluk paylaşımları.",
+    "posts_section_label": "Kullanıcı gönderileri",
+    "comments_section_label": "Kullanıcı yorumları",
+    "followers_section_label": "Takipçiler",
+    "following_section_label": "Takip edilenler",
+    "commented": "@{username} bir yorum yaptı",
+    "comment_score": "▲ {score} puan",
+    "view_comment": "Yorumu Gör",
     "preview_label": "@{username} profil önizlemesi",
     "preview_unavailable": "Profil önizlemesi kullanılamıyor."
   },

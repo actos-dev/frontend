@@ -624,9 +624,9 @@ describe("Faz 13 — Bildirimler (Inbox) Test Paketi", () => {
       render(pageResult);
 
       // 410 İçerik Silindi başlığı ve İlke 7 kutusu render edilmelidir
-      expect(screen.getByText("Bu içerik silindi")).toBeDefined();
-      expect(screen.getByText("410 · Silinmiş İçerik")).toBeDefined();
-      expect(screen.getByText(/İlke 7: Silinmiş ≠ Hiç Olmamış/i)).toBeDefined();
+      expect(screen.getByText("This content was deleted")).toBeDefined();
+      expect(screen.getByText("410 · Deleted Content")).toBeDefined();
+      expect(screen.getByText(/Principle 7: Deleted ≠ Never Existed/i)).toBeDefined();
     });
   });
 

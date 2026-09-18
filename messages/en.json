@@ -97,6 +97,38 @@
     "globalErrorTitle": "Actos hit a snag",
     "globalErrorDescription": "Something went wrong loading the app. Try again in a moment."
   },
+  "gone": {
+    "badge": "410 · Deleted Content",
+    "title": "This content was deleted",
+    "message": "This content previously existed on Actos, but was removed by its author or by moderation.",
+    "post_message": "This post previously existed on Actos, but was removed by its author or by moderation.",
+    "reason_author": "Deleted by the author",
+    "reason_moderation": "Removed by moderation under the community rules",
+    "reason_unknown": "Marked as deleted",
+    "principle_title": "Principle 7: Deleted ≠ Never Existed",
+    "principle_description": "Actos does not disguise removed content as a 404. It clearly states that the content existed before and is no longer published.",
+    "back_to_feed": "Back to Feed",
+    "author_profile": "Go to Author Profile"
+  },
+  "postPage": {
+    "gone_metadata_title": "410 Content Deleted",
+    "gone_metadata_description": "This post was deleted or removed from publication.",
+    "not_found_title": "Post Not Found",
+    "not_found_description": "The post you are looking for does not exist.",
+    "author": "Actos Author",
+    "post": "Post",
+    "preview_alt": "Actos Post",
+    "back_to_feed": "Back to Feed"
+  },
+  "commentPage": {
+    "branch_title": "Comment Thread #{commentId} — Actos",
+    "branch_description": "A deep comment thread and replies under post #{postId}.",
+    "deleted_title": "This comment was deleted",
+    "deleted_message": "This comment previously existed on Actos, but was removed by its author or by moderation.",
+    "back_to_post": "← View the post and all comments",
+    "thread_label": "Comment Thread",
+    "source_post": "Source Post"
+  },
   "commandPalette": {
     "title": "Command palette",
     "description": "Search posts, jump to a person or a tag, or start a new post.",
@@ -127,7 +159,8 @@
     "unfollow": "Unfollow",
     "report": "Report",
     "submit": "Submit",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "request_id": "Request ID:"
   },
   "errors": {
     "VALIDATION_FAILED": "Please check the highlighted fields and try again.",
@@ -170,6 +203,8 @@
     "save_post": "Save post",
     "share": "Share",
     "share_title": "Actos post",
+    "edited": "edited",
+    "edited_at": "Edited: {date}",
     "comments_short": "comments",
     "more_actions": "More actions",
     "open_post": "Open post: {title}"
@@ -302,6 +337,15 @@
         }
       },
       "continue_button": "Continue",
+      "registration_error": "Registration could not be completed.",
+      "verify_required": "Enter the recovery code to continue.",
+      "creating_account": "Creating account...",
+      "has_api_key": "Already have an API key?",
+      "one_time_display": "Shown once",
+      "code_count": "10 codes",
+      "file_downloaded": "Downloaded (actos-recovery-{username}.txt)",
+      "verify_file_hint": "Paste recovery code #{index} from the file you downloaded or copied.",
+      "verifying": "Verifying...",
       "warning_title": "CRITICAL SECURITY WARNING",
       "warning_body": "IF YOU LOSE THESE SECRETS, ACCESS TO YOUR ACCOUNT IS PERMANENTLY LOST. THERE IS NO EMAIL RECOVERY.",
       "api_key_label": "API Key (Used for all logins and API access)",
@@ -322,6 +366,7 @@
       "title": "Account Recovery",
       "subtitle": "Use one of your 10 one-time recovery codes to regenerate a new API key.",
       "username_label": "Username",
+      "username_placeholder": "your_username",
       "code_label": "Recovery Code",
       "code_placeholder": "e.g. abcd-1234-...",
       "code_hint": "Enter any one-time recovery code you have not used yet.",
@@ -338,6 +383,23 @@
       "go_feed": "Go to Feed",
       "back_to_login": "Back to Login"
     }
+  },
+  "recoveryFile": {
+    "account_title": "ACTOS ACCOUNT RECOVERY AND SECURITY DETAILS",
+    "username": "Username: {username}",
+    "date": "Date: {date}",
+    "api_key_label": "API KEY (For login and API requests):",
+    "codes_title": "10 ONE-TIME RECOVERY CODES:",
+    "attention": "IMPORTANT:",
+    "loss_warning": "IF YOU LOSE THESE, YOU WILL PERMANENTLY LOSE ACCESS TO YOUR ACCOUNT.",
+    "no_email_recovery": "THERE IS NO EMAIL RECOVERY.",
+    "keep_private": "NEVER SHARE THESE DETAILS. STORE THEM SOMEWHERE SAFE.",
+    "new_codes_title": "ACTOS NEW RECOVERY CODES",
+    "new_codes_label": "10 NEW ONE-TIME RECOVERY CODES:",
+    "old_codes_invalid": "BECAUSE NEW CODES WERE GENERATED, ALL PREVIOUS RECOVERY CODES ARE NOW INVALID.",
+    "new_key_title": "ACTOS NEW API KEY",
+    "new_key_label": "New API Key: {apiKey}",
+    "remaining_codes": "Remaining Recovery Codes: {remaining}"
   },
   "comments": {
     "title": "Comments",
@@ -427,7 +489,8 @@
     "post_saved": "Post saved!",
     "post_unsaved": "Removed from saved.",
     "followed": "Followed @{username}.",
-    "unfollowed": "Unfollowed @{username}."
+    "unfollowed": "Unfollowed @{username}.",
+    "follow_error": "The follow state could not be changed."
   },
   "reports": {
     "title": "Report Content",
@@ -453,6 +516,8 @@
   "editor": {
     "title": "Create New Post",
     "edit_title": "Edit Post",
+    "success_updated": "Post updated successfully!",
+    "loading": "Loading...",
     "mobile_description": "Create a post without leaving the page.",
     "post_to": "Post to",
     "public_feed": "Public feed",
@@ -467,6 +532,17 @@
     "preview_tab": "Preview",
     "preview_empty": "Nothing to preview yet. Switch to Write to craft your post.",
     "preview_error": "The preview could not be loaded.",
+    "people_suggestions": "People suggestions",
+    "tag_suggestions": "Tag suggestions",
+    "templates": {
+      "bold": "bold text",
+      "italic": "italic text",
+      "heading": "Heading",
+      "link_text": "link text",
+      "code": "code goes here",
+      "quote": "quote text",
+      "list_item": "list item"
+    },
     "publish": "Publish",
     "publishing": "Publishing...",
     "update": "Update",
@@ -512,6 +588,9 @@
     }
   },
   "tags": {
+    "directory_title": "Tags",
+    "directory_description": "Explore the community's most used tags and popular topics.",
+    "directory_intro": "The topics and tags shared most often by the community.",
     "empty_title": "No posts with this tag yet",
     "empty_description": "Posts tagged #{tag} will appear here.",
     "load_failed": "More posts could not be loaded.",
@@ -520,12 +599,22 @@
     "search_label": "Search tags",
     "clear_search": "Clear search",
     "sort_label": "Tag sorting",
+    "detail_sort_label": "Sort tagged posts",
     "popular": "Popular",
     "post_count": "{count} posts",
+    "at_least_post_count": "At least {count} posts",
+    "detail_title": "Posts tagged #{tag}",
+    "detail_description": "Posts and discussions shared with the #{tag} tag.",
+    "back_to_all": "Back to all tags",
+    "sort_hot": "Trending",
+    "sort_new": "New",
+    "sort_top": "Top",
+    "nav_label": "Tags",
     "no_match_title": "No matching tags",
     "no_match_description": "Try a different search term."
   },
   "profile": {
+    "tabs_label": "Profile sections",
     "posts": "Posts",
     "comments": "Comments",
     "followers": "Followers",
@@ -555,6 +644,14 @@
     "empty_following_desc": "This actor is not following anyone yet.",
     "account_deleted": "Account deleted",
     "account_deleted_desc": "This actor deleted their account; profile and contents are unavailable.",
+    "metadata_description": "@{username}'s Actos profile, posts, and community contributions.",
+    "posts_section_label": "User posts",
+    "comments_section_label": "User comments",
+    "followers_section_label": "Followers",
+    "following_section_label": "Following",
+    "commented": "@{username} left a comment",
+    "comment_score": "▲ {score} points",
+    "view_comment": "View Comment",
     "preview_label": "Profile preview for @{username}",
     "preview_unavailable": "Profile preview is unavailable."
   },

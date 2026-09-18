@@ -65,6 +65,7 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
   const sampleOtherPost: Post = {
     id: "c_post_other",
     contentType: "post",
+    isCrossPost: false,
     title: "Diğer Yazarın Gönderisi",
     body: "Bu gönderi başka bir kullanıcı tarafından yazıldı.",
     bodyHtml: "<p>Bu gönderi başka bir kullanıcı tarafından yazıldı.</p>",
@@ -90,6 +91,7 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
   const sampleOwnPost: Post = {
     id: "c_post_own",
     contentType: "post",
+    isCrossPost: false,
     title: "Kendi Gönderim",
     body: "Bu benim kendi yazdığım içerik.",
     bodyHtml: "<p>Bu benim kendi yazdığım içerik.</p>",
@@ -511,7 +513,7 @@ describe("Faz 9 — Etkileşimler Test Paketi", () => {
       render(pageJSX);
 
       expect(screen.getByTestId("saved-anonymous-card")).toBeDefined();
-      const loginLink = screen.getByRole("link", { name: /Giriş Yap/i });
+      const loginLink = screen.getByRole("link", { name: /Log In/i });
       expect(loginLink.getAttribute("href")).toBe("/login?returnUrl=/saved");
     });
 

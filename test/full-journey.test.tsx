@@ -67,6 +67,7 @@ describe("Faz 18 — Kapsamlı Vitest Entegrasyon Testi (Full Journey & Boundari
   const samplePost: Post = {
     id: "p_journey_1",
     contentType: "post",
+    isCrossPost: false,
     title: "Entegrasyon Test Gönderisi",
     body: "Bu gönderi tam yolculuk testi için oluşturulmuştur.",
     bodyHtml: "<p>Bu gönderi tam yolculuk testi için oluşturulmuştur.</p>",
@@ -270,6 +271,7 @@ describe("Faz 18 — Kapsamlı Vitest Entegrasyon Testi (Full Journey & Boundari
       const newComment: Comment = {
         id: "comm_journey_1",
         contentType: "comment",
+        isCrossPost: false,
         title: null,
         body: "Entegrasyon testi harika çalışıyor!",
         bodyHtml: "<p>Entegrasyon testi harika çalışıyor!</p>",

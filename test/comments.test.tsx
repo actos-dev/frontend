@@ -47,6 +47,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
     let current: CommentNode = {
       id: "node_lvl_7",
       contentType: "comment",
+      isCrossPost: false,
       body: "7. Seviye derin yorum (cutoff sonrası)",
       bodyFormat: "markdown",
       author: {
@@ -72,6 +73,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       current = {
         id: `node_lvl_${lvl}`,
         contentType: "comment",
+        isCrossPost: false,
         body: `${lvl}. Seviye yorum metni`,
         bodyFormat: "markdown",
         author: {
@@ -227,6 +229,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       const deletedNodeWithLivingChild: CommentNode = {
         id: "c_deleted_parent",
         contentType: "comment",
+        isCrossPost: false,
         body: "Bu gizli metin asla görünmemeli!",
         bodyFormat: "markdown",
         author: {
@@ -249,6 +252,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
           {
             id: "c_living_child",
             contentType: "comment",
+            isCrossPost: false,
             body: "Üstteki yorum silinmiş olsa bile ben hayattayım!",
             bodyFormat: "markdown",
             author: {
@@ -301,6 +305,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       const authorDeletedNode: CommentNode = {
         id: "c_auth_del",
         contentType: "comment",
+        isCrossPost: false,
         body: "Yazar hesabını sildi fakat bu faydalı yorum duruyor.",
         bodyFormat: "markdown",
         author: {
@@ -347,6 +352,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       const node: CommentNode = {
         id: "c_collapse_root",
         contentType: "comment",
+        isCrossPost: false,
         body: "Ana yorum metni",
         bodyFormat: "markdown",
         author: {
@@ -369,6 +375,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
           {
             id: "c_child_1",
             contentType: "comment",
+            isCrossPost: false,
             body: "1. Çocuk yanıt",
             bodyFormat: "markdown",
             author: {
@@ -391,6 +398,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
               {
                 id: "c_grandchild_1",
                 contentType: "comment",
+                isCrossPost: false,
                 body: "Torun yanıt",
                 bodyFormat: "markdown",
                 author: {
@@ -593,6 +601,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
     const authorNode: CommentNode = {
       id: "c_author_comment",
       contentType: "comment",
+      isCrossPost: false,
       body: "Orijinal yorum metni",
       bodyFormat: "markdown",
       author: {
@@ -760,6 +769,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       const rootComment: CommentNode = {
         id: "c_root_1",
         contentType: "comment",
+        isCrossPost: false,
         body: "Postgres ltree gerçekten çok pratik bir eklenti. 32 seviyeye kadar path tutabilmesi büyük avantaj.",
         bodyHtml: "<p>Postgres ltree gerçekten çok pratik bir eklenti.</p>",
         bodyFormat: "markdown",
@@ -813,8 +823,8 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
 
       render(pageJsx);
 
-      // Üstte geri dön bağlantısı bulunmalı
-      const backLink = screen.getByText("← Tüm post ve yorumları gör");
+      // Üstte geri dön bağlantısı bulunmalı (varsayılan dil İngilizce)
+      const backLink = screen.getByText("← View the post and all comments");
       expect(backLink).toBeDefined();
 
       // Kök yorum ve çocukları render edilmelidir
@@ -848,7 +858,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
 
       render(pageJsx);
 
-      expect(screen.getByText("Bu yorum silindi")).toBeDefined();
+      expect(screen.getByText("This comment was deleted")).toBeDefined();
     });
 
     it("backend erişilemediğinde sahte yorum göstermez, hata durumu render eder (ROADMAP.md P0-02)", async () => {
@@ -881,6 +891,7 @@ describe("Faz 8 — Yorumlar, Hiyerarşik Ağaç ve Sözleşme Testleri", () => 
       const editedNode: CommentNode = {
         id: "c_edited_1",
         contentType: "comment",
+        isCrossPost: false,
         body: "Bu yorum bir kez güncellendi.",
         bodyFormat: "markdown",
         author: {

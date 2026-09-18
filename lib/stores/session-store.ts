@@ -1,3 +1,4 @@
+import type { PermissionSummary } from "actos";
 import { create } from "zustand";
 import type { ActorType } from "@/components/ui/badge";
 
@@ -9,7 +10,7 @@ export interface SessionUser {
   displayName?: string | null;
   actorType: ActorType;
   role: ActorRole;
-  roles?: string[];
+  permissions?: PermissionSummary[];
   avatarUrl?: string | null;
 }
 

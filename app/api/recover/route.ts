@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { ACTOS_TOKEN_COOKIE, Actos, getActosApiUrl, getAnonymousClient } from "@/lib/actos";
 import { apiErrorResponse } from "@/lib/errors";
+import { mapWhoamiToSessionUser } from "@/lib/session-user";
 
 export const dynamic = "force-dynamic";
 
@@ -53,21 +54,7 @@ export async function POST(req: NextRequest) {
         baseUrl: getActosApiUrl(),
       });
       const whoami = await authClient.auth.whoami();
-      const role = whoami.roles.includes("admin")
-        ? ("admin" as const)
-        : whoami.roles.includes("moderator")
-          ? ("moderator" as const)
-          : ("user" as const);
-
-      user = {
-        id: whoami.actor.id,
-        username: whoami.actor.username,
-        displayName: whoami.actor.displayName ?? null,
-        actorType: whoami.actor.actorType,
-        role,
-        roles: whoami.roles,
-        avatarUrl: whoami.actor.avatarUrl ?? null,
-      };
+      user = mapWhoamiToSessionUser(whoami);
     } catch {
       // ignore whoami retrieval failure on recover
     }

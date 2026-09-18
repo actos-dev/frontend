@@ -227,39 +227,43 @@ export function MarkdownEditor({
 
     switch (formatType) {
       case "bold":
-        replacement = selected ? `**${selected}**` : "**kalın metin**";
+        replacement = selected ? `**${selected}**` : `**${t("editor.templates.bold")}**`;
         newStart = start + 2;
-        newEnd = selected ? end + 2 : start + 13;
+        newEnd = selected ? end + 2 : start + 2 + t("editor.templates.bold").length;
         break;
       case "italic":
-        replacement = selected ? `*${selected}*` : "*italik metin*";
+        replacement = selected ? `*${selected}*` : `*${t("editor.templates.italic")}*`;
         newStart = start + 1;
-        newEnd = selected ? end + 1 : start + 13;
+        newEnd = selected ? end + 1 : start + 1 + t("editor.templates.italic").length;
         break;
       case "heading":
-        replacement = selected ? `\n### ${selected}` : "\n### Başlık";
+        replacement = selected ? `\n### ${selected}` : `\n### ${t("editor.templates.heading")}`;
         newStart = start + 5;
-        newEnd = selected ? end + 5 : start + 11;
+        newEnd = selected ? end + 5 : start + 5 + t("editor.templates.heading").length;
         break;
       case "link":
-        replacement = selected ? `[${selected}](url)` : "[bağlantı metni](https://)";
+        replacement = selected
+          ? `[${selected}](url)`
+          : `[${t("editor.templates.link_text")}](https://)`;
         newStart = start + 1;
-        newEnd = selected ? end + 1 : start + 14;
+        newEnd = selected ? end + 1 : start + 1 + t("editor.templates.link_text").length;
         break;
       case "code":
-        replacement = selected ? `\n\`\`\`\n${selected}\n\`\`\`\n` : "\n```\n// kod buraya\n```\n";
+        replacement = selected
+          ? `\n\`\`\`\n${selected}\n\`\`\`\n`
+          : `\n\`\`\`\n// ${t("editor.templates.code")}\n\`\`\`\n`;
         newStart = start + 5;
-        newEnd = selected ? end + 5 : start + 18;
+        newEnd = selected ? end + 5 : start + 8 + t("editor.templates.code").length;
         break;
       case "quote":
-        replacement = selected ? `\n> ${selected}` : "\n> alıntı metni";
+        replacement = selected ? `\n> ${selected}` : `\n> ${t("editor.templates.quote")}`;
         newStart = start + 3;
-        newEnd = selected ? end + 3 : start + 15;
+        newEnd = selected ? end + 3 : start + 3 + t("editor.templates.quote").length;
         break;
       case "list":
-        replacement = selected ? `\n- ${selected}` : "\n- liste öğesi";
+        replacement = selected ? `\n- ${selected}` : `\n- ${t("editor.templates.list_item")}`;
         newStart = start + 3;
-        newEnd = selected ? end + 3 : start + 14;
+        newEnd = selected ? end + 3 : start + 3 + t("editor.templates.list_item").length;
         break;
     }
 
@@ -445,7 +449,11 @@ export function MarkdownEditor({
             <div
               id={autocompleteId}
               role="listbox"
-              aria-label={autocompleteToken.trigger === "@" ? "Kişi önerileri" : "Etiket önerileri"}
+              aria-label={
+                autocompleteToken.trigger === "@"
+                  ? t("editor.people_suggestions")
+                  : t("editor.tag_suggestions")
+              }
               className="absolute bottom-2 left-3 right-3 z-20 max-h-52 overflow-y-auto rounded-lg border border-border bg-popover p-1 shadow-lg"
             >
               {autocompleteLoading && autocompleteItems.length === 0 ? (

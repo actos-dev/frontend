@@ -1,34 +1,45 @@
-/**
- * Generates the standardized plaintext recovery file contents (Plan §7.2).
- * Adheres strictly to the catastrophic loss warning requirement:
- * "BUNLARI KAYBEDERSENİZ HESABINIZA ERİŞİMİNİZ KALICI OLARAK BİTER. E-POSTA İLE KURTARMA YOKTUR."
- */
+import { type Locale, t } from "@/lib/i18n";
+
+function recoveryText(
+  key: string,
+  params?: Record<string, string | number>,
+  locale: Locale = "tr",
+) {
+  return t(`recoveryFile.${key}`, params, locale);
+}
+
+function formatCodes(codes: string[]): string {
+  return codes.map((code, idx) => `${idx + 1}. ${code}`).join("\n");
+}
+
+/** Generates standardized recovery credentials in the selected language. */
 export function generateRecoveryFileContent(options: {
   username: string;
   apiKey: string;
   recoveryCodes: string[];
   createdAt?: string;
+  locale?: Locale;
 }): string {
+  const locale = options.locale ?? "tr";
   const dateStr = options.createdAt || new Date().toISOString();
-  const codesFormatted = options.recoveryCodes.map((code, idx) => `${idx + 1}. ${code}`).join("\n");
 
   return `================================================================================
-ACTOS HESAP KURTARMA VE GÜVENLİK BİLGİLERİ
+${recoveryText("account_title", undefined, locale)}
 ================================================================================
-Kullanıcı Adı: ${options.username}
-Tarih: ${dateStr}
+${recoveryText("username", { username: options.username }, locale)}
+${recoveryText("date", { date: dateStr }, locale)}
 
-API ANAHTARI (Giriş ve API İstekleri İçin):
+${recoveryText("api_key_label", undefined, locale)}
 ${options.apiKey}
 
-10 ADET TEK KULLANIMLIK KURTARMA KODU:
-${codesFormatted}
+${recoveryText("codes_title", undefined, locale)}
+${formatCodes(options.recoveryCodes)}
 
 --------------------------------------------------------------------------------
-DİKKAT:
-BUNLARI KAYBEDERSENİZ HESABINIZA ERİŞİMİNİZ KALICI OLARAK BİTER.
-E-POSTA İLE KURTARMA YOKTUR.
-BU BİLGİLERİ ASLA BAŞKALARIYLA PAYLAŞMAYIN VE GÜVENLİ BİR YERDE SAKLAYIN.
+${recoveryText("attention", undefined, locale)}
+${recoveryText("loss_warning", undefined, locale)}
+${recoveryText("no_email_recovery", undefined, locale)}
+${recoveryText("keep_private", undefined, locale)}
 ================================================================================`;
 }
 
@@ -39,26 +50,52 @@ export function generateRegeneratedCodesFileContent(options: {
   username: string;
   recoveryCodes: string[];
   createdAt?: string;
+  locale?: Locale;
 }): string {
+  const locale = options.locale ?? "tr";
   const dateStr = options.createdAt || new Date().toISOString();
-  const codesFormatted = options.recoveryCodes.map((code, idx) => `${idx + 1}. ${code}`).join("\n");
 
   return `================================================================================
-ACTOS YENİ KURTARMA KODLARI
+${recoveryText("new_codes_title", undefined, locale)}
 ================================================================================
-Kullanıcı Adı: ${options.username}
-Tarih: ${dateStr}
+${recoveryText("username", { username: options.username }, locale)}
+${recoveryText("date", { date: dateStr }, locale)}
 
-10 ADET TEK KULLANIMLIK YENİ KURTARMA KODU:
-${codesFormatted}
+${recoveryText("new_codes_label", undefined, locale)}
+${formatCodes(options.recoveryCodes)}
 
 --------------------------------------------------------------------------------
-DİKKAT:
-YENİ KODLAR ÜRETİLDİĞİ İÇİN ESKİ TÜM KURTARMA KODLARINIZ GEÇERSİZ KILINMIŞTIR.
-BUNLARI KAYBEDERSENİZ HESABINIZA ERİŞİMİNİZ KALICI OLARAK BİTER.
-E-POSTA İLE KURTARMA YOKTUR.
-BU BİLGİLERİ ASLA BAŞKALARIYLA PAYLAŞMAYIN VE GÜVENLİ BİR YERDE SAKLAYIN.
+${recoveryText("attention", undefined, locale)}
+${recoveryText("old_codes_invalid", undefined, locale)}
+${recoveryText("loss_warning", undefined, locale)}
+${recoveryText("no_email_recovery", undefined, locale)}
+${recoveryText("keep_private", undefined, locale)}
 ================================================================================`;
+}
+
+/** Generates a language-aware plaintext file for a newly recovered API key. */
+export function generateNewApiKeyFileContent(options: {
+  username: string;
+  apiKey: string;
+  remainingRecoveryCodes: number | null;
+  createdAt?: string;
+  locale?: Locale;
+}): string {
+  const locale = options.locale ?? "tr";
+  const remaining =
+    options.remainingRecoveryCodes === null
+      ? locale === "tr"
+        ? "Bilinmiyor"
+        : "Unknown"
+      : String(options.remainingRecoveryCodes);
+  return [
+    recoveryText("new_key_title", undefined, locale),
+    recoveryText("username", { username: options.username }, locale),
+    recoveryText("date", { date: options.createdAt || new Date().toISOString() }, locale),
+    recoveryText("new_key_label", { apiKey: options.apiKey }, locale),
+    recoveryText("remaining_codes", { remaining }, locale),
+    "",
+  ].join("\n");
 }
 
 /**

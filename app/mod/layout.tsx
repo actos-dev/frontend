@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export const dynamic = "force-dynamic";
 
 export default async function ModLayout({ children }: { children: React.ReactNode }) {
-  const { whoami, isAdmin, capabilities } = await requireModServer();
+  const { whoami, capabilities } = await requireModServer();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -22,8 +22,7 @@ export default async function ModLayout({ children }: { children: React.ReactNod
         initialUser={{
           username: whoami.actor.username,
           displayName: whoami.actor.displayName,
-          role: isAdmin ? "admin" : "moderator",
-          roles: whoami.roles,
+          permissions: whoami.permissions,
         }}
         capabilities={capabilities}
       />

@@ -9,14 +9,15 @@ import { Button } from "@/components/ui/button";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { getServerLocale, getTranslations } from "@/lib/i18n";
 import { inboxQueryOptions } from "@/lib/query/queries";
 import { makeServerQueryClient, seedInfinitePage } from "@/lib/query/server";
 import type { InboxQueryPage } from "@/lib/query/types";
 
-export const metadata: Metadata = {
-  title: "Bildirimler — Actos",
-  description: "Hesabınıza gelen yanıtlar, bahsetmeler ve etkileşimler.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = getTranslations(await getServerLocale());
+  return { title: `${t("inbox.title")} — Actos`, description: t("inbox.description") };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ interface InboxPageProps {
 }
 
 export default async function InboxPage(props: InboxPageProps) {
+  const { t } = getTranslations(await getServerLocale());
   const rawParams = props.searchParams ? await props.searchParams : {};
   const cursor = typeof rawParams.cursor === "string" ? rawParams.cursor : undefined;
   const initialFilter: InboxFilterTab = "all";
@@ -54,11 +56,10 @@ export default async function InboxPage(props: InboxPageProps) {
 
         <div className="space-y-2">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground font-serif tracking-tight">
-            Bildirimler
+            {t("inbox.anonymous.title")}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            Gönderilerinize gelen yanıtları, bahsetmeleri ve yeni takipçileri görmek için hesabınıza
-            giriş yapın.
+            {t("inbox.anonymous.description")}
           </p>
         </div>
 
@@ -70,7 +71,7 @@ export default async function InboxPage(props: InboxPageProps) {
           >
             <Link href="/login?returnUrl=/inbox">
               <KeyRound className="w-4 h-4 mr-2" />
-              <span>Giriş Yap</span>
+              <span>{t("inbox.anonymous.login_button")}</span>
             </Link>
           </Button>
 
@@ -81,7 +82,7 @@ export default async function InboxPage(props: InboxPageProps) {
             className="rounded-xl w-full sm:w-auto px-6 cursor-pointer"
           >
             <Link href="/register">
-              <span>Hesap Oluştur</span>
+              <span>{t("inbox.anonymous.register_button")}</span>
               <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
             </Link>
           </Button>

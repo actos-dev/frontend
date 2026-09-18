@@ -1,9 +1,9 @@
 # Actos Web — Overhaul Roadmap
 
-> Written 2026-09-15 against backend 0.2.0 and reconciled on 2026-09-18
-> against the repository's backend 0.3.0, Node SDK 0.3.0 and the current
-> `overhaul` frontend branch. The frontend dependency is still
-> `@actos-dev/actos@^0.2.0`; that version gap is now tracked explicitly below.
+> Written 2026-09-15 against backend 0.2.0 and reconciled on 2026-09-19
+> against the live backend 0.3.0 at `api.actos.com.tr`, the published Node
+> SDK 0.3.0 and the current `overhaul` frontend branch. The frontend
+> dependency is now `@actos-dev/actos@^0.3.0`.
 >
 > This file replaces `TODO.md`, `YAPILACAKLAR.md` and the phase checklist in
 > `PLAN.md` as the single source of what happens next in this repository.
@@ -21,7 +21,7 @@
 
 ## 0.0 State of play — read this first
 
-*Updated 2026-09-18. Keep this section current: it is the handover between
+*Updated 2026-09-19. Keep this section current: it is the handover between
 sessions.*
 
 **Branch:** all work lands on `overhaul` in this repository. `main` still
@@ -51,23 +51,26 @@ running backend, not only by its tests):
 | Feed, gallery and post-action localization | `b1f67ae`, `85a96ba` |
 | Discovery, settings, search and moderation localization | `3ecb9e5`, `c57c32c`, `a0bcfdc` |
 | Conversations, uploads, reports and streams localization | `5f42915` |
+| Accessibility/EN–TR i18n cleanup, recovery downloads and the Node SDK 0.3.0 upgrade | uncommitted working tree |
 
 Gate status at this checkpoint: `pnpm typecheck`, `pnpm lint`, `pnpm test`
-(545), `pnpm check:contrast` (3/3), the client-secret bundle audit,
-`next build --webpack`, and the production-browser Markstone WASM test all
-pass. The previous real-backend suite remains at 40 passing journeys; rerun
-it against a running API before deployment.
+(546), `pnpm check:contrast` (3/3), the client-secret bundle audit,
+`next build`, and the production-browser Markstone WASM test all pass. The
+previous real-backend suite remains at 40 passing journeys; rerun it against
+a running API before deployment.
 
-**In flight:** The final i18n/recovery-file cleanup and its full quality gates.
-U-08's true unavailable-save tombstone remains backend-blocked. List responses
-still omit attachments, so feed rows deliberately have no thumbnails rather
-than making N+1 detail requests.
+**In flight:** nothing. The i18n/recovery-file cleanup is finished and the
+frontend now depends on `@actos-dev/actos@^0.3.0`; the whole working tree is
+uncommitted and green. U-08's true unavailable-save tombstone remains
+backend-blocked. List responses still omit attachments, so feed rows
+deliberately have no thumbnails rather than making N+1 detail requests.
 
-**Next:** upgrade the frontend from Node SDK 0.2.x to 0.3.x, then implement
-Phase 7 communities against the API that now exists. After that, rerun the
-real-backend browser suite and review 390 px/1440 px screenshots before release.
+**Next:** implement Phase 7 communities against the API that is live today —
+the SDK upgrade to ^0.3.0 is done, so Phase 7 is unblocked. Afterwards rerun
+the real-backend browser suite and review 390 px/1440 px screenshots before
+release.
 
-### Authoritative completion matrix (2026-09-18)
+### Authoritative completion matrix (2026-09-19)
 
 This table overrides older historical wording later in this document. Older
 sections explain the decisions and acceptance criteria; this table says what
@@ -76,12 +79,12 @@ is actually left.
 | Track | Status | Remaining work / exit condition |
 |---|---|---|
 | Phases 0–6 core frontend refactor | **Complete** | Keep unit/type/lint/build gates green. |
-| Accessibility, responsive behavior and EN/TR i18n | **Final cleanup in progress** | Remove the last user-facing hardcoded strings; localize recovery downloads; pass the complete suite and build. |
+| Accessibility, responsive behavior and EN/TR i18n | **Complete** | All hardcoded strings localized, recovery downloads localized, full suite and build green (uncommitted working tree). |
 | Production runtime and operator guide | **Complete, deployment verification pending** | `PUBLISH.md` exists; run the documented production and nginx checks on the target server. |
 | Real-backend validation | **Must rerun** | Seed backend 0.3.0, run `test:e2e:real`, inspect mobile/desktop screenshots and browser console. |
-| Communities backend/API | **Available in backend 0.3.0** | No longer a backend blocker; see backend `docs/API.md` §5. |
-| Communities Node SDK | **Available in repository SDK 0.3.0** | Publish/consume the intended 0.3.x package and verify its generated types/contract tests. |
-| Communities frontend | **Not implemented** | Upgrade the frontend SDK dependency, replace the disabled feature slots with Phase 7 routes/flows, then enable the feature. |
+| Communities backend/API | **Live in production (0.3.0, deployed 2026-09-18)** | Verify `docs/API.md` §5 against `api.actos.com.tr`. |
+| Communities Node SDK | **Published 0.3.0 to npm (2026-09-18)** | Frontend consumes `@actos-dev/actos@^0.3.0`; keep verifying generated types against the live API. |
+| Communities frontend | **Not implemented — unblocked** | SDK dependency is upgraded; build the Phase 7 routes/flows and enable the feature. |
 | Backend/SDK asks outside communities | **Open or needs 0.3 revalidation** | `../EKSIKLIKLER.md` is the backlog; do not implement an old 0.2 ask before checking 0.3. |
 | Owner inputs | **Blocked on owner** | Legal text (D-07) and staging hostname/access method (D-12). |
 
@@ -130,7 +133,11 @@ the `actos_token` cookie to its key from `.e2e-real/keys.json`.
 
 ---
 
-## 0. Where things actually stand
+## 0. Historical 2026-09-15 audit snapshot (superseded by §0.0)
+
+This section records the baseline that motivated the overhaul. Its present-tense
+statements describe the old 0.2 frontend and must not be used as current status;
+the authoritative current state and remaining work are in §0.0 above.
 
 The code is feature-complete against the 0.2.0 API surface and cleanly
 engineered in places: the comment tree, the registration key/recovery flow,
@@ -164,9 +171,10 @@ security headers, no favicon and no legal pages. Half the UI stays Turkish
 when the locale is English.
 
 **Communities are implemented in backend/Node SDK 0.3.0, but not in this
-frontend.** The frontend still installs SDK 0.2.x and keeps its community
-slots disabled. Phase 7 is therefore an active frontend integration phase,
-not a backend-design waiting room.
+frontend.** At the time of the audit the frontend installed SDK 0.2.x and
+kept its community slots disabled. As of 2026-09-19 it depends on
+`@actos-dev/actos@^0.3.0`, so Phase 7 is an active frontend integration
+phase, not a backend-design waiting room.
 
 ---
 
@@ -975,10 +983,10 @@ scoped grants land.
 
 ## Phase 7 — Communities frontend integration (remaining)
 
-Backend 0.3.0 and Node SDK 0.3.0 now provide the community contract. The
-frontend still consumes SDK 0.2.x and has no `/c` screens. First upgrade and
-contract-test the dependency; then build the screens below behind
-`FEATURE_COMMUNITIES`, using the §3 slots already in place.
+Backend 0.3.0 is live at `api.actos.com.tr` and Node SDK 0.3.0 is published to
+npm; the frontend now depends on `@actos-dev/actos@^0.3.0`. Phase 7 is
+therefore unblocked. Build the screens below behind `FEATURE_COMMUNITIES`,
+using the §3 slots already in place, and keep 7.3 as the contract checklist.
 
 ### 7.1 Routes and screens
 
@@ -1264,7 +1272,7 @@ the interim behavior.
 | B-09 | Always include `id` in sparse fieldset responses | Defense against P0-01-class bugs in every client | — |
 | B-10 | ✅ Published `@actos-dev/actos@0.2.0`; frontend installs the registry alias | F-01, all CI and deploy | Resolved 2026-09-17 |
 | B-11 | ✅ Published Markstone 0.1.0; server uses native rendering and preview uses browser WASM | F-02 | Resolved 2026-09-17 |
-| B-12 | ✅ Communities API and typed Node SDK surface shipped in repository 0.3.0 | Phase 7 frontend integration | Frontend remains on SDK 0.2.x with slots behind the flag |
+| B-12 | ✅ Communities API and typed Node SDK surface are live/published at 0.3.0; frontend upgraded to `@actos-dev/actos@^0.3.0` | Phase 7 frontend integration | Resolved 2026-09-19 |
 | B-13 | Honour `Idempotency-Key` on `POST /posts/{id}/comments`, as `POST /posts` already does | P0-11's server half | The client sends the key; a double submit can still duplicate |
 
 ---
@@ -1318,7 +1326,7 @@ Phase 0 (P0-01…P0-12)
   └─ Phase 1: F-01 → F-04 → F-05/F-06 → F-02, F-03, F-07, F-08, T-01
        ├─ Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
        └─ Phase 8 track (D-01…D-12) in parallel, D-13 at the end
-Phase 7 screens: upgrade frontend SDK to 0.3.x → implement routes/flows → enable flag
+Phase 7 screens: upgrade frontend SDK to 0.3.x (done) → implement routes/flows → enable flag
 ```
 
 The craft details (§1.5, X-01…X-25) are not a phase. Each one is part of the

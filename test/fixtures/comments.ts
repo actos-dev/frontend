@@ -12,6 +12,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
   {
     id: "c_root_1",
     contentType: "comment",
+    isCrossPost: false,
     body: "Postgres ltree gerçekten çok pratik bir eklenti. 32 seviyeye kadar path tutabilmesi büyük avantaj. Bizim sistemde sorgu süreleri 3ms altında kalıyor.",
     bodyHtml:
       "<p>Postgres <code>ltree</code> gerçekten çok pratik bir eklenti. 32 seviyeye kadar path tutabilmesi büyük avantaj. Bizim sistemde sorgu süreleri 3ms altında kalıyor.</p>",
@@ -37,6 +38,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
       {
         id: "c_reply_1_1",
         contentType: "comment",
+        isCrossPost: false,
         body: "Kesinlikle katılıyorum. Özellikle GiST veya SP-GiST indeksleriyle N-seviye alt ağaç sorguları B-Tree'den çok daha verimli.",
         bodyHtml:
           "<p>Kesinlikle katılıyorum. Özellikle <code>GiST</code> veya <code>SP-GiST</code> indeksleriyle N-seviye alt ağaç sorguları B-Tree'den çok daha verimli.</p>",
@@ -62,6 +64,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
           {
             id: "c_reply_1_1_1",
             contentType: "comment",
+            isCrossPost: false,
             body: "Peki düğüm taşıma (subtree move) işlemlerinde path güncellemesi lock contention yaratıyor mu?",
             bodyHtml:
               "<p>Peki düğüm taşıma (subtree move) işlemlerinde path güncellemesi lock contention yaratıyor mu?</p>",
@@ -87,6 +90,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
               {
                 id: "c_reply_1_1_1_1",
                 contentType: "comment",
+                isCrossPost: false,
                 body: "Subtree move nadir bir operasyon olduğu için row-level lock yeterli oluyor, tüm tablo kilitlenmiyor.",
                 bodyHtml:
                   "<p>Subtree move nadir bir operasyon olduğu için row-level lock yeterli oluyor, tüm tablo kilitlenmiyor.</p>",
@@ -112,6 +116,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
                   {
                     id: "c_reply_1_1_1_1_1",
                     contentType: "comment",
+                    isCrossPost: false,
                     body: "Biz ltree yerine closure table denemiştik ama ara tablo büyümesi yönetilemez hale gelmişti.",
                     bodyHtml:
                       "<p>Biz ltree yerine closure table denemiştik ama ara tablo büyümesi yönetilemez hale gelmişti.</p>",
@@ -137,6 +142,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
                       {
                         id: "c_reply_1_1_1_1_1_1", // Seviye 6 (index 5)
                         contentType: "comment",
+                        isCrossPost: false,
                         body: "Closure table O(N^2) satır üretir, ltree ise tek satırda string/label path tutar. Karşılaştırılamaz bile.",
                         bodyHtml:
                           "<p>Closure table O(N^2) satır üretir, ltree ise tek satırda string/label path tutar. Karşılaştırılamaz bile.</p>",
@@ -162,6 +168,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
                           {
                             id: "c_reply_1_1_1_1_1_1_1", // Seviye 7 (index 6) -> Cutoff!
                             contentType: "comment",
+                            isCrossPost: false,
                             body: "Bu dal 6. seviyenin ötesinde; ana sayfada 'Devamını gör' ile açılmalı.",
                             bodyHtml:
                               "<p>Bu dal 6. seviyenin ötesinde; ana sayfada 'Devamını gör' ile açılmalı.</p>",
@@ -200,6 +207,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
   {
     id: "c_root_2_deleted",
     contentType: "comment",
+    isCrossPost: false,
     body: "[Bu yorum yazar veya moderatör tarafından silindi]",
     bodyHtml: "<p>[Bu yorum yazar veya moderatör tarafından silindi]</p>",
     bodyFormat: "markdown",
@@ -224,6 +232,7 @@ export const MOCK_COMMENTS: CommentNode[] = [
       {
         id: "c_reply_2_child",
         contentType: "comment",
+        isCrossPost: false,
         body: "Üstteki yorum silinmiş olsa da benim yanıtım kaybolmamalı, ağaç yapısı korunmalı.",
         bodyHtml:
           "<p>Üstteki yorum silinmiş olsa da benim yanıtım kaybolmamalı, ağaç yapısı korunmalı.</p>",

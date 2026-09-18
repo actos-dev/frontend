@@ -51,7 +51,7 @@ export function PostRowMenu({ post, isAuthor }: { post: Post; isAuthor: boolean 
         <PopoverTrigger asChild>
           <button
             type="button"
-            aria-label="Gönderi işlemleri"
+            aria-label={t("postCard.more_actions")}
             className="relative z-10 inline-flex min-h-8 min-w-8 items-center justify-center rounded-sm hover:bg-bg-subtle hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
@@ -63,7 +63,7 @@ export function PostRowMenu({ post, isAuthor }: { post: Post; isAuthor: boolean 
               href={`/posts/${post.id}/edit`}
               className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-bg-subtle"
             >
-              <Pencil className="h-4 w-4" aria-hidden="true" /> Düzenle
+              <Pencil className="h-4 w-4" aria-hidden="true" /> {t("common.edit")}
             </Link>
           ) : null}
           <button
@@ -74,7 +74,7 @@ export function PostRowMenu({ post, isAuthor }: { post: Post; isAuthor: boolean 
             }}
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-bg-subtle"
           >
-            <Flag className="h-4 w-4" aria-hidden="true" /> Şikayet et
+            <Flag className="h-4 w-4" aria-hidden="true" /> {t("common.report")}
           </button>
           {isAuthor ? (
             <button

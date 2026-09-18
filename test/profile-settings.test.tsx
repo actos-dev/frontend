@@ -654,7 +654,7 @@ describe("Faz 11 — Profil ve Ayarlar Test Paketi", () => {
       });
 
       render(result);
-      expect(screen.getByText("Bu hesap silinmiştir")).toBeInTheDocument();
+      expect(screen.getByText("Account deleted")).toBeInTheDocument();
     });
 
     it("profil sayfasında gönderileri başarıyla yükler ve render eder", async () => {

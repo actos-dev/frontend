@@ -8,15 +8,16 @@ import { Button } from "@/components/ui/button";
 import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { getServerLocale, getTranslations } from "@/lib/i18n";
 import { savedQueryOptions } from "@/lib/query/queries";
 import { makeServerQueryClient, seedInfinitePage } from "@/lib/query/server";
 import type { SavedQueryPage } from "@/lib/query/types";
 import { fetchVoteMap, type VoteMap } from "@/lib/votes";
 
-export const metadata: Metadata = {
-  title: "Kaydedilenler — Actos",
-  description: "Daha sonra okumak için kaydettiğiniz tüm gönderiler.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = getTranslations(await getServerLocale());
+  return { title: `${t("saved.title")} — Actos`, description: t("saved.description") };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ interface SavedPageProps {
 }
 
 export default async function SavedPage(props: SavedPageProps) {
+  const { t } = getTranslations(await getServerLocale());
   const rawParams = props.searchParams ? await props.searchParams : {};
   const cursor = typeof rawParams.cursor === "string" ? rawParams.cursor : undefined;
 
@@ -52,11 +54,10 @@ export default async function SavedPage(props: SavedPageProps) {
 
         <div className="space-y-2">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground font-serif tracking-tight">
-            Kaydedilen Gönderiler
+            {t("saved.anon_title")}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            Gönderileri kaydetmek ve kaydedilen içeriklerine her cihazdan erişmek için hesabına
-            giriş yap.
+            {t("saved.anon_desc")}
           </p>
         </div>
 
@@ -64,7 +65,7 @@ export default async function SavedPage(props: SavedPageProps) {
           <Button asChild size="default" className="rounded-xl w-full sm:w-auto px-6">
             <Link href="/login?returnUrl=/saved">
               <KeyRound className="w-4 h-4 mr-2" />
-              <span>Giriş Yap</span>
+              <span>{t("auth.login.submit")}</span>
             </Link>
           </Button>
 
@@ -75,7 +76,7 @@ export default async function SavedPage(props: SavedPageProps) {
             className="rounded-xl w-full sm:w-auto px-6"
           >
             <Link href="/register">
-              <span>Hesap Oluştur</span>
+              <span>{t("auth.register.title")}</span>
               <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
             </Link>
           </Button>
@@ -128,14 +129,14 @@ export default async function SavedPage(props: SavedPageProps) {
       <header className="sticky top-14 md:top-0 z-10 bg-background/90 backdrop-blur-md px-4 sm:px-6 py-3 border-b border-border/60 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bookmark className="w-4 h-4 text-primary" />
-          <h1 className="text-sm font-semibold text-foreground">Kaydedilenler</h1>
+          <h1 className="text-sm font-semibold text-foreground">{t("saved.title")}</h1>
         </div>
         <Link
           href="/"
           className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 hover:underline"
         >
           <Compass className="w-3.5 h-3.5" />
-          <span>Akışa Dön</span>
+          <span>{t("saved.back_to_feed")}</span>
         </Link>
       </header>
 

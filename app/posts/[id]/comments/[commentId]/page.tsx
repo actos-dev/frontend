@@ -9,6 +9,7 @@ import { ErrorStateRetry } from "@/components/ui/error-state-retry";
 import { Gone } from "@/components/ui/gone";
 import { getServerClient } from "@/lib/actos";
 import { describeError } from "@/lib/errors";
+import { getServerLocale, getTranslations } from "@/lib/i18n";
 import { renderCommentBody, renderCommentTree } from "@/lib/render/comment-tree";
 import { excerpt } from "@/lib/render/excerpt";
 import { slugify } from "@/lib/utils";
@@ -37,11 +38,12 @@ function classifyCommentError(err: unknown): "gone" | "not-found" | "error" {
 }
 
 export async function generateMetadata(props: DeepCommentPageProps): Promise<Metadata> {
+  const { t } = getTranslations(await getServerLocale());
   const { id, commentId } = await props.params;
 
   return {
-    title: `Yorum Dalı #${commentId} — Actos`,
-    description: `Post #${id} altındaki derin yorum dalı ve yanıtları.`,
+    title: t("commentPage.branch_title", { commentId }),
+    description: t("commentPage.branch_description", { postId: id }),
     robots: { index: false, follow: true },
   };
 }
@@ -51,6 +53,7 @@ export async function generateMetadata(props: DeepCommentPageProps): Promise<Met
  * 6 seviyeden derin veya doğrudan permalink ile erişilen yorumlar için kök dal sayfası.
  */
 export default async function DeepCommentPage(props: DeepCommentPageProps) {
+  const { t } = getTranslations(await getServerLocale());
   const { id: postId, commentId } = await props.params;
 
   const client = await getServerClient();
@@ -97,10 +100,7 @@ export default async function DeepCommentPage(props: DeepCommentPageProps) {
     return (
       <div className="min-h-[calc(100vh-3.5rem)] py-8 px-4 sm:px-6">
         <div className="reading-container">
-          <Gone
-            title="Bu yorum silindi"
-            message="Bu yorum daha önce Actos'ta mevcuttu, ancak yazarın kendi isteğiyle veya moderasyon kararıyla kaldırıldı."
-          />
+          <Gone title={t("commentPage.deleted_title")} message={t("commentPage.deleted_message")} />
         </div>
       </div>
     );
@@ -140,12 +140,12 @@ export default async function DeepCommentPage(props: DeepCommentPageProps) {
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors group"
           >
             <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
-            <span>← Tüm post ve yorumları gör</span>
+            <span>{t("commentPage.back_to_post")}</span>
           </Link>
 
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <GitFork className="w-3.5 h-3.5 text-primary/80" />
-            <span>Tekil Yorum Dalı</span>
+            <span>{t("commentPage.thread_label")}</span>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ export default async function DeepCommentPage(props: DeepCommentPageProps) {
         {post && (
           <div className="mb-6 p-4 rounded-xl bg-card border border-border/80 shadow-2xs">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Kaynak Gönderi
+              {t("commentPage.source_post")}
             </span>
             <h1 className="text-base sm:text-lg font-bold text-foreground mt-1 hover:text-primary transition-colors">
               <Link href={postHref}>{post.title}</Link>

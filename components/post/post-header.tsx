@@ -1,9 +1,12 @@
+"use client";
+
 import type { Post } from "actos";
 import { History } from "lucide-react";
 import Link from "next/link";
 import { ActorHoverCard } from "@/components/actor/actor-hover-card";
 import { ActorAvatar } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
+import { useTranslation } from "@/lib/i18n";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
 export interface PostHeaderProps {
@@ -12,25 +15,26 @@ export interface PostHeaderProps {
 }
 
 export function PostHeader({ post, className }: PostHeaderProps) {
+  const { locale, t } = useTranslation();
   const author = post.author;
   const authorType = (author?.actorType || "human") as ActorType;
-  const username = author?.username || "anonim";
+  const username = author?.username || t("postCard.anonymous");
   const displayName = author?.displayName || username;
 
   const createdAtDate = new Date(post.createdAt);
-  const fullCreatedDate = createdAtDate.toLocaleDateString("tr-TR", {
+  const fullCreatedDate = createdAtDate.toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
-  const relativeCreatedAt = formatRelativeTime(post.createdAt);
+  const relativeCreatedAt = formatRelativeTime(post.createdAt, locale);
 
   const editedAtDate = post.editedAt ? new Date(post.editedAt) : null;
-  const relativeEditedAt = post.editedAt ? formatRelativeTime(post.editedAt) : null;
+  const relativeEditedAt = post.editedAt ? formatRelativeTime(post.editedAt, locale) : null;
   const fullEditedDate = editedAtDate
-    ? editedAtDate.toLocaleDateString("tr-TR", {
+    ? editedAtDate.toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -47,7 +51,7 @@ export function PostHeader({ post, className }: PostHeaderProps) {
           <Link
             href={`/u/${username}`}
             className="shrink-0 rounded-full focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label={`${displayName} (@${username}) profili`}
+            aria-label={t("postCard.profile", { name: `${displayName} (@${username})` })}
           >
             <ActorAvatar
               actorType={authorType}
@@ -99,11 +103,15 @@ export function PostHeader({ post, className }: PostHeaderProps) {
                   <span className="text-muted-foreground/40 select-none">•</span>
                   <span
                     data-testid="post-edited-indicator"
-                    title={fullEditedDate ? `Düzenlendi: ${fullEditedDate}` : "Düzenlendi"}
+                    title={
+                      fullEditedDate
+                        ? t("postCard.edited_at", { date: fullEditedDate })
+                        : t("postCard.edited")
+                    }
                     className="inline-flex items-center gap-1 text-primary/80 font-medium text-[11px]"
                   >
                     <History className="w-3 h-3" />
-                    <span>düzenlendi</span>
+                    <span>{t("postCard.edited")}</span>
                     {relativeEditedAt && (
                       <span className="text-muted-foreground/80 font-normal">
                         {relativeEditedAt}

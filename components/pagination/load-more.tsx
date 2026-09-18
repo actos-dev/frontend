@@ -3,6 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import { syncCursorToUrl } from "@/lib/pagination";
 import { cn } from "@/lib/utils";
 
@@ -24,11 +25,12 @@ export function LoadMore({
   onLoadMore,
   isLoading: propLoading = false,
   syncUrl = true,
-  label = "Daha fazla",
-  loadingLabel = "Yükleniyor...",
+  label,
+  loadingLabel,
   endMessage = null,
   className,
 }: LoadMoreProps) {
+  const { t } = useTranslation();
   const [internalLoading, setInternalLoading] = useState(false);
   const loading = propLoading || internalLoading;
 
@@ -74,10 +76,10 @@ export function LoadMore({
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin mr-2 text-primary" />
-            <span>{loadingLabel}</span>
+            <span>{loadingLabel ?? t("common.loading")}</span>
           </>
         ) : (
-          <span>{label}</span>
+          <span>{label ?? t("common.loadMore")}</span>
         )}
       </Button>
     </div>

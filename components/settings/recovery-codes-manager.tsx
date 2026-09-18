@@ -39,7 +39,7 @@ export interface RecoveryCodesManagerProps {
  * Displays 10 newly generated recovery codes with primary action: Download .txt.
  */
 export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
 
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -82,6 +82,7 @@ export function RecoveryCodesManager({ username }: RecoveryCodesManagerProps) {
     const fileContent = generateRegeneratedCodesFileContent({
       username,
       recoveryCodes: newCodes,
+      locale,
     });
 
     downloadRecoveryFile(username, fileContent);
