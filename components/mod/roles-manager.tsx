@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 
 export function RolesManager() {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [role, setRole] = useState<"moderator" | "admin" | "revoke">("moderator");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,7 +21,7 @@ export function RolesManager() {
 
     const trimmedUsername = username.trim();
     if (!trimmedUsername) {
-      setErrorMessage("Kullanıcı adı zorunludur.");
+      setErrorMessage(t("moderation.roles.username_required"));
       return;
     }
 
@@ -40,19 +42,22 @@ export function RolesManager() {
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
-        throw new Error(data.error || "Rol işlemi başarısız oldu.");
+        throw new Error(data.error || t("moderation.roles.request_error"));
       }
 
       toast.success(
         targetRole
-          ? `@${trimmedUsername} kullanıcısına '${targetRole}' rolü başarıyla atandı.`
-          : `@${trimmedUsername} kullanıcısının rolü kaldırıldı.`,
+          ? t("moderation.roles.assigned_success", {
+              username: trimmedUsername,
+              role: targetRole,
+            })
+          : t("moderation.roles.revoked_success", { username: trimmedUsername }),
       );
 
       setUsername("");
       setRole("moderator");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Sunucu hatası";
+      const msg = err instanceof Error ? err.message : t("moderation.resolveDialog.server_error");
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
@@ -63,11 +68,8 @@ export function RolesManager() {
   return (
     <div className="max-w-xl mx-auto space-y-8">
       <div>
-        <h2 className="text-base font-bold text-foreground">Yetkilendirme ve Rol Yönetimi</h2>
-        <p className="text-xs text-muted-foreground mt-1">
-          Yalnızca sistem yöneticileri (admin) aktörlere moderatör rolü atayabilir veya mevcut
-          rolleri geri alabilir.
-        </p>
+        <h2 className="text-base font-bold text-foreground">{t("moderation.roles.title")}</h2>
+        <p className="text-xs text-muted-foreground mt-1">{t("moderation.roles.description")}</p>
       </div>
 
       {/* Rol Bilgi Kartı */}
@@ -75,22 +77,20 @@ export function RolesManager() {
         <div className="p-3.5 rounded-2xl bg-surface-2 border border-border/80 space-y-1.5">
           <div className="flex items-center gap-2 font-semibold text-foreground">
             <ShieldCheck className="w-4 h-4 text-primary" />
-            <span>Moderatör (moderator)</span>
+            <span>{t("moderation.roles.moderator_title")}</span>
           </div>
           <p className="text-muted-foreground leading-relaxed">
-            Rapor kuyruğunu inceleyebilir, içerik silebilir, hesapları banlayabilir ve denetim
-            kütüğünü görebilir. Rol atayamaz.
+            {t("moderation.roles.moderator_description")}
           </p>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-surface-2 border border-border/80 space-y-1.5">
           <div className="flex items-center gap-2 font-semibold text-foreground">
             <ShieldAlert className="w-4 h-4 text-destructive" />
-            <span>Yönetici (admin)</span>
+            <span>{t("moderation.roles.admin_title")}</span>
           </div>
           <p className="text-muted-foreground leading-relaxed">
-            Tüm moderasyon yetkilerine ek olarak rol atama ve sistem seviyesi yönetim işlemlerini
-            yapabilir.
+            {t("moderation.roles.admin_description")}
           </p>
         </div>
       </div>
@@ -104,11 +104,9 @@ export function RolesManager() {
         <div className="space-y-1">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Shield className="w-4 h-4 text-primary" />
-            <span>Rol Atama veya Geri Alma</span>
+            <span>{t("moderation.roles.form_title")}</span>
           </h3>
-          <p className="text-xs text-muted-foreground">
-            İşlem anında uygulanır ve denetim kütüğüne kaydedilir.
-          </p>
+          <p className="text-xs text-muted-foreground">{t("moderation.roles.form_description")}</p>
         </div>
 
         {errorMessage && (
@@ -123,12 +121,12 @@ export function RolesManager() {
 
         <div className="space-y-2">
           <Label htmlFor="target-username" className="text-xs font-medium">
-            Hedef Kullanıcı Adı *
+            {t("moderation.roles.username")}
           </Label>
           <Input
             id="target-username"
             data-testid="role-target-username-input"
-            placeholder="örn. taylan"
+            placeholder={t("moderation.roles.username_placeholder")}
             value={username}
             onChange={(e) => {
               setUsername(e.target.value);
@@ -139,7 +137,7 @@ export function RolesManager() {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-xs font-medium">İşlem Türü</Label>
+          <Label className="text-xs font-medium">{t("moderation.roles.action_type")}</Label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
@@ -153,9 +151,9 @@ export function RolesManager() {
             >
               <UserCheck className="w-4 h-4 text-primary shrink-0" />
               <div>
-                <div>Moderatör Yap</div>
+                <div>{t("moderation.roles.assign_moderator")}</div>
                 <div className="text-[10px] text-muted-foreground font-normal">
-                  Kullanıcıya denetim yetkisi verir
+                  {t("moderation.roles.assign_moderator_description")}
                 </div>
               </div>
             </button>
@@ -172,9 +170,9 @@ export function RolesManager() {
             >
               <UserX className="w-4 h-4 text-destructive shrink-0" />
               <div>
-                <div>Rolü Kaldır</div>
+                <div>{t("moderation.roles.revoke")}</div>
                 <div className="text-[10px] text-muted-foreground font-normal">
-                  Yönetici/moderatör yetkisini geri alır
+                  {t("moderation.roles.revoke_description")}
                 </div>
               </div>
             </button>
@@ -190,7 +188,11 @@ export function RolesManager() {
             className="gap-1.5 rounded-xl font-semibold text-xs"
             variant={role === "revoke" ? "destructive" : "default"}
           >
-            {isSubmitting ? "İşleniyor..." : role === "revoke" ? "Yetkiyi Geri Al" : "Rolü Ata"}
+            {isSubmitting
+              ? t("moderation.roles.processing")
+              : role === "revoke"
+                ? t("moderation.roles.revoke_submit")
+                : t("moderation.roles.assign_submit")}
           </Button>
         </div>
       </form>

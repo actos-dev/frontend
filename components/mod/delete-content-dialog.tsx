@@ -14,6 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 
 interface DeleteContentDialogProps {
   contentId: string | null;
@@ -25,11 +26,12 @@ interface DeleteContentDialogProps {
 
 export function DeleteContentDialog({
   contentId,
-  targetType = "içerik",
+  targetType,
   open,
   onOpenChange,
   onSuccess,
 }: DeleteContentDialogProps) {
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export function DeleteContentDialog({
 
     const trimmedReason = reason.trim();
     if (!trimmedReason) {
-      setErrorMessage("Silme gerekçesi zorunludur.");
+      setErrorMessage(t("moderation.deleteDialog.reason_required"));
       return;
     }
 
@@ -58,15 +60,15 @@ export function DeleteContentDialog({
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
-        throw new Error(data.error || "İçerik silinirken bir hata oluştu.");
+        throw new Error(data.error || t("moderation.deleteDialog.request_error"));
       }
 
-      toast.success("İçerik moderatör tarafından başarıyla silindi.");
+      toast.success(t("moderation.deleteDialog.success"));
       setReason("");
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Sunucu hatası";
+      const msg = err instanceof Error ? err.message : t("moderation.resolveDialog.server_error");
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
@@ -81,17 +83,16 @@ export function DeleteContentDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" />
-              <span>İçeriği Moderatif Olarak Sil</span>
+              <span>{t("moderation.deleteDialog.title")}</span>
             </DialogTitle>
-            <DialogDescription>
-              Bu işlem geri alınamaz. İçerik soft-delete yapılarak yayından kaldırılır ve denetim
-              kütüğüne gerekçeniz kaydedilir.
-            </DialogDescription>
+            <DialogDescription>{t("moderation.deleteDialog.description")}</DialogDescription>
           </DialogHeader>
 
           <div className="bg-surface-2 p-2.5 rounded-lg border border-border/80 text-xs">
-            <span className="text-muted-foreground">Silinecek {targetType} ID: </span>
-            <span className="font-mono font-medium text-foreground">{contentId}</span>
+            {t("moderation.deleteDialog.target", {
+              type: targetType || t("moderation.deleteDialog.content_type"),
+              id: contentId,
+            })}
           </div>
 
           {errorMessage && (
@@ -106,14 +107,14 @@ export function DeleteContentDialog({
 
           <div className="space-y-1.5">
             <Label htmlFor="delete-reason" className="text-xs font-medium flex items-center gap-1">
-              <span>Silme Gerekçesi (Zorunlu)</span>
+              <span>{t("moderation.deleteDialog.reason")}</span>
               <span className="text-destructive">*</span>
             </Label>
             <Textarea
               id="delete-reason"
               data-testid="delete-content-reason-input"
               rows={3}
-              placeholder="Denetim kütüğüne yazılacak zorunlu gerekçe..."
+              placeholder={t("moderation.deleteDialog.reason_placeholder")}
               value={reason}
               onChange={(e) => {
                 setReason(e.target.value);
@@ -131,7 +132,7 @@ export function DeleteContentDialog({
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
-              İptal
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -140,7 +141,9 @@ export function DeleteContentDialog({
               data-testid="confirm-moderate-delete-button"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Siliniyor..." : "Gerekçeyle Sil"}
+              {isSubmitting
+                ? t("moderation.deleteDialog.submitting")
+                : t("moderation.deleteDialog.submit")}
             </Button>
           </DialogFooter>
         </form>

@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import { ReportsQueue } from "@/components/mod/reports-queue";
+import { getServerLocale, getTranslations } from "@/lib/i18n";
 import { requireModServer } from "@/lib/mod/auth";
 import { listReports } from "@/lib/mod/client-actions";
 import { enrichReports } from "@/lib/mod/report-enrichment";
 
-export const metadata: Metadata = {
-  title: "Rapor Kuyruğu — Moderasyon",
-  description: "Kullanıcı bildirimleri ve şikayet inceleme kuyruğu.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = getTranslations(await getServerLocale());
+  return {
+    title: `${t("moderation.pages.reports_title")} — ${t("nav.moderation")}`,
+    description: t("moderation.pages.reports_description"),
+  };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +21,7 @@ interface ReportsPageProps {
 
 export default async function ReportsPage(props: ReportsPageProps) {
   const { client } = await requireModServer();
+  const { t } = getTranslations(await getServerLocale());
   const searchParams = props.searchParams ? await props.searchParams : {};
   const status = searchParams.status || "pending";
 
@@ -30,11 +35,10 @@ export default async function ReportsPage(props: ReportsPageProps) {
     <div className="space-y-6" data-testid="reports-queue-page">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold font-serif text-foreground tracking-tight">
-          Şikayet ve Rapor Kuyruğu
+          {t("moderation.pages.reports_title")}
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-          Topluluk tarafından bildirilen içerik ve aktörlerin incelenmesi, çözümlenmesi veya
-          reddedilmesi.
+          {t("moderation.pages.reports_description")}
         </p>
       </div>
 

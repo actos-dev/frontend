@@ -15,8 +15,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 
 export function BansManager() {
+  const { t } = useTranslation();
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [unbanTarget, setUnbanTarget] = useState<string | null>(null);
@@ -33,14 +35,14 @@ export function BansManager() {
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
-        throw new Error(data.error || "Ban kaldırılırken bir hata oluştu.");
+        throw new Error(data.error || t("moderation.bans.remove_error"));
       }
 
-      toast.success(`@${unbanTarget} kullanıcısının banı kaldırıldı.`);
+      toast.success(t("moderation.bans.remove_success", { username: unbanTarget }));
       setUsername("");
       setUnbanTarget(null);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Sunucu hatası";
+      const msg = err instanceof Error ? err.message : t("moderation.resolveDialog.server_error");
       toast.error(msg);
     } finally {
       setIsUnbanning(false);
@@ -51,10 +53,8 @@ export function BansManager() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/80 pb-4">
         <div>
-          <h2 className="text-base font-semibold text-foreground">Ban işlemleri</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Hesapları süreli veya kalıcı olarak kısıtlayın.
-          </p>
+          <h2 className="text-base font-semibold text-foreground">{t("moderation.bans.title")}</h2>
+          <p className="mt-1 text-xs text-muted-foreground">{t("moderation.bans.description")}</p>
         </div>
 
         <Button
@@ -65,7 +65,7 @@ export function BansManager() {
           className="gap-1.5"
         >
           <Plus className="h-4 w-4" />
-          <span>Ban ekle</span>
+          <span>{t("moderation.bans.add")}</span>
         </Button>
       </div>
 
@@ -76,10 +76,11 @@ export function BansManager() {
       >
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">Aktif ban listesi kullanılamıyor</p>
+          <p className="text-sm font-medium text-foreground">
+            {t("moderation.bans.list_unavailable")}
+          </p>
           <p className="text-sm text-muted-foreground">
-            Actos API etkin banları listeleme ucu sunmuyor. Ban ekleyebilir veya kullanıcı adını
-            yazarak bir banı kaldırabilirsiniz.
+            {t("moderation.bans.list_unavailable_description")}
           </p>
         </div>
       </div>
@@ -93,19 +94,19 @@ export function BansManager() {
         }}
       >
         <div className="space-y-1.5">
-          <Label htmlFor="ban-remove-username">Banı kullanıcı adına göre kaldır</Label>
+          <Label htmlFor="ban-remove-username">{t("moderation.bans.remove_label")}</Label>
           <Input
             id="ban-remove-username"
             data-testid="ban-remove-username-input"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             autoComplete="off"
-            placeholder="kullanıcı adı"
+            placeholder={t("moderation.bans.username_placeholder")}
           />
         </div>
         <Button type="submit" variant="outline" size="sm" disabled={!username.trim()}>
           <UserX className="mr-1.5 h-4 w-4" />
-          Banı kaldır
+          {t("moderation.bans.remove")}
         </Button>
       </form>
 
@@ -121,12 +122,10 @@ export function BansManager() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-warning" />
-              <span>Banı kaldır</span>
+              <span>{t("moderation.bans.remove")}</span>
             </DialogTitle>
             <DialogDescription>
-              <span className="font-mono font-semibold text-foreground">@{unbanTarget}</span> için
-              ban kaldırma isteği gönderilsin mi? Kullanıcı şu anda banlı değilse API işlemi
-              değişiklik yapmadan tamamlar.
+              {t("moderation.bans.remove_description", { username: unbanTarget || "" })}
             </DialogDescription>
           </DialogHeader>
 
@@ -138,7 +137,7 @@ export function BansManager() {
               onClick={() => setUnbanTarget(null)}
               disabled={isUnbanning}
             >
-              İptal
+              {t("common.cancel")}
             </Button>
             <Button
               type="button"
@@ -148,7 +147,7 @@ export function BansManager() {
               disabled={isUnbanning}
               onClick={handleConfirmUnban}
             >
-              {isUnbanning ? "Kaldırılıyor..." : "Banı kaldır"}
+              {isUnbanning ? t("moderation.bans.removing") : t("moderation.bans.remove")}
             </Button>
           </DialogFooter>
         </DialogContent>

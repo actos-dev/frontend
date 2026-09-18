@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 
 interface ResolveReportDialogProps {
   report: Report | null;
@@ -32,6 +33,7 @@ export function ResolveReportDialog({
   onOpenChange,
   onSuccess,
 }: ResolveReportDialogProps) {
+  const { t } = useTranslation();
   const [action, setAction] = useState<"none" | "delete_content" | "ban_actor">("none");
   const [note, setNote] = useState("");
   const [banUsername, setBanUsername] = useState("");
@@ -65,14 +67,14 @@ export function ResolveReportDialog({
     if (!trimmedNote) {
       setErrorMessage(
         isResolve
-          ? "Moderatör notu zorunludur. Lütfen karar gerekçenizi girin."
-          : "Reddetme gerekçesi / notu zorunludur.",
+          ? t("moderation.resolveDialog.resolve_note_required")
+          : t("moderation.resolveDialog.dismiss_note_required"),
       );
       return;
     }
 
     if (isResolve && action === "ban_actor" && !banUsername.trim()) {
-      setErrorMessage("Banlanacak kullanıcının kullanıcı adı zorunludur.");
+      setErrorMessage(t("moderation.resolveDialog.ban_username_required"));
       return;
     }
 
@@ -103,20 +105,20 @@ export function ResolveReportDialog({
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
-        throw new Error(data.error || "İşlem sırasında bir hata oluştu.");
+        throw new Error(data.error || t("moderation.resolveDialog.request_error"));
       }
 
       toast.success(
         isResolve
-          ? "Şikayet başarıyla çözüldü olarak işaretlendi."
-          : "Şikayet geçersiz/reddedildi olarak kapatıldı.",
+          ? t("moderation.resolveDialog.resolved_success")
+          : t("moderation.resolveDialog.dismissed_success"),
       );
 
       handleReset();
       onOpenChange(false);
       onSuccess?.(data.report);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Sunucu hatası";
+      const msg = err instanceof Error ? err.message : t("moderation.resolveDialog.server_error");
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
@@ -139,27 +141,26 @@ export function ResolveReportDialog({
               {isResolve ? (
                 <>
                   <CheckCircle2 className="w-5 h-5 text-success" />
-                  <span>Şikayeti Çözümle</span>
+                  <span>{t("moderation.resolveDialog.resolve_title")}</span>
                 </>
               ) : (
                 <>
                   <XCircle className="w-5 h-5 text-muted-foreground" />
-                  <span>Şikayeti Reddet / Kapat</span>
+                  <span>{t("moderation.resolveDialog.dismiss_title")}</span>
                 </>
               )}
             </DialogTitle>
             <DialogDescription>
-              Rapor ID: <span className="font-mono text-foreground font-semibold">{report.id}</span>{" "}
-              — Hedef:{" "}
-              <span className="font-mono text-foreground">
-                {report.targetType}:{report.targetId}
-              </span>
+              {t("moderation.resolveDialog.report_target", {
+                reportId: report.id,
+                target: `${report.targetType}:${report.targetId}`,
+              })}
             </DialogDescription>
           </DialogHeader>
 
           {/* Rapor Detayı Özeti */}
           <div className="bg-surface-2 p-3 rounded-xl border border-border/80 text-xs space-y-1">
-            <div className="text-muted-foreground">Şikayet Gerekçesi:</div>
+            <div className="text-muted-foreground">{t("moderation.resolveDialog.reason")}</div>
             <div className="font-medium text-foreground">{report.reason}</div>
           </div>
 
@@ -177,7 +178,9 @@ export function ResolveReportDialog({
           {/* Çözüm Eylemi Seçimi (Sadece Çöz Modunda) */}
           {isResolve && (
             <div className="space-y-2">
-              <Label className="text-xs font-medium">Uygulanacak Eylem</Label>
+              <Label className="text-xs font-medium">
+                {t("moderation.resolveDialog.action_label")}
+              </Label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   type="button"
@@ -189,7 +192,7 @@ export function ResolveReportDialog({
                   }`}
                 >
                   <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                  <span>Sadece Çözüldü İşaretle</span>
+                  <span>{t("moderation.resolveDialog.action_none")}</span>
                 </button>
 
                 <button
@@ -202,7 +205,7 @@ export function ResolveReportDialog({
                   }`}
                 >
                   <Trash2 className="w-4 h-4 text-destructive shrink-0" />
-                  <span>İçeriği Sil</span>
+                  <span>{t("moderation.resolveDialog.action_delete")}</span>
                 </button>
 
                 <button
@@ -215,7 +218,7 @@ export function ResolveReportDialog({
                   }`}
                 >
                   <Ban className="w-4 h-4 text-destructive shrink-0" />
-                  <span>Kullanıcıyı Banla</span>
+                  <span>{t("moderation.resolveDialog.action_ban")}</span>
                 </button>
               </div>
             </div>
@@ -226,12 +229,12 @@ export function ResolveReportDialog({
             <div className="p-3 rounded-xl bg-destructive/5 border border-destructive/20 space-y-3">
               <div className="space-y-1">
                 <Label htmlFor="ban-username" className="text-xs font-medium text-destructive">
-                  Banlanacak Kullanıcı Adı *
+                  {t("moderation.resolveDialog.ban_username")}
                 </Label>
                 <Input
                   id="ban-username"
                   data-testid="resolve-ban-username-input"
-                  placeholder="örn. spammer_bot"
+                  placeholder={t("moderation.resolveDialog.ban_username_placeholder")}
                   value={banUsername}
                   onChange={(e) => setBanUsername(e.target.value)}
                   className="text-xs"
@@ -239,7 +242,9 @@ export function ResolveReportDialog({
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-destructive">Ban Süresi</Label>
+                <Label className="text-xs font-medium text-destructive">
+                  {t("moderation.resolveDialog.ban_duration")}
+                </Label>
                 <div className="grid grid-cols-5 gap-1 text-xs">
                   {(["1d", "3d", "7d", "30d", "permanent"] as const).map((dur) => (
                     <button
@@ -252,11 +257,7 @@ export function ResolveReportDialog({
                           : "border-border/80 hover:bg-surface-2"
                       }`}
                     >
-                      {dur === "1d" && "1 Gün"}
-                      {dur === "3d" && "3 Gün"}
-                      {dur === "7d" && "7 Gün"}
-                      {dur === "30d" && "30 Gün"}
-                      {dur === "permanent" && "Kalıcı"}
+                      {t(`moderation.resolveDialog.duration_${dur}`)}
                     </button>
                   ))}
                 </div>
@@ -267,7 +268,11 @@ export function ResolveReportDialog({
           {/* Zorunlu Moderatör Notu */}
           <div className="space-y-1.5">
             <Label htmlFor="mod-note" className="text-xs font-medium flex items-center gap-1">
-              <span>{isResolve ? "Moderatör Notu (Zorunlu)" : "Reddetme Notu (Zorunlu)"}</span>
+              <span>
+                {isResolve
+                  ? t("moderation.resolveDialog.resolve_note")
+                  : t("moderation.resolveDialog.dismiss_note")}
+              </span>
               <span className="text-destructive">*</span>
             </Label>
             <Textarea
@@ -276,8 +281,8 @@ export function ResolveReportDialog({
               rows={3}
               placeholder={
                 isResolve
-                  ? "İnceleme sonucu ve alınan aksiyon hakkında not..."
-                  : "Bu şikayetin neden reddedildiğini açıklayın..."
+                  ? t("moderation.resolveDialog.resolve_placeholder")
+                  : t("moderation.resolveDialog.dismiss_placeholder")
               }
               value={note}
               onChange={(e) => {
@@ -296,7 +301,7 @@ export function ResolveReportDialog({
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
-              İptal
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -305,7 +310,11 @@ export function ResolveReportDialog({
               disabled={isSubmitting}
               variant={isResolve ? "default" : "destructive"}
             >
-              {isSubmitting ? "İşleniyor..." : isResolve ? "Şikayeti Çözümle" : "Şikayeti Reddet"}
+              {isSubmitting
+                ? t("moderation.resolveDialog.processing")
+                : isResolve
+                  ? t("moderation.resolveDialog.resolve_submit")
+                  : t("moderation.resolveDialog.dismiss_submit")}
             </Button>
           </DialogFooter>
         </form>

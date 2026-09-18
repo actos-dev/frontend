@@ -14,6 +14,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import {
   capabilitiesFromRoles,
   hasModCapability,
@@ -34,6 +35,7 @@ interface ModNavProps {
 
 export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNavProps) {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const sessionUser = useSessionStore((state) => state.user);
 
   const currentUser = sessionUser || initialUser;
@@ -43,25 +45,25 @@ export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNa
 
   const navItems = [
     {
-      label: "Özet",
+      label: t("moderation.nav.summary"),
       href: "/mod",
       icon: BarChart3,
       capability: "reports:read" as const,
     },
     {
-      label: "Rapor Kuyruğu",
+      label: t("moderation.nav.reports"),
       href: "/mod/reports",
       icon: AlertTriangle,
       capability: "reports:read" as const,
     },
     {
-      label: "Ban Yönetimi",
+      label: t("moderation.nav.bans"),
       href: "/mod/bans",
       icon: BanIcon,
       capability: "actors:ban" as const,
     },
     {
-      label: "Denetim Kaydı",
+      label: t("moderation.nav.actions"),
       href: "/mod/actions",
       icon: ShieldCheck,
       capability: "audit:read" as const,
@@ -69,7 +71,7 @@ export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNa
     ...(hasModCapability(capabilities, "roles:manage")
       ? [
           {
-            label: "Rol Yönetimi",
+            label: t("moderation.nav.roles"),
             href: "/mod/roles",
             icon: UserCheck,
             capability: "roles:manage" as const,
@@ -89,9 +91,9 @@ export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNa
             size="sm"
             className="gap-1.5 text-muted-foreground hover:text-foreground -ml-2 rounded-xl"
           >
-            <Link href="/" aria-label="Siteye Dön">
+            <Link href="/" aria-label={t("moderation.nav.back")}>
               <ArrowLeft className="w-4 h-4" />
-              <span className="text-xs font-medium">Siteye Dön</span>
+              <span className="text-xs font-medium">{t("moderation.nav.back")}</span>
             </Link>
           </Button>
 
@@ -101,7 +103,9 @@ export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNa
             <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
               <Shield className="w-4 h-4" />
             </div>
-            <span className="font-bold text-base tracking-tight font-serif">Moderasyon Paneli</span>
+            <span className="font-bold text-base tracking-tight font-serif">
+              {t("moderation.nav.panel")}
+            </span>
           </div>
         </div>
 
@@ -126,7 +130,7 @@ export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNa
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> Moderatör
+                  <ShieldCheck className="w-3 h-3" /> {t("moderation.nav.moderator")}
                 </span>
               )}
             </Badge>
@@ -136,7 +140,7 @@ export function ModNav({ initialUser, capabilities: initialCapabilities }: ModNa
 
       {/* Alt Çubuk: Sekmeler */}
       <nav
-        aria-label="Moderasyon Sekmeleri"
+        aria-label={t("moderation.nav.tabs_label")}
         className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-1 overflow-x-auto no-scrollbar"
       >
         {navItems

@@ -17,6 +17,7 @@ import { LoadMore } from "@/components/pagination/load-more";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/lib/i18n";
 
 interface ActionsListProps {
   initialActions?: AdminAction[];
@@ -24,6 +25,7 @@ interface ActionsListProps {
 }
 
 export function ActionsList({ initialActions = [], initialNextCursor = null }: ActionsListProps) {
+  const { locale, t } = useTranslation();
   const [actions, setActions] = useState<AdminAction[]>(initialActions);
   const [nextCursor, setNextCursor] = useState(initialNextCursor);
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,7 +44,7 @@ export function ActionsList({ initialActions = [], initialNextCursor = null }: A
         return (
           <Badge variant="destructive" size="sm" className="gap-1 font-mono uppercase text-[10px]">
             <Ban className="w-3 h-3" />
-            <span>Kullanıcı Banlandı</span>
+            <span>{t("moderation.actions.actor_ban")}</span>
           </Badge>
         );
       case "actor_unban":
@@ -53,28 +55,28 @@ export function ActionsList({ initialActions = [], initialNextCursor = null }: A
             className="gap-1 font-mono uppercase text-[10px] bg-success text-success-foreground"
           >
             <CheckCircle2 className="w-3 h-3" />
-            <span>Ban Kaldırıldı</span>
+            <span>{t("moderation.actions.actor_unban")}</span>
           </Badge>
         );
       case "content_delete":
         return (
           <Badge variant="destructive" size="sm" className="gap-1 font-mono uppercase text-[10px]">
             <Trash2 className="w-3 h-3" />
-            <span>İçerik Silindi</span>
+            <span>{t("moderation.actions.content_delete")}</span>
           </Badge>
         );
       case "report_update":
         return (
           <Badge variant="secondary" size="sm" className="gap-1 font-mono uppercase text-[10px]">
             <FileText className="w-3 h-3" />
-            <span>Rapor Güncellendi</span>
+            <span>{t("moderation.actions.report_update")}</span>
           </Badge>
         );
       case "role_grant":
         return (
           <Badge variant="default" size="sm" className="gap-1 font-mono uppercase text-[10px]">
             <UserCheck className="w-3 h-3" />
-            <span>Rol Atandı</span>
+            <span>{t("moderation.actions.role_grant")}</span>
           </Badge>
         );
       case "role_revoke":
@@ -85,7 +87,7 @@ export function ActionsList({ initialActions = [], initialNextCursor = null }: A
             className="gap-1 font-mono uppercase text-[10px] text-muted-foreground"
           >
             <UserX className="w-3 h-3" />
-            <span>Rol Kaldırıldı</span>
+            <span>{t("moderation.actions.role_revoke")}</span>
           </Badge>
         );
       default:
@@ -115,11 +117,8 @@ export function ActionsList({ initialActions = [], initialNextCursor = null }: A
       {/* Üst Başlık ve Filtre */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-border/80">
         <div>
-          <h2 className="text-base font-bold text-foreground">Denetim Kütüğü (Audit Log)</h2>
-          <p className="text-xs text-muted-foreground">
-            Yöneticiler ve moderatörler tarafından gerçekleştirilen tüm eylemlerin salt okunur
-            kaydı.
-          </p>
+          <h2 className="text-base font-bold text-foreground">{t("moderation.actions.title")}</h2>
+          <p className="text-xs text-muted-foreground">{t("moderation.actions.description")}</p>
         </div>
 
         <div className="relative w-full sm:w-64">
@@ -127,7 +126,7 @@ export function ActionsList({ initialActions = [], initialNextCursor = null }: A
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Kütükte ara..."
+            placeholder={t("moderation.actions.search_placeholder")}
             className="pl-8 text-xs h-8 rounded-xl"
             data-testid="audit-log-search-input"
           />
@@ -138,11 +137,11 @@ export function ActionsList({ initialActions = [], initialNextCursor = null }: A
       {filteredActions.length === 0 ? (
         <EmptyState
           icon={Shield}
-          title="Denetim kaydı bulunamadı"
+          title={t("moderation.actions.empty")}
           description={
             searchQuery
-              ? "Arama kriterlerine uygun işlem kaydı yok."
-              : "Henüz bir moderasyon işlemi kaydedilmedi."
+              ? t("moderation.actions.empty_search")
+              : t("moderation.actions.empty_default")
           }
         />
       ) : (
@@ -154,11 +153,11 @@ export function ActionsList({ initialActions = [], initialNextCursor = null }: A
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-border/80 bg-surface-2/70 text-muted-foreground font-mono uppercase text-[10px] tracking-wider">
-                  <th className="py-3 px-4 font-semibold">Tarih</th>
-                  <th className="py-3 px-4 font-semibold">Eylem</th>
-                  <th className="py-3 px-4 font-semibold">Yapan</th>
-                  <th className="py-3 px-4 font-semibold">Hedef</th>
-                  <th className="py-3 px-4 font-semibold">Gerekçe / Not</th>
+                  <th className="py-3 px-4 font-semibold">{t("moderation.actions.date")}</th>
+                  <th className="py-3 px-4 font-semibold">{t("moderation.actions.action")}</th>
+                  <th className="py-3 px-4 font-semibold">{t("moderation.actions.actor")}</th>
+                  <th className="py-3 px-4 font-semibold">{t("moderation.actions.target")}</th>
+                  <th className="py-3 px-4 font-semibold">{t("moderation.actions.reason")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
@@ -171,7 +170,7 @@ export function ActionsList({ initialActions = [], initialNextCursor = null }: A
                     <td className="py-3 px-4 whitespace-nowrap font-mono text-[11px] text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
-                        {new Date(action.createdAt).toLocaleDateString("tr-TR", {
+                        {new Date(action.createdAt).toLocaleDateString(locale, {
                           day: "numeric",
                           month: "short",
                           hour: "2-digit",
@@ -213,8 +212,8 @@ export function ActionsList({ initialActions = [], initialNextCursor = null }: A
         nextCursor={nextCursor}
         onLoadMore={handleLoadMore}
         syncUrl={false}
-        label="Load more actions"
-        loadingLabel="Loading actions…"
+        label={t("moderation.actions.load_more")}
+        loadingLabel={t("moderation.actions.loading")}
       />
     </div>
   );

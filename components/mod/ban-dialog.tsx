@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 
 interface BanDialogProps {
   open: boolean;
@@ -23,6 +24,7 @@ interface BanDialogProps {
 }
 
 export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialogProps) {
+  const { t } = useTranslation();
   const [username, setUsername] = useState(defaultUsername);
   const [duration, setDuration] = useState<"1d" | "3d" | "7d" | "30d" | "permanent">("permanent");
   const [reason, setReason] = useState("");
@@ -50,12 +52,12 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
     const trimmedReason = reason.trim();
 
     if (!trimmedUsername) {
-      setErrorMessage("Kullanıcı adı zorunludur.");
+      setErrorMessage(t("moderation.banDialog.username_required"));
       return;
     }
 
     if (!trimmedReason) {
-      setErrorMessage("Ban gerekçesi zorunludur.");
+      setErrorMessage(t("moderation.banDialog.reason_required"));
       return;
     }
 
@@ -76,19 +78,19 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
-        throw new Error(data.error || "Ban eklenirken bir hata oluştu.");
+        throw new Error(data.error || t("moderation.banDialog.request_error"));
       }
 
       toast.success(
         duration === "permanent"
-          ? `@${trimmedUsername} kalıcı olarak banlandı.`
-          : `@${trimmedUsername} süreli olarak banlandı.`,
+          ? t("moderation.banDialog.permanent_success", { username: trimmedUsername })
+          : t("moderation.banDialog.temporary_success", { username: trimmedUsername }),
       );
 
       handleReset();
       onOpenChange(false);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Sunucu hatası";
+      const msg = err instanceof Error ? err.message : t("moderation.resolveDialog.server_error");
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
@@ -109,12 +111,9 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <BanIcon className="w-5 h-5" />
-              <span>Kullanıcıyı Banla</span>
+              <span>{t("moderation.banDialog.title")}</span>
             </DialogTitle>
-            <DialogDescription>
-              Banlanan aktör içerik oluşturamaz, oy veremez ve yorum yapamaz. İşlem denetim kütüğüne
-              kaydedilir.
-            </DialogDescription>
+            <DialogDescription>{t("moderation.banDialog.description")}</DialogDescription>
           </DialogHeader>
 
           {errorMessage && (
@@ -130,13 +129,13 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
           {/* Kullanıcı Adı */}
           <div className="space-y-1.5">
             <Label htmlFor="ban-username" className="text-xs font-medium flex items-center gap-1">
-              <span>Kullanıcı Adı</span>
+              <span>{t("moderation.banDialog.username")}</span>
               <span className="text-destructive">*</span>
             </Label>
             <Input
               id="ban-username"
               data-testid="ban-username-input"
-              placeholder="örn. spam_bot"
+              placeholder={t("moderation.banDialog.username_placeholder")}
               value={username}
               onChange={(e) => {
                 setUsername(e.target.value);
@@ -148,15 +147,18 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
 
           {/* Ban Süresi */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">Ban Süresi</Label>
+            <Label className="text-xs font-medium">{t("moderation.banDialog.duration")}</Label>
             <div className="grid grid-cols-5 gap-1.5 text-xs">
               {(
                 [
-                  { id: "1d", label: "1 Gün" },
-                  { id: "3d", label: "3 Gün" },
-                  { id: "7d", label: "7 Gün" },
-                  { id: "30d", label: "30 Gün" },
-                  { id: "permanent", label: "Kalıcı" },
+                  { id: "1d", labelKey: "moderation.resolveDialog.duration_1d" },
+                  { id: "3d", labelKey: "moderation.resolveDialog.duration_3d" },
+                  { id: "7d", labelKey: "moderation.resolveDialog.duration_7d" },
+                  { id: "30d", labelKey: "moderation.resolveDialog.duration_30d" },
+                  {
+                    id: "permanent",
+                    labelKey: "moderation.resolveDialog.duration_permanent",
+                  },
                 ] as const
               ).map((item) => (
                 <button
@@ -170,7 +172,7 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
                       : "border-border/80 hover:bg-surface-2 text-muted-foreground"
                   }`}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </button>
               ))}
             </div>
@@ -179,14 +181,14 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
           {/* Zorunlu Gerekçe */}
           <div className="space-y-1.5">
             <Label htmlFor="ban-reason" className="text-xs font-medium flex items-center gap-1">
-              <span>Ban Gerekçesi (Zorunlu)</span>
+              <span>{t("moderation.banDialog.reason")}</span>
               <span className="text-destructive">*</span>
             </Label>
             <Textarea
               id="ban-reason"
               data-testid="ban-reason-input"
               rows={3}
-              placeholder="Topluluk kurallarını ihlal gerekçesi..."
+              placeholder={t("moderation.banDialog.reason_placeholder")}
               value={reason}
               onChange={(e) => {
                 setReason(e.target.value);
@@ -204,7 +206,7 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
-              İptal
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -213,7 +215,9 @@ export function BanDialog({ open, onOpenChange, defaultUsername = "" }: BanDialo
               data-testid="confirm-ban-submit-button"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Banlanıyor..." : "Kullanıcıyı Banla"}
+              {isSubmitting
+                ? t("moderation.banDialog.submitting")
+                : t("moderation.banDialog.title")}
             </Button>
           </DialogFooter>
         </form>

@@ -216,7 +216,9 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       render(pageResult);
 
       expect(screen.getByTestId("pending-reports-count")).toHaveTextContent("2");
-      expect(screen.getByTestId("stat-ban-management")).toHaveTextContent("Listeleme API’si yok");
+      expect(screen.getByTestId("stat-ban-management")).toHaveTextContent(
+        "The API cannot list bans",
+      );
       expect(screen.getByTestId("recent-actions-count")).toHaveTextContent("1");
       expect(screen.getByTestId("quick-action-reports")).toBeInTheDocument();
       expect(screen.getByTestId("quick-action-bans")).toBeInTheDocument();
@@ -229,7 +231,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
 
       render(<ModNav initialUser={mockAdminWhoami.actor} />);
 
-      expect(screen.getByText("Moderasyon Paneli")).toBeInTheDocument();
+      expect(screen.getByText("Moderation Panel")).toBeInTheDocument();
       expect(screen.getByTestId("mod-status-badge")).toBeInTheDocument();
       expect(screen.getByTestId("mod-nav-summary")).toBeInTheDocument();
       expect(screen.getByTestId("mod-nav-reports")).toBeInTheDocument();
@@ -324,7 +326,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       const submitBtn = screen.getByTestId("resolve-report-submit-button");
       fireEvent.click(submitBtn);
 
-      expect(await screen.findByText(/Moderatör notu zorunludur/i)).toBeInTheDocument();
+      expect(await screen.findByText(/A moderator note is required/i)).toBeInTheDocument();
     });
 
     it("not girildiğinde /api/mod/reports/[id] PATCH isteği yapar ve başarılı toast gösterir", async () => {
@@ -434,7 +436,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       const submitBtn = screen.getByTestId("confirm-moderate-delete-button");
       fireEvent.click(submitBtn);
 
-      expect(await screen.findByText(/Silme gerekçesi zorunludur/i)).toBeInTheDocument();
+      expect(await screen.findByText(/A removal reason is required/i)).toBeInTheDocument();
     });
   });
 
@@ -524,7 +526,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       render(<BansManager />);
 
       expect(screen.getByTestId("ban-list-unsupported")).toHaveTextContent(
-        "Actos API etkin banları listeleme ucu sunmuyor",
+        "The Actos API does not provide an endpoint to list active bans",
       );
       expect(screen.getByTestId("ban-remove-username-input")).toBeInTheDocument();
       expect(screen.getByTestId("open-add-ban-dialog-button")).toBeInTheDocument();
@@ -540,7 +542,7 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       fireEvent.change(screen.getByTestId("ban-remove-username-input"), {
         target: { value: "@troll_1" },
       });
-      fireEvent.click(screen.getByRole("button", { name: /banı kaldır/i }));
+      fireEvent.click(screen.getByRole("button", { name: /remove ban/i }));
       fireEvent.click(await screen.findByTestId("confirm-unban-button"));
 
       await waitFor(() => {
@@ -589,8 +591,8 @@ describe("Faz 14 — Moderasyon Paneli ve Anti-Leak Güvenlik Test Paketi", () =
       expect(screen.getByTestId("audit-log-table")).toBeInTheDocument();
       expect(screen.getByTestId("audit-log-row-act_1")).toBeInTheDocument();
       expect(screen.getByTestId("audit-log-row-act_2")).toBeInTheDocument();
-      expect(screen.getByText("Kullanıcı Banlandı")).toBeInTheDocument();
-      expect(screen.getByText("İçerik Silindi")).toBeInTheDocument();
+      expect(screen.getByText("User Banned")).toBeInTheDocument();
+      expect(screen.getByText("Content Removed")).toBeInTheDocument();
       expect(screen.getByText("@dila_ai")).toBeInTheDocument();
       expect(screen.getByText("@taylan_mod")).toBeInTheDocument();
     });

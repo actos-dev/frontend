@@ -2,6 +2,7 @@ import { AlertTriangle, ArrowRight, Ban, Clock, ShieldCheck, UserCheck } from "l
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getServerLocale, getTranslations } from "@/lib/i18n";
 import { requireModServer } from "@/lib/mod/auth";
 import { listAuditLogs, listReports } from "@/lib/mod/client-actions";
 
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ModSummaryPage() {
   const { client, isAdmin } = await requireModServer();
+  const { locale, t } = getTranslations(await getServerLocale());
 
   const [reportsPage, actionsPage] = await Promise.all([
     listReports(client, { status: "pending", limit: 100 }).catch(() => ({
@@ -32,10 +34,10 @@ export default async function ModSummaryPage() {
       {/* Sayfa Başlığı */}
       <div>
         <h1 className="text-xl sm:text-2xl font-bold font-serif text-foreground tracking-tight">
-          Moderasyon Genel Bakış
+          {t("moderation.pages.summary_title")}
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-          Topluluk güvenliği, bekleyen şikayetler ve sistem denetim izi metrikleri.
+          {t("moderation.pages.summary_description")}
         </p>
       </div>
 
@@ -49,7 +51,7 @@ export default async function ModSummaryPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase font-mono tracking-wider">
-              Bekleyen Raporlar
+              {t("moderation.pages.pending_reports")}
             </span>
             <div className="w-8 h-8 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
@@ -63,7 +65,7 @@ export default async function ModSummaryPage() {
               {pendingReportsCount}
             </span>
             <span className="text-xs text-primary group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-medium">
-              İncele <ArrowRight className="w-3 h-3" />
+              {t("moderation.pages.review")} <ArrowRight className="w-3 h-3" />
             </span>
           </div>
         </Link>
@@ -76,7 +78,7 @@ export default async function ModSummaryPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase font-mono tracking-wider">
-              Ban Yönetimi
+              {t("moderation.pages.ban_management")}
             </span>
             <div className="w-8 h-8 rounded-xl bg-surface-2 text-foreground flex items-center justify-center">
               <Ban className="w-4 h-4" />
@@ -84,10 +86,10 @@ export default async function ModSummaryPage() {
           </div>
           <div className="flex items-end justify-between gap-3">
             <span className="text-xs leading-relaxed text-muted-foreground">
-              Listeleme API’si yok; ban ekleme ve kullanıcı adıyla kaldırma kullanılabilir.
+              {t("moderation.pages.ban_capability")}
             </span>
             <span className="shrink-0 text-xs text-primary group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-medium">
-              Yönet <ArrowRight className="w-3 h-3" />
+              {t("moderation.pages.manage")} <ArrowRight className="w-3 h-3" />
             </span>
           </div>
         </Link>
@@ -100,7 +102,7 @@ export default async function ModSummaryPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground uppercase font-mono tracking-wider">
-              Son 24 Saat Eylemleri
+              {t("moderation.pages.last_24h")}
             </span>
             <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <Clock className="w-4 h-4" />
@@ -114,7 +116,7 @@ export default async function ModSummaryPage() {
               {last24hActionsCount}
             </span>
             <span className="text-xs text-primary group-hover:translate-x-0.5 transition-transform flex items-center gap-1 font-medium">
-              Kütüğü Gör <ArrowRight className="w-3 h-3" />
+              {t("moderation.pages.view_log")} <ArrowRight className="w-3 h-3" />
             </span>
           </div>
         </Link>
@@ -123,7 +125,7 @@ export default async function ModSummaryPage() {
       {/* Hızlı İşlem Kısayolları */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider font-mono">
-          Hızlı İşlemler
+          {t("moderation.pages.quick_actions")}
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Button
@@ -135,8 +137,10 @@ export default async function ModSummaryPage() {
             <Link href="/mod/reports" data-testid="quick-action-reports">
               <AlertTriangle className="w-4 h-4 text-warning" />
               <div className="text-left">
-                <div className="text-xs font-semibold">Raporları İncele</div>
-                <div className="text-[10px] text-muted-foreground">Kuyrukta bekleyenler</div>
+                <div className="text-xs font-semibold">{t("moderation.pages.review_reports")}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {t("moderation.pages.reports_waiting")}
+                </div>
               </div>
             </Link>
           </Button>
@@ -150,8 +154,10 @@ export default async function ModSummaryPage() {
             <Link href="/mod/bans" data-testid="quick-action-bans">
               <Ban className="w-4 h-4 text-destructive" />
               <div className="text-left">
-                <div className="text-xs font-semibold">Ban Yönetimi</div>
-                <div className="text-[10px] text-muted-foreground">Yasakla veya kaldır</div>
+                <div className="text-xs font-semibold">{t("moderation.pages.ban_management")}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {t("moderation.pages.ban_or_remove")}
+                </div>
               </div>
             </Link>
           </Button>
@@ -165,8 +171,10 @@ export default async function ModSummaryPage() {
             <Link href="/mod/actions" data-testid="quick-action-actions">
               <ShieldCheck className="w-4 h-4 text-primary" />
               <div className="text-left">
-                <div className="text-xs font-semibold">Denetim Kaydı</div>
-                <div className="text-[10px] text-muted-foreground">Geçmiş işlem izi</div>
+                <div className="text-xs font-semibold">{t("moderation.pages.audit_log")}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {t("moderation.pages.action_history")}
+                </div>
               </div>
             </Link>
           </Button>
@@ -181,8 +189,12 @@ export default async function ModSummaryPage() {
               <Link href="/mod/roles" data-testid="quick-action-roles">
                 <UserCheck className="w-4 h-4 text-primary" />
                 <div className="text-left">
-                  <div className="text-xs font-semibold">Rol Yönetimi</div>
-                  <div className="text-[10px] text-muted-foreground">Yalnızca admin</div>
+                  <div className="text-xs font-semibold">
+                    {t("moderation.pages.role_management")}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {t("moderation.pages.admin_only")}
+                  </div>
                 </div>
               </Link>
             </Button>
@@ -194,11 +206,11 @@ export default async function ModSummaryPage() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider font-mono">
-            Son Moderasyon Eylemleri
+            {t("moderation.pages.recent_actions")}
           </h2>
           <Button asChild variant="ghost" size="sm" className="text-xs gap-1 rounded-xl">
             <Link href="/mod/actions">
-              <span>Tümünü Gör</span>
+              <span>{t("moderation.pages.view_all")}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </Button>
@@ -206,7 +218,7 @@ export default async function ModSummaryPage() {
 
         {recentActions.length === 0 ? (
           <div className="p-6 rounded-2xl border border-border/80 bg-card text-center text-xs text-muted-foreground">
-            Henüz kaydedilmiş bir moderasyon eylemi bulunmuyor.
+            {t("moderation.pages.no_actions")}
           </div>
         ) : (
           <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-xs">
@@ -234,7 +246,7 @@ export default async function ModSummaryPage() {
                       </span>
                     )}
                     <span className="font-mono text-[11px] whitespace-nowrap">
-                      {new Date(action.createdAt).toLocaleDateString("tr-TR", {
+                      {new Date(action.createdAt).toLocaleDateString(locale, {
                         day: "numeric",
                         month: "short",
                         hour: "2-digit",

@@ -21,6 +21,7 @@ import { ActorAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useTranslation } from "@/lib/i18n";
 import type { EnrichedReport } from "@/lib/mod/report-types";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ export function ReportsQueue({
   initialStatus = "pending",
   initialNextCursor = null,
 }: ReportsQueueProps) {
+  const { locale, t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"pending" | "resolved" | "dismissed">(
     (initialStatus as "pending" | "resolved" | "dismissed") || "pending",
   );
@@ -167,7 +169,11 @@ export function ReportsQueue({
     <div className="space-y-6">
       {/* Filtre Sekmeleri */}
       <div className="flex items-center justify-between gap-4 border-b border-border/80 pb-2">
-        <div role="tablist" aria-label="Rapor Durum Filtreleri" className="flex items-center gap-2">
+        <div
+          role="tablist"
+          aria-label={t("moderation.reports.filters_label")}
+          className="flex items-center gap-2"
+        >
           <button
             type="button"
             role="tab"
@@ -181,7 +187,7 @@ export function ReportsQueue({
                 : "bg-surface-2 text-muted-foreground hover:text-foreground",
             )}
           >
-            Bekleyen
+            {t("moderation.reports.pending")}
           </button>
 
           <button
@@ -197,7 +203,7 @@ export function ReportsQueue({
                 : "bg-surface-2 text-muted-foreground hover:text-foreground",
             )}
           >
-            Çözülen
+            {t("moderation.reports.resolved")}
           </button>
 
           <button
@@ -213,12 +219,12 @@ export function ReportsQueue({
                 : "bg-surface-2 text-muted-foreground hover:text-foreground",
             )}
           >
-            Reddedilen
+            {t("moderation.reports.dismissed")}
           </button>
         </div>
 
         <div className="text-xs text-muted-foreground font-mono">
-          {reports.length} rapor listelendi
+          {t("moderation.reports.count", { count: reports.length })}
         </div>
       </div>
 
@@ -235,11 +241,13 @@ export function ReportsQueue({
       ) : reports.length === 0 ? (
         <EmptyState
           icon={CheckCircle2}
-          title="Moderasyon kuyruğu tertemiz"
+          title={t("moderation.reports.empty_title")}
           description={
             activeTab === "pending"
-              ? "Harika haber! Şu anda incelenmeyi bekleyen şikayet yok."
-              : `${activeTab} durumunda kayıtlı rapor bulunmuyor.`
+              ? t("moderation.reports.empty_pending")
+              : t("moderation.reports.empty_status", {
+                  status: t(`moderation.reports.${activeTab}`),
+                })
           }
         />
       ) : (
@@ -275,7 +283,9 @@ export function ReportsQueue({
 
                   {(report.targetReportCount ?? 1) > 1 && (
                     <Badge variant="secondary" size="sm" className="font-mono text-[10px]">
-                      {report.targetReportCount} reports
+                      {t("moderation.reports.report_count", {
+                        count: report.targetReportCount ?? 1,
+                      })}
                     </Badge>
                   )}
 
@@ -285,7 +295,7 @@ export function ReportsQueue({
                       target="_blank"
                       className="text-primary hover:underline inline-flex items-center gap-0.5 text-[11px]"
                     >
-                      <span>İçeriği Aç</span>
+                      <span>{t("moderation.reports.open_content")}</span>
                       <ExternalLink className="w-3 h-3" />
                     </Link>
                   )}
@@ -294,7 +304,7 @@ export function ReportsQueue({
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <span className="flex items-center gap-1 font-mono text-[11px]">
                     <Clock className="w-3.5 h-3.5" />
-                    {new Date(report.createdAt).toLocaleDateString("tr-TR", {
+                    {new Date(report.createdAt).toLocaleDateString(locale, {
                       day: "numeric",
                       month: "short",
                       hour: "2-digit",
@@ -313,9 +323,7 @@ export function ReportsQueue({
                     size="sm"
                     className="font-mono text-[10px] uppercase"
                   >
-                    {report.status === "pending" && "Bekleyen"}
-                    {report.status === "resolved" && "Çözüldü"}
-                    {report.status === "dismissed" && "Reddedildi"}
+                    {t(`moderation.reports.${report.status}`)}
                   </Badge>
                 </div>
               </div>
@@ -327,7 +335,7 @@ export function ReportsQueue({
                 >
                   {report.targetPreview.unavailable ? (
                     <p className="text-sm text-muted-foreground">
-                      Reported content is unavailable.
+                      {t("moderation.reports.content_unavailable")}
                     </p>
                   ) : (
                     <div className="space-y-2">
@@ -360,7 +368,7 @@ export function ReportsQueue({
                             href={report.targetPreview.href}
                             className="shrink-0 text-xs text-accent-text hover:underline"
                           >
-                            Open content
+                            {t("moderation.reports.open_content")}
                           </Link>
                         ) : null}
                       </div>
@@ -382,7 +390,7 @@ export function ReportsQueue({
               {/* Şikayet Gerekçesi */}
               <div className="space-y-1">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-                  Şikayet Gerekçesi
+                  {t("moderation.reports.reason")}
                 </div>
                 <div className="text-sm font-medium text-foreground bg-surface-2 p-2.5 rounded-xl border border-border/60">
                   {report.reason}
@@ -393,7 +401,7 @@ export function ReportsQueue({
               {report.notes && (
                 <div className="space-y-1">
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-                    Moderatör Notu
+                    {t("moderation.reports.moderator_note")}
                   </div>
                   <div className="text-xs text-foreground bg-primary/5 p-2.5 rounded-xl border border-primary/20">
                     {report.notes}
@@ -414,7 +422,7 @@ export function ReportsQueue({
                       className="gap-1.5 text-xs text-destructive hover:bg-destructive/10 hover:border-destructive/40 rounded-xl"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>İçeriği Sil</span>
+                      <span>{t("moderation.reports.delete_content")}</span>
                     </Button>
                   )}
 
@@ -428,7 +436,7 @@ export function ReportsQueue({
                       className="gap-1.5 text-xs"
                     >
                       <UserX className="h-3.5 w-3.5" />
-                      <span>Ban author</span>
+                      <span>{t("moderation.reports.ban_author")}</span>
                     </Button>
                   )}
 
@@ -441,7 +449,7 @@ export function ReportsQueue({
                     className="gap-1.5 text-xs rounded-xl"
                   >
                     <XCircle className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span>Reddet</span>
+                    <span>{t("moderation.reports.dismiss")}</span>
                   </Button>
 
                   <Button
@@ -453,7 +461,7 @@ export function ReportsQueue({
                     className="gap-1.5 text-xs rounded-xl"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Çözümle</span>
+                    <span>{t("moderation.reports.resolve")}</span>
                   </Button>
                 </div>
               )}
@@ -466,8 +474,8 @@ export function ReportsQueue({
         nextCursor={nextCursor}
         onLoadMore={handleLoadMore}
         syncUrl={false}
-        label="Load more reports"
-        loadingLabel="Loading reports…"
+        label={t("moderation.reports.load_more")}
+        loadingLabel={t("moderation.reports.loading")}
       />
 
       {/* Çözüm / Reddet Dialog */}

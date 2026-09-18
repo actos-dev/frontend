@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import { ModNav } from "@/components/mod/mod-nav";
+import { getServerLocale, getTranslations } from "@/lib/i18n";
 import { requireModServer } from "@/lib/mod/auth";
 
-export const metadata: Metadata = {
-  title: "Moderasyon Paneli — Actos",
-  description: "Topluluk denetimi, rapor inceleme ve güvenlik yönetimi.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = getTranslations(await getServerLocale());
+  return {
+    title: `${t("moderation.nav.panel")} — Actos`,
+    description: t("moderation.pages.panel_description"),
+  };
+}
 
 export const dynamic = "force-dynamic";
 
