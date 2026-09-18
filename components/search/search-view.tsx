@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton, SkeletonPostCard } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
+import { useTranslation } from "@/lib/i18n";
 import { parseSearchTab, SEARCH_TABS, type SearchTabType } from "@/lib/search-tabs";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { fetchVoteMapClient, type VoteMap } from "@/lib/votes";
@@ -42,6 +43,7 @@ function readRecentSearches(): string[] {
 
 export function SearchView() {
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
 
   const urlQ = searchParams.get("q") || "";
   const urlType = parseSearchTab(searchParams.get("type"));
@@ -129,7 +131,7 @@ export function SearchView() {
 
         if (!res.ok || !data.ok) {
           if (!controller.signal.aborted) {
-            toast.error(data.detail || data.title || "Arama gerçekleştirilemedi.");
+            toast.error(data.detail || data.title || t("searchPage.search_error"));
           }
           return;
         }
@@ -158,7 +160,7 @@ export function SearchView() {
         }
       } catch (err: unknown) {
         if ((err as Error).name !== "AbortError") {
-          toast.error("Bağlantı hatası: Arama tamamlanamadı.");
+          toast.error(t("searchPage.search_network_error"));
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -166,7 +168,7 @@ export function SearchView() {
         }
       }
     },
-    [rememberSearch, viewerId],
+    [rememberSearch, t, viewerId],
   );
 
   // Initial load if query is in URL
@@ -267,7 +269,7 @@ export function SearchView() {
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
-        toast.error(data.detail || data.title || "Daha fazla sonuç yüklenemedi.");
+        toast.error(data.detail || data.title || t("searchPage.load_more_error"));
         return;
       }
 
@@ -288,7 +290,7 @@ export function SearchView() {
         setVotes((prev) => ({ ...prev, ...newVotes }));
       }
     } catch {
-      toast.error("Bağlantı hatası: Sonraki sayfa yüklenemedi.");
+      toast.error(t("searchPage.load_more_network_error"));
     } finally {
       setIsLoadingMore(false);
     }
@@ -303,9 +305,9 @@ export function SearchView() {
           type="text"
           value={inputQuery}
           onChange={handleInputChange}
-          placeholder="Gönderiler, yorumlar ve aktörlerde ara..."
+          placeholder={t("searchPage.placeholder")}
           className="pl-10 pr-10 h-11 text-base sm:text-sm rounded-xl bg-surface-2 border-border/70 focus-visible:ring-primary shadow-xs"
-          aria-label="Arama kutusu"
+          aria-label={t("searchPage.input_label")}
           autoFocus
         />
         {inputQuery && (
@@ -315,7 +317,7 @@ export function SearchView() {
             size="sm"
             onClick={handleClear}
             className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-            aria-label="Aramayı temizle"
+            aria-label={t("searchPage.clear")}
           >
             <X className="w-4 h-4" />
           </Button>
@@ -332,7 +334,7 @@ export function SearchView() {
               onClick={() => handleTabChange(tab.value)}
               className="rounded-lg text-xs sm:text-sm"
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -362,13 +364,13 @@ export function SearchView() {
           <div className="space-y-6 py-12 px-4 sm:px-6">
             <EmptyState
               icon={Search}
-              title="Aramak istediğiniz terimi yazın; gönderiler, yorumlar ve aktörler arasında arayın."
-              description="İçerik başlıkları, metinler, etiketler veya kullanıcı adları arasında anında filtreleme yapabilirsiniz."
+              title={t("searchPage.start_title")}
+              description={t("searchPage.start_description")}
             />
             {recentSearches.length > 0 && (
               <div className="mx-auto max-w-md space-y-2 text-center">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Son aramalar
+                  {t("searchPage.recent")}
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {recentSearches.map((query) => (
@@ -394,10 +396,10 @@ export function SearchView() {
           <div className="py-12 px-4 sm:px-6">
             <EmptyState
               icon={SearchX}
-              title={`‘${submittedQuery || inputQuery}’ için hiçbir sonuç bulunamadı.`}
-              description="Farklı anahtar kelimeler deneyebilir veya etiketler sayfasına göz atabilirsiniz."
+              title={t("searchPage.no_results", { query: submittedQuery || inputQuery })}
+              description={t("searchPage.no_results_description")}
               action={{
-                label: "Etiketlere Göz At",
+                label: t("searchPage.browse_tags"),
                 href: "/tags",
                 variant: "outline",
               }}
@@ -460,8 +462,8 @@ export function SearchView() {
               nextCursor={nextCursor}
               onLoadMore={handleLoadMore}
               isLoading={isLoadingMore}
-              label="Daha fazla sonuç yükle"
-              loadingLabel="Sonuçlar yükleniyor..."
+              label={t("searchPage.load_more")}
+              loadingLabel={t("searchPage.loading_more")}
             />
           </div>
         )}

@@ -1,8 +1,8 @@
 export const SEARCH_TABS = [
-  { value: "post", label: "Gönderiler" },
-  { value: "comment", label: "Yorumlar" },
-  { value: "actor", label: "Aktörler" },
-  { value: "tag", label: "Etiketler" },
+  { value: "post", labelKey: "searchPage.tabs.post" },
+  { value: "comment", labelKey: "searchPage.tabs.comment" },
+  { value: "actor", labelKey: "searchPage.tabs.actor" },
+  { value: "tag", labelKey: "searchPage.tabs.tag" },
 ] as const;
 
 export type SearchTabType = (typeof SEARCH_TABS)[number]["value"];

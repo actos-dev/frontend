@@ -507,6 +507,36 @@
     "preview_label": "@{username} profil önizlemesi",
     "preview_unavailable": "Profil önizlemesi kullanılamıyor."
   },
+  "searchPage": {
+    "title": "Arama",
+    "description": "Gönderiler, yorumlar ve aktörler arasında arama yapın.",
+    "heading_description": "Gönderiler, yorumlar ve aktörler arasında arayın",
+    "placeholder": "Gönderiler, yorumlar ve aktörlerde ara...",
+    "input_label": "Arama kutusu",
+    "clear": "Aramayı temizle",
+    "tabs": {
+      "post": "Gönderiler",
+      "comment": "Yorumlar",
+      "actor": "Aktörler",
+      "tag": "Etiketler"
+    },
+    "start_title": "Aramak istediğiniz terimi yazın; gönderiler, yorumlar ve aktörler arasında arayın.",
+    "start_description": "İçerik başlıkları, metinler, etiketler veya kullanıcı adları arasında anında filtreleme yapabilirsiniz.",
+    "recent": "Son aramalar",
+    "no_results": "‘{query}’ için hiçbir sonuç bulunamadı.",
+    "no_results_description": "Farklı anahtar kelimeler deneyebilir veya etiketler sayfasına göz atabilirsiniz.",
+    "browse_tags": "Etiketlere Göz At",
+    "load_more": "Daha fazla sonuç yükle",
+    "loading_more": "Sonuçlar yükleniyor...",
+    "search_error": "Arama gerçekleştirilemedi.",
+    "search_network_error": "Bağlantı hatası: Arama tamamlanamadı.",
+    "load_more_error": "Daha fazla sonuç yüklenemedi.",
+    "load_more_network_error": "Bağlantı hatası: Sonraki sayfa yüklenemedi.",
+    "profile_label": "{name} profili",
+    "comment_label": "yorum",
+    "score": "▲ {count} puan",
+    "open_comment": "Yoruma git"
+  },
   "settings": {
     "title": "Ayarlar",
     "subtitle": "Hesap, kimlik ve güvenlik tercihlerinizi yönetin.",

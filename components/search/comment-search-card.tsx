@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
+import { useTranslation } from "@/lib/i18n";
 import { excerpt } from "@/lib/render/excerpt";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
@@ -16,11 +17,12 @@ export interface CommentSearchCardProps {
 }
 
 export function CommentSearchCard({ comment, highlightQuery, className }: CommentSearchCardProps) {
+  const { locale, t } = useTranslation();
   const author = comment.author;
   const authorType = (author?.actorType || "human") as ActorType;
-  const username = author?.username || "anonim";
+  const username = author?.username || "anonymous";
   const displayName = author?.displayName || username;
-  const relativeTime = formatRelativeTime(comment.createdAt);
+  const relativeTime = formatRelativeTime(comment.createdAt, locale);
 
   const bodyExcerpt = excerpt(comment.body, 280);
 
@@ -38,7 +40,7 @@ export function CommentSearchCard({ comment, highlightQuery, className }: Commen
           <Link
             href={`/u/${username}`}
             className="relative shrink-0 group"
-            aria-label={`${displayName} profili`}
+            aria-label={t("searchPage.profile_label", { name: displayName })}
           >
             <Avatar className="h-6 w-6 sm:h-7 sm:w-7 transition-transform group-hover:scale-105">
               <AvatarImage src={author?.avatarUrl || undefined} alt={displayName} />
@@ -74,7 +76,7 @@ export function CommentSearchCard({ comment, highlightQuery, className }: Commen
 
         <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
           <MessageSquare className="w-3.5 h-3.5 text-muted-foreground/70" />
-          <span>yorum</span>
+          <span>{t("searchPage.comment_label")}</span>
         </div>
       </div>
 
@@ -87,13 +89,15 @@ export function CommentSearchCard({ comment, highlightQuery, className }: Commen
 
       {/* Alt Satır: Skor ve Doğrudan Yorum Bağlantısı */}
       <div className="flex items-center justify-between text-xs text-muted-foreground pl-8 pt-1">
-        <span className="font-mono text-[11px]">▲ {comment.score ?? 0} puan</span>
+        <span className="font-mono text-[11px]">
+          {t("searchPage.score", { count: comment.score ?? 0 })}
+        </span>
 
         <Link
           href={`/comments/${comment.id}`}
           className="text-primary hover:underline font-medium text-xs inline-flex items-center gap-1"
         >
-          <span>Yoruma git</span>
+          <span>{t("searchPage.open_comment")}</span>
           <span aria-hidden="true">→</span>
         </Link>
       </div>

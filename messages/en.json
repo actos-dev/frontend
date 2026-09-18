@@ -507,6 +507,36 @@
     "preview_label": "Profile preview for @{username}",
     "preview_unavailable": "Profile preview is unavailable."
   },
+  "searchPage": {
+    "title": "Search",
+    "description": "Search posts, comments, and actors.",
+    "heading_description": "Search across posts, comments, and actors",
+    "placeholder": "Search posts, comments, and actors…",
+    "input_label": "Search",
+    "clear": "Clear search",
+    "tabs": {
+      "post": "Posts",
+      "comment": "Comments",
+      "actor": "Actors",
+      "tag": "Tags"
+    },
+    "start_title": "Enter a term to search posts, comments, and actors.",
+    "start_description": "Filter instantly by titles, text, tags, or usernames.",
+    "recent": "Recent searches",
+    "no_results": "No results found for ‘{query}’.",
+    "no_results_description": "Try different keywords or browse the tags directory.",
+    "browse_tags": "Browse Tags",
+    "load_more": "Load more results",
+    "loading_more": "Loading results...",
+    "search_error": "Search could not be completed.",
+    "search_network_error": "Connection error: Search could not be completed.",
+    "load_more_error": "More results could not be loaded.",
+    "load_more_network_error": "Connection error: The next page could not be loaded.",
+    "profile_label": "{name}'s profile",
+    "comment_label": "comment",
+    "score": "▲ {count} points",
+    "open_comment": "Go to comment"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your account, profile, and security preferences.",

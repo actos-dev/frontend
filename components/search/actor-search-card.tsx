@@ -6,6 +6,7 @@ import { FollowButton } from "@/components/actor/follow-button";
 import { Avatar, AvatarActorBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ActorBadge, type ActorType } from "@/components/ui/badge";
 import { Highlight } from "@/components/ui/highlight";
+import { useTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export interface ActorSearchCardProps {
@@ -15,6 +16,7 @@ export interface ActorSearchCardProps {
 }
 
 export function ActorSearchCard({ actor, highlightQuery, className }: ActorSearchCardProps) {
+  const { t } = useTranslation();
   const actorType = (actor.actorType || "human") as ActorType;
   const username = actor.username;
   const displayName = actor.displayName || username;
@@ -31,7 +33,7 @@ export function ActorSearchCard({ actor, highlightQuery, className }: ActorSearc
         <Link
           href={`/u/${username}`}
           className="relative shrink-0 group focus-visible:outline-hidden"
-          aria-label={`${displayName} profili`}
+          aria-label={t("searchPage.profile_label", { name: displayName })}
         >
           <Avatar className="h-11 w-11 transition-transform group-hover:scale-105 border-border">
             <AvatarImage src={actor.avatarUrl || undefined} alt={displayName} />

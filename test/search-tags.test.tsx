@@ -300,7 +300,7 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
 
       const mark = screen.getByText("Postgres", { selector: "mark" });
       expect(mark).toBeInTheDocument();
-      expect(screen.getByText("Yoruma git")).toBeInTheDocument();
+      expect(screen.getByText("Go to comment")).toBeInTheDocument();
     });
 
     it("ActorSearchCard içinde kullanıcı adı ve bio vurgulanmalıdır", () => {
@@ -404,16 +404,14 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
       render(<SearchView />);
 
       expect(
-        screen.getByText(
-          "Aramak istediğiniz terimi yazın; gönderiler, yorumlar ve aktörler arasında arayın.",
-        ),
+        screen.getByText("Enter a term to search posts, comments, and actors."),
       ).toBeInTheDocument();
     });
 
     it("yazma sırasında anında Skeleton yükleme durumu göstermelidir", () => {
       render(<SearchView />);
 
-      const input = screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara...");
+      const input = screen.getByPlaceholderText("Search posts, comments, and actors…");
       fireEvent.change(input, { target: { value: "rust" } });
 
       // Kritik Kural: Yazılır yazılmaz anında Skeleton yükleme durumu görünür
@@ -423,7 +421,7 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     it("300ms debounce sonrası istek yapıp sonuçları render etmelidir", async () => {
       render(<SearchView />);
 
-      const input = screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara...");
+      const input = screen.getByPlaceholderText("Search posts, comments, and actors…");
       fireEvent.change(input, { target: { value: "rust" } });
 
       await waitFor(() => {
@@ -454,7 +452,7 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
 
       render(<SearchView />);
 
-      const input = screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara...");
+      const input = screen.getByPlaceholderText("Search posts, comments, and actors…");
       fireEvent.change(input, { target: { value: "r" } });
 
       // Wait 300ms debounce so first request fires and starts inflight
@@ -472,11 +470,11 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     it("sekmeler arası (post -> comment -> actor) geçiş yapılabilmelidir", async () => {
       render(<SearchView />);
 
-      const input = screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara...");
+      const input = screen.getByPlaceholderText("Search posts, comments, and actors…");
       fireEvent.change(input, { target: { value: "test" } });
 
       // Yorumlar sekmesine geç
-      const commentTab = screen.getByRole("tab", { name: "Yorumlar" });
+      const commentTab = screen.getByRole("tab", { name: "Comments" });
       fireEvent.click(commentTab);
 
       await waitFor(() => {
@@ -485,7 +483,7 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
       expect(screen.getByText(/Postgres indexleme stratejilerinde/i)).toBeInTheDocument();
 
       // Aktörler sekmesine geç
-      const actorTab = screen.getByRole("tab", { name: "Aktörler" });
+      const actorTab = screen.getByRole("tab", { name: "Actors" });
       fireEvent.click(actorTab);
 
       await waitFor(() => {
@@ -498,10 +496,10 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     it("kayıt tabanlı etiket sekmesinde eşleşen etiketleri göstermelidir", async () => {
       render(<SearchView />);
 
-      fireEvent.change(screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara..."), {
+      fireEvent.change(screen.getByPlaceholderText("Search posts, comments, and actors…"), {
         target: { value: "rust" },
       });
-      fireEvent.click(screen.getByRole("tab", { name: "Etiketler" }));
+      fireEvent.click(screen.getByRole("tab", { name: "Tags" }));
 
       await waitFor(() => {
         expect(screen.getByText("rust", { selector: "mark" }).closest("a")).toHaveAttribute(
@@ -514,15 +512,15 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     it("başarılı sorguları yalnızca cihazdaki son aramalarda saklamalıdır", async () => {
       render(<SearchView />);
 
-      const input = screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara...");
+      const input = screen.getByPlaceholderText("Search posts, comments, and actors…");
       fireEvent.change(input, { target: { value: "rust" } });
 
       await waitFor(() => {
         expect(screen.getByTestId("search-results")).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByLabelText("Aramayı temizle"));
-      expect(screen.getByText("Son aramalar")).toBeInTheDocument();
+      fireEvent.click(screen.getByLabelText("Clear search"));
+      expect(screen.getByText("Recent searches")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "rust" })).toBeInTheDocument();
       expect(JSON.parse(window.localStorage.getItem("actos:recent-searches") || "[]")).toEqual([
         "rust",
@@ -532,48 +530,41 @@ describe("Faz 12 — Keşfet: Etiketler ve Arama Test Paketi", () => {
     it("sıfır sonuç durumunda kullanıcıyı bilgilendiren EmptyState göstermelidir", async () => {
       render(<SearchView />);
 
-      const input = screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara...");
+      const input = screen.getByPlaceholderText("Search posts, comments, and actors…");
       fireEvent.change(input, { target: { value: "nonexistent" } });
 
       await waitFor(() => {
-        expect(screen.getByText("‘nonexistent’ için hiçbir sonuç bulunamadı.")).toBeInTheDocument();
+        expect(screen.getByText("No results found for ‘nonexistent’.")).toBeInTheDocument();
       });
 
       expect(
-        screen.getByText(
-          "Farklı anahtar kelimeler deneyebilir veya etiketler sayfasına göz atabilirsiniz.",
-        ),
+        screen.getByText("Try different keywords or browse the tags directory."),
       ).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "Etiketlere Göz At" })).toHaveAttribute(
-        "href",
-        "/tags",
-      );
+      expect(screen.getByRole("link", { name: "Browse Tags" })).toHaveAttribute("href", "/tags");
     });
 
     it("temizleme butonu (x) tıklandığında aramayı ve sonuçları sıfırlamalıdır", async () => {
       render(<SearchView />);
 
-      const input = screen.getByPlaceholderText("Gönderiler, yorumlar ve aktörlerde ara...");
+      const input = screen.getByPlaceholderText("Search posts, comments, and actors…");
       fireEvent.change(input, { target: { value: "rust" } });
 
       await waitFor(() => {
         expect(screen.getByTestId("search-results")).toBeInTheDocument();
       });
 
-      const clearBtn = screen.getByLabelText("Aramayı temizle");
+      const clearBtn = screen.getByLabelText("Clear search");
       fireEvent.click(clearBtn);
 
       expect(input).toHaveValue("");
       expect(
-        screen.getByText(
-          "Aramak istediğiniz terimi yazın; gönderiler, yorumlar ve aktörler arasında arayın.",
-        ),
+        screen.getByText("Enter a term to search posts, comments, and actors."),
       ).toBeInTheDocument();
     });
 
-    it("SearchPage sayfasını ve Suspense kabuğunu başarıyla render etmelidir", () => {
-      render(<SearchPage />);
-      expect(screen.getByRole("heading", { name: "Arama" })).toBeInTheDocument();
+    it("SearchPage sayfasını ve Suspense kabuğunu başarıyla render etmelidir", async () => {
+      render(await SearchPage());
+      expect(screen.getByRole("heading", { name: "Search" })).toBeInTheDocument();
     });
   });
 });
