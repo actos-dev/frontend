@@ -83,6 +83,16 @@ describe("Faz 16 — SEO, Paylaşım ve Sosyal Medya Önizleme Test Paketi", () 
       ];
       expect(rules.disallow).toEqual(disallowedPaths);
 
+      // AI training/scraping crawlers are disallowed entirely (LEGAL.md).
+      const allRules = Array.isArray(robotsConfig.rules)
+        ? robotsConfig.rules
+        : [robotsConfig.rules];
+      const aiRules = allRules.filter((rule) => rule.userAgent !== "*");
+      expect(aiRules.length).toBeGreaterThanOrEqual(15);
+      for (const ua of ["GPTBot", "ClaudeBot", "CCBot", "Google-Extended", "Applebot-Extended"]) {
+        expect(aiRules.find((rule) => rule.userAgent === ua)?.disallow).toBe("/");
+      }
+
       // Sitemap URL
       expect(robotsConfig.sitemap).toBe("https://actos.com.tr/sitemap.xml");
     });
