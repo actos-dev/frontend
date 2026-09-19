@@ -81,6 +81,12 @@ jobs:
           # the server stays limited to secrets.
           export WEB_IMAGE="$IMAGE"
 
+          # The compose file also interpolates `ACTOS_IMAGE` (the backend)
+          # with a fail-fast `:?`, and compose validates the whole file even
+          # for `up web`. Reuse the image the running api already uses so its
+          # config is unchanged and it is not recreated by this deploy.
+          export ACTOS_IMAGE="$(docker inspect -f '{{.Config.Image}}' actos_api 2>/dev/null || echo ghcr.io/actos-dev/backend:latest)"
+
           docker compose -f docker-compose.prod.yml --env-file .env.prod pull web
 
           # `web` is a long-lived service, so `--wait` is correct here. It is
