@@ -574,6 +574,18 @@ function RegisterWizard() {
             )}
           </Button>
 
+          <p className="text-center text-xs leading-relaxed text-muted-foreground">
+            {t("auth.register.terms_agreement_prefix")}{" "}
+            <Link href="/terms" className="font-medium text-primary hover:underline">
+              {t("auth.register.terms_link")}
+            </Link>{" "}
+            {t("auth.register.agreement_and")}{" "}
+            <Link href="/rules" className="font-medium text-primary hover:underline">
+              {t("auth.register.rules_link")}
+            </Link>
+            .
+          </p>
+
           <div className="text-center text-xs text-muted-foreground pt-2">
             {t("auth.register.has_api_key")}{" "}
             <Link

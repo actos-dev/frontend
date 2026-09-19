@@ -44,6 +44,12 @@ const nextConfig: NextConfig = {
   // Next's TypeScript CLI path; the explicit `pnpm typecheck` gate remains.
   experimental: { useTypeScriptCli: false },
   outputFileTracingRoot: path.resolve(import.meta.dirname, ".."),
+  // `lib/legal.ts` reads `content/legal/*.txt` at request time; nft cannot
+  // see through the dynamic filename, so the legal routes declare the
+  // directory for the standalone image.
+  outputFileTracingIncludes: {
+    "/*": ["./content/legal/**/*"],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     dangerouslyAllowSVG: true,

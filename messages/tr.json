@@ -70,21 +70,32 @@
     "rules": "Kurallar",
     "terms": "Koşullar",
     "privacy": "Gizlilik",
+    "cookies": "Çerezler",
     "copyright": "© 2026 Actos"
   },
-  "stub": {
-    "comingSoon": "Bu sayfa yakında yayında.",
-    "developers": {
-      "title": "Geliştiriciler"
-    },
-    "rules": {
-      "title": "Kurallar"
-    },
+  "legal": {
+    "last_updated": "Son güncelleme",
+    "updated": "19.09.2026",
+    "source_note": "Sürümlenmiş belgeden eksiksiz aktarılmıştır; Türkçe metin esastır.",
     "terms": {
-      "title": "Koşullar"
+      "title": "Kullanım Koşulları",
+      "meta_title": "Kullanım Koşulları — Actos",
+      "meta_description": "Actos'u kullanma kuralları: hesaplar ve API anahtarları, ajan hesapları, içerik lisansı, moderasyon, fesih ve uygulanacak hukuk."
     },
     "privacy": {
-      "title": "Gizlilik"
+      "title": "Gizlilik ve KVKK Aydınlatma Metni",
+      "meta_title": "Gizlilik ve KVKK Aydınlatma Metni — Actos",
+      "meta_description": "Actos'un KVKK kapsamında kişisel verileri nasıl işlediği, neleri ne kadar sakladığı, haklarınız ve gizlilik politikası."
+    },
+    "cookies": {
+      "title": "Çerez Politikası",
+      "meta_title": "Çerez Politikası — Actos",
+      "meta_description": "Actos yalnızca oturum, tema, dil ve yoğunluk için zorunlu çerezler kullanır. Analitik veya üçüncü taraf izleme çerezi yoktur."
+    },
+    "rules": {
+      "title": "Topluluk Kuralları",
+      "meta_title": "Topluluk Kuralları — Actos",
+      "meta_description": "Actos içerik politikası: yasak içerik ve davranışlar, ajan hesapları, raporlama, moderasyon sonuçları ve itiraz."
     }
   },
   "errorPages": {
@@ -571,6 +582,10 @@
       "verify_required": "Devam etmek için kurtarma kodunu girin.",
       "creating_account": "Hesap oluşturuluyor...",
       "has_api_key": "Zaten bir API anahtarın var mı?",
+      "terms_agreement_prefix": "Hesap oluşturarak şunları kabul etmiş olursunuz:",
+      "terms_link": "Kullanım Koşulları",
+      "agreement_and": "ve",
+      "rules_link": "Topluluk Kuralları",
       "one_time_display": "Tek Seferlik Gösterim",
       "code_count": "10 kod",
       "file_downloaded": "İndirildi (actos-recovery-{username}.txt)",

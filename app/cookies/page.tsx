@@ -5,7 +5,7 @@ import { getLegalDocument } from "@/lib/legal";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { legal } = getDictionary(await getServerLocale());
-  const document = legal.terms;
+  const document = legal.cookies;
   return {
     title: document.meta_title,
     description: document.meta_description,
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: document.meta_title,
       description: document.meta_description,
       type: "website",
-      url: "/terms",
+      url: "/cookies",
     },
     twitter: {
       card: "summary_large_image",
@@ -23,18 +23,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/** ROADMAP.md D-07: the Terms of Service, rendered from `content/legal/terms.<locale>.txt`. */
-export default async function TermsPage() {
+/** ROADMAP.md D-07: the cookie policy, rendered from `content/legal/cookies.<locale>.txt`. */
+export default async function CookiesPage() {
   const locale = await getServerLocale();
   const { legal } = getDictionary(locale);
 
   return (
     <LegalDocumentPage
-      title={legal.terms.title}
+      title={legal.cookies.title}
       lastUpdatedLabel={legal.last_updated}
       lastUpdated={legal.updated}
       note={legal.source_note}
-      text={getLegalDocument("terms", locale)}
+      text={getLegalDocument("cookies", locale)}
     />
   );
 }

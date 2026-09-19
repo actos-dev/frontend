@@ -1,23 +1,40 @@
 import type { Metadata } from "next";
-import { getServerLocale, getTranslations } from "@/lib/i18n";
+import { LegalDocumentPage } from "@/components/legal/legal-document-page";
+import { getDictionary, getServerLocale } from "@/lib/i18n";
+import { getLegalDocument } from "@/lib/legal";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getServerLocale();
-  const { t } = getTranslations(locale);
-  return { title: t("stub.privacy.title") };
+  const { legal } = getDictionary(await getServerLocale());
+  const document = legal.privacy;
+  return {
+    title: document.meta_title,
+    description: document.meta_description,
+    openGraph: {
+      title: document.meta_title,
+      description: document.meta_description,
+      type: "website",
+      url: "/privacy",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: document.meta_title,
+      description: document.meta_description,
+    },
+  };
 }
 
-/** Stub page (ROADMAP.md S-03): a real privacy policy is a later unit. */
+/** ROADMAP.md D-07: the privacy policy and KVKK notice, rendered from `content/legal/privacy.<locale>.txt`. */
 export default async function PrivacyPage() {
   const locale = await getServerLocale();
-  const { t } = getTranslations(locale);
+  const { legal } = getDictionary(locale);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
-      <h1 className="text-2xl sm:text-3xl font-semibold font-serif text-fg tracking-tight">
-        {t("stub.privacy.title")}
-      </h1>
-      <p className="mt-3 text-sm text-fg-muted leading-relaxed">{t("stub.comingSoon")}</p>
-    </div>
+    <LegalDocumentPage
+      title={legal.privacy.title}
+      lastUpdatedLabel={legal.last_updated}
+      lastUpdated={legal.updated}
+      note={legal.source_note}
+      text={getLegalDocument("privacy", locale)}
+    />
   );
 }

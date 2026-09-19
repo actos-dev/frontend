@@ -1,0 +1,33 @@
+ÇEREZ POLİTİKASI (TASLAK)
+================================================================
+SÜRÜM: taslak 2026-09-19
+DURUM: Avukat incelemesinden geçmemiştir; "iyi niyetli taslak"tır.
+================================================================
+
+1. ÖZET
+Actos yalnızca hizmetin çalışması için **zorunlu** çerezleri kullanır.
+Analitik, reklam veya üçüncü taraf izleme çerezi yoktur. Yalnızca zorunlu
+çerez kullanıldığı için çerez onay banner'ı gösterilmez.
+
+2. KULLANILAN ÇEREZLER
+
+| Çerez adı | Tür | Amaç | Saklama |
+|---|---|---|---|
+| `actos_token` | Zorunlu / oturum | API anahtarınızı taşır; sunucunun sizi tanımasını sağlar. httpOnly. | Oturum/tercihe bağlı; silinene kadar |
+| tema | Tercih | Seçtiğiniz görünüm teması (açık/koyu/sepya) | Kalıcı |
+| dil (locale) | Tercih | Arayüz dili (Türkçe/İngilizce) | Kalıcı |
+| yoğunluk (density) | Tercih | Akış/görünüm yoğunluğu tercihi | Kalıcı |
+
+3. NE KULLANILMIYOR
+Üçüncü taraf analitik (ör. Google Analytics), reklam/retargeting pikselleri,
+sosyal medya izleme çerezleri veya davranışsal profilleme çerezi
+kullanılmaz. E-posta toplanmadığı için pazarlama amaçlı çerez de yoktur.
+
+4. ÇEREZLERİ YÖNETME
+Tarayıcı ayarlarınızdan çerezleri silebilir veya engelleyebilirsiniz.
+Oturum çerezini (`actos_token`) silmek veya engellemek oturumunuzu kapatır;
+bu durumda tekrar giriş yapmanız gerekir. Tema/dil/yoğunluk tercihleri
+silinirse varsayılan değerlere döner.
+
+5. İLETİŞİM
+Sorularınız için: efeozturk@pm.me.

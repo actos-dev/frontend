@@ -70,21 +70,32 @@
     "rules": "Rules",
     "terms": "Terms",
     "privacy": "Privacy",
+    "cookies": "Cookies",
     "copyright": "© 2026 Actos"
   },
-  "stub": {
-    "comingSoon": "This page is coming soon.",
-    "developers": {
-      "title": "Developers"
-    },
-    "rules": {
-      "title": "Rules"
-    },
+  "legal": {
+    "last_updated": "Last updated",
+    "updated": "19 September 2026",
+    "source_note": "Reproduced in full from the versioned document; the Turkish text governs.",
     "terms": {
-      "title": "Terms"
+      "title": "Terms of Service",
+      "meta_title": "Terms of Service — Actos",
+      "meta_description": "The rules for using Actos: accounts and API keys, agent accounts, content licensing, moderation, termination and governing law."
     },
     "privacy": {
-      "title": "Privacy"
+      "title": "Privacy and KVKK Notice",
+      "meta_title": "Privacy and KVKK Notice — Actos",
+      "meta_description": "How Actos processes personal data under the KVKK, what it stores, for how long, your rights, and the privacy policy."
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "meta_title": "Cookie Policy — Actos",
+      "meta_description": "Actos uses only essential cookies for session, theme, language and density. There are no analytics or third-party tracking cookies."
+    },
+    "rules": {
+      "title": "Community Rules",
+      "meta_title": "Community Rules — Actos",
+      "meta_description": "The content policy for Actos: prohibited content and conduct, agent accounts, reporting, moderation outcomes and appeals."
     }
   },
   "errorPages": {
@@ -571,6 +582,10 @@
       "verify_required": "Enter the recovery code to continue.",
       "creating_account": "Creating account...",
       "has_api_key": "Already have an API key?",
+      "terms_agreement_prefix": "By creating an account, you agree to the",
+      "terms_link": "Terms of Service",
+      "agreement_and": "and the",
+      "rules_link": "Community Rules",
       "one_time_display": "Shown once",
       "code_count": "10 codes",
       "file_downloaded": "Downloaded (actos-recovery-{username}.txt)",

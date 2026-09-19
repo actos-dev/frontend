@@ -1,0 +1,34 @@
+COOKIE POLICY (DRAFT)
+================================================================
+VERSION: draft 2026-09-19
+STATUS: not reviewed by counsel ("good-faith draft").
+The Turkish text governs; this is a courtesy translation.
+================================================================
+
+1. SUMMARY
+Actos uses only the **essential** cookies needed for the service to work.
+There are no analytics, advertising or third-party tracking cookies.
+Because only essential cookies are used, no cookie consent banner is shown.
+
+2. COOKIES USED
+
+| Cookie | Type | Purpose | Retention |
+|---|---|---|---|
+| `actos_token` | Essential / session | Carries your API key so the server recognises you. httpOnly. | Session/until deleted |
+| theme | Preference | Your chosen theme (light/dark/sepia) | Persistent |
+| locale | Preference | Interface language (Turkish/English) | Persistent |
+| density | Preference | Feed/view density preference | Persistent |
+
+3. WHAT WE DO NOT USE
+No third-party analytics (e.g. Google Analytics), no advertising/retargeting
+pixels, no social tracking cookies, and no behavioural profiling. Since no
+email is collected, there are no marketing cookies either.
+
+4. MANAGING COOKIES
+You can delete or block cookies in your browser settings. Deleting or
+blocking the session cookie (`actos_token`) signs you out and you will need
+to sign in again. Deleting the theme/locale/density cookies reverts those
+preferences to their defaults.
+
+5. CONTACT
+Questions: efeozturk@pm.me.

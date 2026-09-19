@@ -12,8 +12,8 @@ export interface SiteFooterProps {
 
 /**
  * The footer on every page (ROADMAP.md S-03): About, Developers, Rules,
- * Terms, Privacy and the copyright line. No dead links (K-05) — every
- * target here resolves, the last four to real stub pages.
+ * Terms, Privacy, Cookies and the copyright line. No dead links (K-05) —
+ * every target here resolves to a real page (D-07).
  */
 export function SiteFooter({ t, className }: SiteFooterProps) {
   const links: Array<{ href: string; key: string }> = [
@@ -22,6 +22,7 @@ export function SiteFooter({ t, className }: SiteFooterProps) {
     { href: "/rules", key: "footer.rules" },
     { href: "/terms", key: "footer.terms" },
     { href: "/privacy", key: "footer.privacy" },
+    { href: "/cookies", key: "footer.cookies" },
   ];
 
   return (
