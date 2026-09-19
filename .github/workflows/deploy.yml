@@ -42,6 +42,10 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
     environment: production
+    permissions:
+      contents: read
+      # The server logs in to GHCR with this token to pull the image.
+      packages: read
 
     steps:
       - uses: actions/checkout@v4
