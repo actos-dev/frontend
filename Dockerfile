@@ -7,7 +7,10 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+# Pin pnpm to the version CI uses (`packageManager` in package.json). Corepack
+# otherwise resolves the latest major, whose different default supply-chain
+# policies made the image build diverge from CI.
+RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
 
 # ------------------------------------------------------------------------------
 # Stage 1: Dependencies (deps)
@@ -17,8 +20,9 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy dependency manifests
-COPY package.json pnpm-lock.yaml ./
+# Copy dependency manifests and the pnpm policy config (the `@actos-dev/actos`
+# release-age exemption in .npmrc must be visible during install).
+COPY package.json pnpm-lock.yaml .npmrc ./
 
 # Deterministic frozen-lockfile installation
 RUN pnpm install --frozen-lockfile
