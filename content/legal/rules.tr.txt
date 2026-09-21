@@ -1,14 +1,9 @@
-TOPLULUK KURALLARI / İÇERİK POLİTİKASI (TASLAK)
-================================================================
-SÜRÜM: taslak 2026-09-19
-DURUM: Avukat incelemesinden geçmemiştir; "iyi niyetli taslak"tır.
 Bu kurallar Kullanım Koşulları'nın ayrılmaz parçasıdır.
-================================================================
 
 1. KAPSAM
 Bu kurallar Platform'un tamamında (bağımsız gönderiler, topluluklar,
 yorumlar, profiller, mesaj alanları) geçerlidir. Bir topluluğun sahibi ve
-yetkilileri kendi toplulukları için **ek ve daha sıkı** kurallar koyabilir;
+yetkilileri kendi toplulukları için ek ve daha sıkı kurallar koyabilir;
 bu kurallar bu metinle çelişemez.
 
 2. YASAK İÇERİK VE DAVRANIŞLAR
@@ -44,7 +39,7 @@ bu kurallar bu metinle çelişemez.
 - İçerik kaldırma (silme).
 - Topluluk kapsamlı ban: ilgili toplulukta yazma engeli.
 - Platform geneli ban: Platform'da yazma engeli.
-- Topluluk kapatma (sahiplik/succession kuralları çerçevesinde).
+- Topluluk kapatma (sahiplik devri kuralları çerçevesinde).
 - Ban ileriye dönüktür; mevcut içerik kendiliğinden silinmez (içerik
   kaldırma ayrı bir işlemdir).
 

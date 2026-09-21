@@ -1,9 +1,3 @@
-GİZLİLİK POLİTİKASI VE KVKK AYDINLATMA METNİ (TASLAK)
-================================================================
-SÜRÜM: taslak 2026-09-19
-DURUM: Avukat incelemesinden geçmemiştir; "iyi niyetli taslak"tır.
-================================================================
-
 BÖLÜM A — KVKK AYDINLATMA METNİ
 (6698 sayılı Kişisel Verilerin Korunması Kanunu m.10 kapsamında)
 
@@ -20,12 +14,12 @@ efeozturk@pm.me.
   kaydetmeler, takipler ve bunların teknik meta verileri.
 - Kimlik doğrulama verisi: API anahtarı tanımlayıcısı, anahtar etiketi,
   oluşturulma ve son kullanım zamanı; kurtarma kodlarının geri
-  döndürülemez (hash) karşılıkları. **Ham kurtarma kodları saklanmaz.**
+  döndürülemez (hash) karşılıkları. Ham kurtarma kodları saklanmaz.
 - Teknik veri: hız sınırlama ve kötüye kullanımı önleme amacıyla IP
   adresi, istek zamanı ve tercihleriniz (tema, dil, görünüm yoğunluğu).
 - Çerez verisi: yalnızca zorunlu çerezler (bkz. Çerez Politikası).
 
-**E-posta adresi toplanmaz.** Reklam/izleme amaçlı üçüncü taraf verisi
+E-posta adresi toplanmaz. Reklam/izleme amaçlı üçüncü taraf verisi
 toplanmaz.
 
 3. İŞLEME AMAÇLARI VE HUKUKİ SEBEPLER
@@ -34,8 +28,8 @@ toplanmaz.
 - Hizmetin güvenliği, hız sınırlama ve kötüye kullanımın önlenmesi
   (meşru menfaat, m.5/2-f).
 - İçeriğin makine öğrenmesi modellerinin geliştirilmesi/eğitimi ve veri
-  lisanslaması dâhil işlenmesi (Kullanım Koşulları madde 5'te verilen
-  **açık rıza** ve/veya sözleşme; bu amaçla rıza gerektiren hâllerde
+  lisanslaması dâhil işlenmesi (Kullanım Koşulları Madde 5'te verilen
+  açık rıza ve/veya sözleşme; bu amaçla rıza gerektiren hâllerde
   rızanıza dayanılır).
 - Yasal yükümlülüklerin yerine getirilmesi (m.5/2-ç).
 
@@ -48,7 +42,7 @@ sağlanır.
 
 5. SAKLAMA
 Hesabınız açık olduğu sürece saklanır. Hesabınızı sildiğinizde hesap ve
-profil verileri silinir; içerik, Kullanım Koşulları madde 5(5) uyarınca
+profil verileri silinir; içerik, Kullanım Koşulları Madde 5(5) uyarınca
 daha önce oluşturulmuş veri setleri ve yedeklerde bulunan kısmı için
 makul süre saklanabilir. Lisanslama aktarımlarında alıcıya silme
 yükümlülüğü sözleşmeyle yüklenir.
@@ -74,7 +68,7 @@ güvenliği sağlamak, tercihlerinizi hatırlamak ve Kullanım Koşulları'nda
 açıklanan içerik kullanımı amacıyla işlenir.
 
 9. ÇEREZLER
-Yalnızca **zorunlu** çerezler kullanılır: oturum (`actos_token`), tema,
+Yalnızca zorunlu çerezler kullanılır: oturum (actos_token), tema,
 dil ve görünüm yoğunluğu. Analitik, reklam veya üçüncü taraf izleme
 çerezi yoktur. Ayrıntı: Çerez Politikası.
 

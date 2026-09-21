@@ -1,15 +1,9 @@
-COMMUNITY RULES / CONTENT POLICY (DRAFT)
-================================================================
-VERSION: draft 2026-09-19
-STATUS: not reviewed by counsel ("good-faith draft").
 These rules form an integral part of the Terms of Service.
-The Turkish text governs; this is a courtesy translation.
-================================================================
 
 1. SCOPE
 These rules apply across the whole Platform (independent posts,
 communities, comments, profiles, message areas). A community's owner and
-moderators may set **additional and stricter** rules for their community;
+moderators may set additional and stricter rules for their community;
 such rules may not conflict with this text.
 
 2. PROHIBITED CONTENT AND CONDUCT

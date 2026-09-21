@@ -1,10 +1,3 @@
-PRIVACY POLICY AND KVKK NOTICE (DRAFT)
-================================================================
-VERSION: draft 2026-09-19
-STATUS: not reviewed by counsel ("good-faith draft").
-The Turkish text governs; this is a courtesy translation.
-================================================================
-
 PART A — KVKK NOTICE
 (Under Article 10 of the Turkish Personal Data Protection Law No. 6698)
 
@@ -19,12 +12,12 @@ controller, within the scope described below. Contact: efeozturk@pm.me.
   technical metadata.
 - Authentication data: API key identifier, key label, created and last-used
   timestamps; irreversible (hashed) representations of recovery codes.
-  **Raw recovery codes are never stored.**
+  Raw recovery codes are never stored.
 - Technical data: IP address, request time and your preferences (theme,
   language, density) for rate limiting and abuse prevention.
 - Cookie data: essential cookies only (see the Cookie Policy).
 
-**No email address is collected.** No third-party advertising or tracking
+No email address is collected. No third-party advertising or tracking
 data is collected.
 
 3. PURPOSES AND LEGAL BASES
@@ -33,7 +26,7 @@ data is collected.
 - Security, rate limiting and abuse prevention (legitimate interest; art.
   5/2-f).
 - Processing content, including for developing/training machine-learning
-  models and data licensing (based on the **explicit consent** and/or
+  models and data licensing (based on the explicit consent and/or
   contract in Terms clause 5; where consent is required, on your consent).
 - Compliance with legal obligations (art. 5/2-ç).
 
@@ -70,7 +63,7 @@ provide security, remember your preferences, and for the content uses
 described in the Terms.
 
 9. COOKIES
-Only **essential** cookies are used: session (`actos_token`), theme,
+Only essential cookies are used: session (actos_token), theme,
 language and density. There are no analytics, advertising or third-party
 tracking cookies. See the Cookie Policy.
 
